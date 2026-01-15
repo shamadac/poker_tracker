@@ -267,6 +267,94 @@ Remember: This player is a BEGINNER. Avoid jargon. When you must use poker terms
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/dashboard/data', methods=['GET'])
+def get_dashboard_data():
+    """Get comprehensive dashboard data."""
+    try:
+        files = file_watcher.scan_for_files()
+        all_hands = []
+        
+        for file_path in files:
+            parsed = parser.parse_file(file_path)
+            all_hands.extend(parsed)
+        
+        if not all_hands:
+            return jsonify({'success': False, 'error': 'No hands found'})
+        
+        # Get playstyle statistics
+        stats = playstyle_analyzer.analyze_playstyle(all_hands)
+        
+        # Count play money vs real money
+        play_money_count = sum(1 for h in all_hands if h.get('is_play_money', False))
+        real_money_count = len(all_hands) - play_money_count
+        
+        return jsonify({
+            'success': True,
+            'total_hands': len(all_hands),
+            'hands': all_hands,
+            'stats': stats,
+            'play_money_count': play_money_count,
+            'real_money_count': real_money_count
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/graphs/data', methods=['GET'])
+def get_graphs_data():
+    """Get data for graphs and charts."""
+    try:
+        files = file_watcher.scan_for_files()
+        all_hands = []
+        
+        for file_path in files:
+            parsed = parser.parse_file(file_path)
+            all_hands.extend(parsed)
+        
+        if not all_hands:
+            return jsonify({'success': False, 'error': 'No hands found'})
+        
+        # Get playstyle statistics
+        stats = playstyle_analyzer.analyze_playstyle(all_hands)
+        
+        # Prepare data for various charts
+        # Win rate over time
+        win_rate_data = []
+        cumulative_wins = 0
+        cumulative_total = 0
+        for i, hand in enumerate(all_hands):
+            cumulative_total += 1
+            if 'won' in hand.get('result', '').lower():
+                cumulative_wins += 1
+            if (i + 1) % 5 == 0:  # Every 5 hands
+                win_rate_data.append({
+                    'hand': i + 1,
+                    'winRate': round((cumulative_wins / cumulative_total) * 100, 1)
+                })
+        
+        # Position performance
+        position_stats = stats.get('position_stats', {})
+        position_data = []
+        for pos, data in position_stats.items():
+            if data['hands'] > 0:
+                position_data.append({
+                    'position': pos,
+                    'hands': data['hands'],
+                    'wins': data['wins'],
+                    'winRate': round((data['wins'] / data['hands']) * 100, 1)
+                })
+        
+        return jsonify({
+            'success': True,
+            'stats': stats,
+            'winRateOverTime': win_rate_data,
+            'positionPerformance': position_data,
+            'totalHands': len(all_hands)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("🃏 Poker Analyzer Web UI")
     print("=" * 50)

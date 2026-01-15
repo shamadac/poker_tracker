@@ -375,23 +375,43 @@ if (analyzeSummaryBtn) {
                 
                 // Display summary with stats
                 const summaryCard = document.createElement('div');
-                summaryCard.className = 'analysis-card';
+                summaryCard.className = 'analysis-card summary-card';
                 const stats = data.stats;
+                const formattedSummary = formatAnalysisText(data.ai_summary);
+                
                 summaryCard.innerHTML = `
                     <div class="analysis-header">
                         <h3>📊 Overall Performance Summary</h3>
+                        <div class="hand-info">
+                            <span class="hand-info-item">🎴 ${stats.total_hands} hands analyzed</span>
+                            <span class="hand-info-item">🏆 ${stats.win_rate.win_percentage}% win rate</span>
+                        </div>
                     </div>
                     <div class="analysis-content">
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                            <h4>📈 Your Statistics</h4>
-                            <p><strong>Total Hands:</strong> ${stats.total_hands}</p>
-                            <p><strong>Win Rate:</strong> ${stats.win_rate.win_percentage}% (${stats.win_rate.wins} wins, ${stats.win_rate.losses} losses, ${stats.win_rate.folds} folds)</p>
-                            <p><strong>VPIP:</strong> ${stats.vpip}% <small>(how often you play hands)</small></p>
-                            <p><strong>PFR:</strong> ${stats.pfr}% <small>(how often you raise pre-flop)</small></p>
-                            <p><strong>Aggression:</strong> ${stats.aggression} <small>(bet/raise vs call ratio)</small></p>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Win Rate</div>
+                                <div class="stat-value">${stats.win_rate.win_percentage}%</div>
+                                <div class="stat-hint">${stats.win_rate.wins}W / ${stats.win_rate.losses}L / ${stats.win_rate.folds}F</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">VPIP</div>
+                                <div class="stat-value">${stats.vpip}%</div>
+                                <div class="stat-hint">How often you play</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">PFR</div>
+                                <div class="stat-value">${stats.pfr}%</div>
+                                <div class="stat-hint">Pre-flop raises</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Aggression</div>
+                                <div class="stat-value">${stats.aggression}</div>
+                                <div class="stat-hint">Bet/raise ratio</div>
+                            </div>
                         </div>
-                        <h4>🤖 AI Coach Feedback</h4>
-                        ${data.ai_summary}
+                        <h2>🤖 AI Coach Feedback</h2>
+                        ${formattedSummary}
                     </div>
                 `;
                 summaryContainer.appendChild(summaryCard);
@@ -440,18 +460,23 @@ if (analyzeDetailedBtn) {
                     Analyzed ${data.analyzed} of ${data.total_hands} total hands
                 `;
                 
-                // Display detailed analyses
+                // Display detailed analyses with beautiful formatting
                 data.analyses.forEach(analysis => {
                     const card = document.createElement('div');
                     card.className = 'analysis-card';
+                    
+                    // Format the analysis text with proper HTML
+                    const formattedAnalysis = formatAnalysisText(analysis.analysis);
+                    
                     card.innerHTML = `
                         <div class="analysis-header">
-                            <h3>Hand #${analysis.hand_id}</h3>
+                            <h3>🎴 Hand #${analysis.hand_id}</h3>
                             <div class="hand-info">
-                                Cards: ${analysis.cards} | Result: ${analysis.result}
+                                <span class="hand-info-item">🃏 ${analysis.cards}</span>
+                                <span class="hand-info-item">📊 ${analysis.result}</span>
                             </div>
                         </div>
-                        <div class="analysis-content">${analysis.analysis}</div>
+                        <div class="analysis-content">${formattedAnalysis}</div>
                     `;
                     container.appendChild(card);
                 });
@@ -471,3 +496,54 @@ if (analyzeDetailedBtn) {
 
 // Load status on page load
 loadStatus();
+
+
+// Format AI analysis text with beautiful HTML
+function formatAnalysisText(text) {
+    if (!text) return '';
+    
+    // Convert markdown-style headers to HTML
+    text = text.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+    text = text.replace(/^### (.*?)$/gm, '<h4>$1</h4>');
+    
+    // Convert **bold** to <strong>
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert bullet points to proper lists
+    const lines = text.split('\n');
+    let inList = false;
+    let formatted = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Check if line is a bullet point
+        if (line.match(/^[-*•]\s/)) {
+            if (!inList) {
+                formatted.push('<ul>');
+                inList = true;
+            }
+            formatted.push('<li>' + line.replace(/^[-*•]\s/, '') + '</li>');
+        } else if (line.match(/^\d+\.\s/)) {
+            if (!inList) {
+                formatted.push('<ol>');
+                inList = true;
+            }
+            formatted.push('<li>' + line.replace(/^\d+\.\s/, '') + '</li>');
+        } else {
+            if (inList) {
+                formatted.push('</ul>');
+                inList = false;
+            }
+            if (line) {
+                formatted.push('<p>' + line + '</p>');
+            }
+        }
+    }
+    
+    if (inList) {
+        formatted.push('</ul>');
+    }
+    
+    return formatted.join('\n');
+}

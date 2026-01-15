@@ -234,6 +234,18 @@ class AIProvider:
         try:
             model = genai.GenerativeModel(self.config.get('gemini_model', 'gemini-pro'))
             response = model.generate_content(prompt)
+            
+            # Check if response was blocked
+            if not response.candidates:
+                return "⚠️ Analysis unavailable: Response was blocked by safety filters. This is rare - try analyzing another hand."
+            
+            candidate = response.candidates[0]
+            if candidate.finish_reason != 1:  # 1 = STOP (normal completion)
+                return f"⚠️ Analysis incomplete: Response ended early (reason: {candidate.finish_reason}). Try again or use a different model."
+            
+            if not response.text:
+                return "⚠️ No analysis generated. Please try again."
+            
             return response.text
         
         except Exception as e:

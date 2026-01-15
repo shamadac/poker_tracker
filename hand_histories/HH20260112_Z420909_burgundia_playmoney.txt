@@ -206,3 +206,713 @@ Seat 2: Z420909 (button) showed [Qc Kc] and won (15022) with two pair, Kings and
 Seat 3: wyysonny (small blind) folded before Flop
 Seat 5: rpenaloza (big blind) folded before Flop
 Seat 6: l3ttn folded before Flop (didn't bet)
+
+
+PokerStars Hand #259288528113:  Hold'em No Limit (100/200) - 2026/01/12 17:28:40 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #2 is the button
+Seat 5: clarisse44160 (0 in chips) is sitting out
+Seat 2: Z420909 (6600 in chips)
+Seat 3: wyysonny (20000 in chips)
+Seat 4: skaro1961 (135866 in chips)
+Seat 6: 1winky (20000 in chips)
+wyysonny: posts small blind 100
+skaro1961: posts big blind 200
+1winky: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [8c 9h]
+1winky: checks
+Z420909: calls 200
+clarisse44160 leaves the table
+wyysonny: raises 600 to 800
+skaro1961: raises 135066 to 135866 and is all-in
+1winky: folds
+Z420909: folds
+wyysonny: folds
+Uncalled bet (135066) returned to skaro1961
+skaro1961 collected 2000 from pot
+*** SUMMARY ***
+Total pot 2000 | Rake 0
+Seat 5: clarisse44160
+Seat 2: Z420909 (button) folded before Flop
+Seat 3: wyysonny (small blind) folded before Flop
+Seat 4: skaro1961 (big blind) collected (2000)
+Seat 6: 1winky folded before Flop (didn't bet)
+
+
+PokerStars Hand #259288536209:  Hold'em No Limit (100/200) - 2026/01/12 17:29:10 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #3 is the button
+Seat 2: Z420909 (6400 in chips)
+Seat 3: wyysonny (19200 in chips)
+Seat 4: skaro1961 (137066 in chips)
+Seat 6: 1winky (19800 in chips)
+skaro1961: posts small blind 100
+1winky: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [3s Ah]
+rpenaloza joins the table at seat #5
+Z420909: calls 200
+wyysonny: raises 400 to 600
+skaro1961: raises 136466 to 137066 and is all-in
+1winky: folds
+Z420909: calls 6200 and is all-in
+wyysonny: folds
+Uncalled bet (130666) returned to skaro1961
+*** FLOP *** [8s 6s Js]
+*** TURN *** [8s 6s Js] [2s]
+*** RIVER *** [8s 6s Js 2s] [3c]
+*** SHOW DOWN ***
+skaro1961: shows [Qc Qs] (a flush, Queen high)
+Z420909: shows [3s Ah] (a flush, Jack high)
+skaro1961 collected 12852 from pot
+kandal639503 joins the table at seat #1
+*** SUMMARY ***
+Total pot 13600 | Rake 748
+Board [8s 6s Js 2s 3c]
+Seat 2: Z420909 showed [3s Ah] and lost with a flush, Jack high
+Seat 3: wyysonny (button) folded before Flop
+Seat 4: skaro1961 (small blind) showed [Qc Qs] and won (12852) with a flush, Queen high
+Seat 6: 1winky (big blind) folded before Flop
+
+
+PokerStars Hand #259288562742:  Hold'em No Limit (100/200) - 2026/01/12 17:30:49 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #5 is the button
+Seat 1: kandal639503 (14800 in chips)
+Seat 2: Z420909 (8000 in chips)
+Seat 3: wyysonny (19800 in chips)
+Seat 4: skaro1961 (168710 in chips)
+Seat 5: rpenaloza (20356 in chips)
+Seat 6: l3ttn (10050 in chips)
+l3ttn: posts small blind 100
+kandal639503: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Qh 2h]
+Z420909: calls 200
+wyysonny: calls 200
+skaro1961: calls 200
+rpenaloza: calls 200
+l3ttn: folds
+kandal639503: checks
+*** FLOP *** [3c 4c 5c]
+kandal639503: checks
+Z420909: checks
+wyysonny: bets 6000
+skaro1961: folds
+rpenaloza: folds
+kandal639503: folds
+Z420909: folds
+Uncalled bet (6000) returned to wyysonny
+wyysonny collected 1039 from pot
+wyysonny: doesn't show hand
+*** SUMMARY ***
+Total pot 1100 | Rake 61
+Board [3c 4c 5c]
+Seat 1: kandal639503 (big blind) folded on the Flop
+Seat 2: Z420909 folded on the Flop
+Seat 3: wyysonny collected (1039)
+Seat 4: skaro1961 folded on the Flop
+Seat 5: rpenaloza (button) folded on the Flop
+Seat 6: l3ttn (small blind) folded before Flop
+
+
+PokerStars Hand #259288571187:  Hold'em No Limit (100/200) - 2026/01/12 17:31:20 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #6 is the button
+Seat 1: kandal639503 (14600 in chips)
+Seat 2: Z420909 (7800 in chips)
+Seat 3: wyysonny (20639 in chips)
+Seat 4: skaro1961 (168510 in chips)
+Seat 5: rpenaloza (20156 in chips)
+Seat 6: l3ttn (9950 in chips)
+kandal639503: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [7h 4d]
+wyysonny: folds
+skaro1961: calls 200
+rpenaloza: calls 200
+l3ttn: calls 200
+kandal639503: raises 5200 to 5400
+Z420909: folds
+skaro1961: calls 5200
+rpenaloza: folds
+l3ttn: folds
+*** FLOP *** [4s 6c 7c]
+kandal639503: bets 9200 and is all-in
+skaro1961: calls 9200
+*** TURN *** [4s 6c 7c] [Ac]
+*** RIVER *** [4s 6c 7c Ac] [Ad]
+*** SHOW DOWN ***
+kandal639503: shows [5h Ah] (three of a kind, Aces)
+skaro1961: shows [Jh 8c] (a pair of Aces)
+kandal639503 collected 28161 from pot
+*** SUMMARY ***
+Total pot 29800 | Rake 1639
+Board [4s 6c 7c Ac Ad]
+Seat 1: kandal639503 (small blind) showed [5h Ah] and won (28161) with three of a kind, Aces
+Seat 2: Z420909 (big blind) folded before Flop
+Seat 3: wyysonny folded before Flop (didn't bet)
+Seat 4: skaro1961 showed [Jh 8c] and lost with a pair of Aces
+Seat 5: rpenaloza folded before Flop
+Seat 6: l3ttn (button) folded before Flop
+
+
+PokerStars Hand #259288580668:  Hold'em No Limit (100/200) - 2026/01/12 17:31:55 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #1 is the button
+Seat 1: kandal639503 (28161 in chips)
+Seat 2: Z420909 (7600 in chips)
+Seat 3: wyysonny (20639 in chips)
+Seat 4: skaro1961 (153910 in chips)
+Seat 5: rpenaloza (19956 in chips)
+Seat 6: l3ttn (9750 in chips)
+Z420909: posts small blind 100
+wyysonny: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [4c 6s]
+skaro1961 is disconnected
+skaro1961 has timed out while disconnected
+skaro1961: folds
+rpenaloza: calls 200
+l3ttn: calls 200
+kandal639503: raises 6400 to 6600
+Z420909: folds
+wyysonny: calls 6400
+rpenaloza: folds
+l3ttn: folds
+*** FLOP *** [2d 4h Kh]
+wyysonny: checks
+kandal639503: checks
+*** TURN *** [2d 4h Kh] [8d]
+wyysonny: checks
+kandal639503: checks
+*** RIVER *** [2d 4h Kh 8d] [Jh]
+wyysonny: checks
+kandal639503: bets 21561 and is all-in
+wyysonny: folds
+Uncalled bet (21561) returned to kandal639503
+kandal639503 collected 12946 from pot
+kandal639503: doesn't show hand
+*** SUMMARY ***
+Total pot 13700 | Rake 754
+Board [2d 4h Kh 8d Jh]
+Seat 1: kandal639503 (button) collected (12946)
+Seat 2: Z420909 (small blind) folded before Flop
+Seat 3: wyysonny (big blind) folded on the River
+Seat 4: skaro1961 folded before Flop (didn't bet)
+Seat 5: rpenaloza folded before Flop
+Seat 6: l3ttn folded before Flop
+
+
+PokerStars Hand #259288597565:  Hold'em No Limit (100/200) - 2026/01/12 17:32:59 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #2 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34507 in chips)
+Seat 2: Z420909 (7500 in chips)
+Seat 3: wyysonny (20000 in chips)
+Seat 5: rpenaloza (19756 in chips)
+Seat 6: l3ttn (9550 in chips)
+wyysonny: posts small blind 100
+rpenaloza: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Kd 4h]
+l3ttn: calls 200
+kandal639503: folds
+Z420909: folds
+wyysonny: calls 100
+rpenaloza: checks
+*** FLOP *** [Js 9s Ac]
+wyysonny: checks
+rpenaloza: checks
+l3ttn: checks
+*** TURN *** [Js 9s Ac] [9d]
+wyysonny: checks
+rpenaloza: checks
+l3ttn: checks
+*** RIVER *** [Js 9s Ac 9d] [4s]
+wyysonny: bets 200
+rpenaloza: folds
+l3ttn: raises 1600 to 1800
+wyysonny: folds
+Uncalled bet (1600) returned to l3ttn
+l3ttn collected 945 from pot
+*** SUMMARY ***
+Total pot 1000 | Rake 55
+Board [Js 9s Ac 9d 4s]
+Seat 4: skaro1961
+Seat 1: kandal639503 folded before Flop (didn't bet)
+Seat 2: Z420909 (button) folded before Flop (didn't bet)
+Seat 3: wyysonny (small blind) folded on the River
+Seat 5: rpenaloza (big blind) folded on the River
+Seat 6: l3ttn collected (945)
+
+
+PokerStars Hand #259288609575:  Hold'em No Limit (100/200) - 2026/01/12 17:33:45 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #3 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34507 in chips)
+Seat 2: Z420909 (7500 in chips)
+Seat 3: wyysonny (19600 in chips)
+Seat 5: rpenaloza (19556 in chips)
+Seat 6: l3ttn (10095 in chips)
+rpenaloza: posts small blind 100
+l3ttn: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Tc 5d]
+kandal639503: folds
+skaro1961 is disconnected
+Z420909: folds
+wyysonny: calls 200
+rpenaloza: calls 100
+l3ttn: checks
+*** FLOP *** [Js 8d Jc]
+rpenaloza: checks
+l3ttn: checks
+wyysonny: checks
+*** TURN *** [Js 8d Jc] [Qc]
+rpenaloza: bets 567
+l3ttn: folds
+wyysonny: folds
+Uncalled bet (567) returned to rpenaloza
+rpenaloza collected 567 from pot
+rpenaloza: doesn't show hand
+*** SUMMARY ***
+Total pot 600 | Rake 33
+Board [Js 8d Jc Qc]
+Seat 4: skaro1961
+Seat 1: kandal639503 folded before Flop (didn't bet)
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: wyysonny (button) folded on the Turn
+Seat 5: rpenaloza (small blind) collected (567)
+Seat 6: l3ttn (big blind) folded on the Turn
+
+
+PokerStars Hand #259288619133:  Hold'em No Limit (100/200) - 2026/01/12 17:34:21 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #5 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34507 in chips)
+Seat 2: Z420909 (7500 in chips)
+Seat 3: wyysonny (19400 in chips)
+Seat 5: rpenaloza (19923 in chips)
+Seat 6: l3ttn (9895 in chips)
+l3ttn: posts small blind 100
+kandal639503: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [3d 9d]
+Z420909: folds
+wyysonny: calls 200
+rpenaloza: calls 200
+l3ttn: calls 100
+kandal639503: checks
+*** FLOP *** [2h Ks Ac]
+l3ttn: checks
+kandal639503: checks
+wyysonny: checks
+rpenaloza: checks
+*** TURN *** [2h Ks Ac] [Ad]
+l3ttn: checks
+kandal639503: checks
+wyysonny: checks
+rpenaloza: checks
+*** RIVER *** [2h Ks Ac Ad] [7c]
+l3ttn: checks
+kandal639503: checks
+wyysonny: checks
+skaro1961 is disconnected
+rpenaloza: bets 756
+l3ttn: folds
+kandal639503: folds
+wyysonny: folds
+Uncalled bet (756) returned to rpenaloza
+rpenaloza collected 756 from pot
+rpenaloza: doesn't show hand
+*** SUMMARY ***
+Total pot 800 | Rake 44
+Board [2h Ks Ac Ad 7c]
+Seat 4: skaro1961
+Seat 1: kandal639503 (big blind) folded on the River
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: wyysonny folded on the River
+Seat 5: rpenaloza (button) collected (756)
+Seat 6: l3ttn (small blind) folded on the River
+
+
+PokerStars Hand #259288634064:  Hold'em No Limit (100/200) - 2026/01/12 17:35:18 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #6 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34307 in chips)
+Seat 2: Z420909 (7500 in chips)
+Seat 3: wyysonny (20000 in chips)
+Seat 5: rpenaloza (20479 in chips)
+Seat 6: l3ttn (9695 in chips)
+kandal639503: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [3h Jc]
+wyysonny: folds
+rpenaloza: calls 200
+l3ttn: calls 200
+kandal639503: folds
+Z420909: checks
+*** FLOP *** [Ad 6d 4c]
+Z420909: checks
+rpenaloza: checks
+l3ttn: checks
+*** TURN *** [Ad 6d 4c] [Ah]
+Z420909: checks
+rpenaloza: checks
+l3ttn: checks
+*** RIVER *** [Ad 6d 4c Ah] [9c]
+Z420909: checks
+rpenaloza: checks
+l3ttn: checks
+*** SHOW DOWN ***
+Z420909: shows [3h Jc] (a pair of Aces)
+rpenaloza: shows [Td Ks] (a pair of Aces - King kicker)
+l3ttn: mucks hand
+skaro1961 is disconnected
+rpenaloza collected 661 from pot
+*** SUMMARY ***
+Total pot 700 | Rake 39
+Board [Ad 6d 4c Ah 9c]
+Seat 4: skaro1961
+Seat 1: kandal639503 (small blind) folded before Flop
+Seat 2: Z420909 (big blind) showed [3h Jc] and lost with a pair of Aces
+Seat 3: wyysonny folded before Flop (didn't bet)
+Seat 5: rpenaloza showed [Td Ks] and won (661) with a pair of Aces
+Seat 6: l3ttn (button) mucked [Tc 7c]
+
+
+PokerStars Hand #259288654541:  Hold'em No Limit (100/200) - 2026/01/12 17:36:34 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #2 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34007 in chips)
+Seat 2: Z420909 (11425 in chips)
+Seat 3: wyysonny (19800 in chips)
+Seat 5: rpenaloza (19784 in chips)
+Seat 6: l3ttn (6512 in chips)
+wyysonny: posts small blind 100
+rpenaloza: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [9c 8s]
+skaro1961 is disconnected
+l3ttn: folds
+kandal639503: folds
+Z420909: calls 200
+wyysonny: calls 100
+rpenaloza: checks
+*** FLOP *** [7d 8d 9h]
+wyysonny: checks
+rpenaloza: checks
+Z420909: bets 567
+wyysonny: calls 567
+rpenaloza: calls 567
+*** TURN *** [7d 8d 9h] [Kc]
+wyysonny: checks
+rpenaloza: bets 200
+Z420909: raises 10458 to 10658 and is all-in
+wyysonny: folds
+rpenaloza: folds
+Uncalled bet (10458) returned to Z420909
+Z420909 collected 2552 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 2701 | Rake 149
+Board [7d 8d 9h Kc]
+Seat 4: skaro1961
+Seat 1: kandal639503 folded before Flop (didn't bet)
+Seat 2: Z420909 (button) collected (2552)
+Seat 3: wyysonny (small blind) folded on the Turn
+Seat 5: rpenaloza (big blind) folded on the Turn
+Seat 6: l3ttn folded before Flop (didn't bet)
+
+
+PokerStars Hand #259288666119:  Hold'em No Limit (100/200) - 2026/01/12 17:37:18 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #3 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34007 in chips)
+Seat 2: Z420909 (13010 in chips)
+Seat 3: wyysonny (20000 in chips)
+Seat 5: rpenaloza (18817 in chips)
+Seat 6: l3ttn (6512 in chips)
+rpenaloza: posts small blind 100
+l3ttn: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [3c Qh]
+kandal639503: folds
+Z420909: folds
+wyysonny: calls 200
+rpenaloza: calls 100
+l3ttn: checks
+*** FLOP *** [9h 2s Tc]
+rpenaloza: checks
+l3ttn: bets 400
+wyysonny: calls 400
+rpenaloza: calls 400
+*** TURN *** [9h 2s Tc] [6s]
+rpenaloza: checks
+l3ttn: bets 400
+wyysonny: calls 400
+rpenaloza: calls 400
+*** RIVER *** [9h 2s Tc 6s] [Js]
+rpenaloza: checks
+l3ttn: bets 400
+wyysonny: raises 2400 to 2800
+rpenaloza: folds
+l3ttn: folds
+Uncalled bet (2400) returned to wyysonny
+wyysonny collected 3591 from pot
+wyysonny: doesn't show hand
+*** SUMMARY ***
+Total pot 3800 | Rake 209
+Board [9h 2s Tc 6s Js]
+Seat 4: skaro1961
+Seat 1: kandal639503 folded before Flop (didn't bet)
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: wyysonny (button) collected (3591)
+Seat 5: rpenaloza (small blind) folded on the River
+Seat 6: l3ttn (big blind) folded on the River
+
+
+PokerStars Hand #259288683412:  Hold'em No Limit (100/200) - 2026/01/12 17:38:24 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #5 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34007 in chips)
+Seat 2: Z420909 (13010 in chips)
+Seat 3: wyysonny (22191 in chips)
+Seat 5: rpenaloza (17817 in chips)
+Seat 6: l3ttn (5112 in chips)
+l3ttn: posts small blind 100
+kandal639503: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [7s Td]
+Z420909: folds
+wyysonny: folds
+rpenaloza: calls 200
+l3ttn: folds
+kandal639503: checks
+*** FLOP *** [Qc 7h 2c]
+kandal639503: checks
+rpenaloza: checks
+*** TURN *** [Qc 7h 2c] [3c]
+kandal639503: bets 200
+rpenaloza: calls 200
+*** RIVER *** [Qc 7h 2c 3c] [Jc]
+kandal639503: bets 200
+rpenaloza: folds
+Uncalled bet (200) returned to kandal639503
+kandal639503 collected 850 from pot
+kandal639503: doesn't show hand
+*** SUMMARY ***
+Total pot 900 | Rake 50
+Board [Qc 7h 2c 3c Jc]
+Seat 4: skaro1961
+Seat 1: kandal639503 (big blind) collected (850)
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: wyysonny folded before Flop (didn't bet)
+Seat 5: rpenaloza (button) folded on the River
+Seat 6: l3ttn (small blind) folded before Flop
+
+
+PokerStars Hand #259288691709:  Hold'em No Limit (100/200) - 2026/01/12 17:38:55 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #6 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34457 in chips)
+Seat 2: Z420909 (13010 in chips)
+Seat 3: wyysonny (22191 in chips)
+Seat 5: rpenaloza (17417 in chips)
+Seat 6: l3ttn (5012 in chips)
+kandal639503: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Qc 4d]
+wyysonny: folds
+rpenaloza: calls 200
+l3ttn: folds
+kandal639503: calls 100
+Z420909: checks
+*** FLOP *** [Jh 8c 2d]
+kandal639503: checks
+Z420909: checks
+rpenaloza: bets 200
+kandal639503: folds
+Z420909: folds
+Uncalled bet (200) returned to rpenaloza
+rpenaloza collected 567 from pot
+rpenaloza: doesn't show hand
+*** SUMMARY ***
+Total pot 600 | Rake 33
+Board [Jh 8c 2d 7s]
+Seat 4: skaro1961
+Seat 1: kandal639503 (small blind) folded on the Turn
+Seat 2: Z420909 (big blind) folded on the Turn
+Seat 3: wyysonny folded before Flop (didn't bet)
+Seat 5: rpenaloza collected (567)
+Seat 6: l3ttn (button) folded before Flop (didn't bet)
+
+
+PokerStars Hand #259288511626:  Hold'em No Limit (100/200) - 2026/01/12 17:35:47 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #2 is the button
+Seat 1: Iniesta1422 (8394 in chips)
+Seat 2: Z420909 (21586 in chips)
+Seat 3: Lackopapa1 (5517 in chips)
+Seat 4: eddpf (23698 in chips)
+Seat 5: 6447644 (51748 in chips)
+Seat 6: wearemarshall34 (20000 in chips)
+Lackopapa1: posts small blind 100
+eddpf: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [9c 7s]
+6447644: calls 200
+wearemarshall34: calls 200
+Iniesta1422: calls 200
+Z420909: folds
+Lackopapa1: calls 100
+eddpf: checks
+*** FLOP *** [6d 4h 8s]
+Lackopapa1: checks
+eddpf: checks
+6447644: checks
+wearemarshall34: bets 800
+Iniesta1422: calls 800
+Lackopapa1: calls 800
+eddpf: calls 800
+6447644: calls 800
+*** TURN *** [6d 4h 8s] [4d]
+Lackopapa1: checks
+eddpf: checks
+6447644: checks
+wearemarshall34: checks
+Iniesta1422: bets 1000
+Lackopapa1: folds
+eddpf: calls 1000
+6447644: calls 1000
+wearemarshall34: calls 1000
+*** RIVER *** [6d 4h 8s 4d] [5d]
+eddpf: checks
+6447644: bets 200
+wearemarshall34: calls 200
+Iniesta1422: calls 200
+eddpf: calls 200
+*** SHOW DOWN ***
+6447644: shows [Th 5s] (two pair, Fives and Fours)
+wearemarshall34: shows [7d 6h] (a straight, Four to Eight)
+Iniesta1422: mucks hand
+eddpf: mucks hand
+wearemarshall34 collected 9261 from pot
+*** SUMMARY ***
+Total pot 9800 | Rake 539
+Board [6d 4h 8s 4d 5d]
+Seat 1: Iniesta1422 mucked [3h 8d]
+Seat 2: Z420909 (button) folded before Flop (didn't bet)
+Seat 3: Lackopapa1 (small blind) folded on the Turn
+Seat 4: eddpf (big blind) mucked [Js Jh]
+Seat 5: 6447644 showed [Th 5s] and lost with two pair, Fives and Fours
+Seat 6: wearemarshall34 showed [7d 6h] and won (9261) with a straight, Four to Eight
+
+
+PokerStars Hand #259288520425:  Hold'em No Limit (100/200) - 2026/01/12 17:37:27 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #3 is the button
+Seat 1: Iniesta1422 (6194 in chips)
+Seat 2: Z420909 (21586 in chips)
+Seat 3: Lackopapa1 (4517 in chips)
+Seat 4: eddpf (21498 in chips)
+Seat 5: 6447644 (49548 in chips)
+Seat 6: wearemarshall34 (27061 in chips)
+eddpf: posts small blind 100
+6447644: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Kh Kd]
+wearemarshall34: calls 200
+Iniesta1422: calls 200
+Z420909: calls 200
+Lackopapa1: calls 200
+eddpf: calls 100
+6447644: checks
+*** FLOP *** [Ac 4c 5c]
+eddpf: checks
+6447644: checks
+wearemarshall34: checks
+Iniesta1422: checks
+Z420909: checks
+Lackopapa1: checks
+*** TURN *** [Ac 4c 5c] [4h]
+eddpf: checks
+6447644: checks
+wearemarshall34: bets 200
+Iniesta1422: folds
+Z420909: raises 200 to 400
+Lackopapa1: calls 400
+eddpf: folds
+6447644: folds
+wearemarshall34: calls 200
+*** RIVER *** [Ac 4c 5c 4h] [6d]
+wearemarshall34: checks
+Z420909: bets 2268
+Lackopapa1: folds
+wearemarshall34: folds
+Uncalled bet (2268) returned to Z420909
+Z420909 collected 2268 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 2400 | Rake 132
+Board [Ac 4c 5c 4h 6d]
+Seat 1: Iniesta1422 folded on the Turn
+Seat 2: Z420909 collected (2268)
+Seat 3: Lackopapa1 (button) folded on the River
+Seat 4: eddpf (small blind) folded on the Turn
+Seat 5: 6447644 (big blind) folded on the Turn
+Seat 6: wearemarshall34 folded on the River
+
+
+PokerStars Hand #259288527736:  Hold'em No Limit (100/200) - 2026/01/12 17:38:49 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #4 is the button
+Seat 1: Iniesta1422 (5994 in chips)
+Seat 2: Z420909 (23254 in chips)
+Seat 3: Lackopapa1 (3917 in chips)
+Seat 4: eddpf (21298 in chips)
+Seat 5: 6447644 (49348 in chips)
+Seat 6: wearemarshall34 (26461 in chips)
+6447644: posts small blind 100
+wearemarshall34: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [3s Kd]
+Iniesta1422: calls 200
+Z420909: folds
+Lackopapa1: calls 200
+eddpf: folds
+6447644: calls 100
+wearemarshall34: checks
+*** FLOP *** [6c 4c Th]
+6447644: checks
+wearemarshall34: checks
+Iniesta1422: bets 600
+Lackopapa1: calls 600
+6447644: calls 600
+wearemarshall34: calls 600
+*** TURN *** [6c 4c Th] [4s]
+6447644: checks
+wearemarshall34: checks
+Iniesta1422: bets 1000
+Lackopapa1: calls 1000
+6447644: calls 1000
+wearemarshall34: calls 1000
+*** RIVER *** [6c 4c Th 4s] [3d]
+6447644: checks
+wearemarshall34: bets 10000
+Iniesta1422: calls 4194 and is all-in
+Lackopapa1: calls 2117 and is all-in
+6447644: folds
+Uncalled bet (5806) returned to wearemarshall34
+*** SHOW DOWN ***
+wearemarshall34: shows [9s 4h] (three of a kind, Fours)
+Iniesta1422: shows [Tc 6s] (two pair, Tens and Sixes)
+wearemarshall34 collected 3925 from side pot
+Lackopapa1: shows [3h Td] (two pair, Tens and Fours)
+wearemarshall34 collected 12806 from main pot
+*** SUMMARY ***
+Total pot 17705 Main pot 12806. Side pot 3925. | Rake 974
+Board [6c 4c Th 4s 3d]
+Seat 1: Iniesta1422 showed [Tc 6s] and lost with two pair, Tens and Sixes
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: Lackopapa1 showed [3h Td] and lost with two pair, Tens and Fours
+Seat 4: eddpf (button) folded before Flop (didn't bet)
+Seat 5: 6447644 (small blind) folded on the River
+Seat 6: wearemarshall34 (big blind) showed [9s 4h] and won (16731) with three of a kind, Fours

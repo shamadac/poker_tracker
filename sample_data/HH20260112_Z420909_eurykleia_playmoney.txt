@@ -147,3 +147,83 @@ Seat 3: Z420909 (button) showed [Kc Qd] and won (35963) with two pair, Kings and
 Seat 4: Jdelapaz89 (small blind) folded on the Flop
 Seat 5: NagyJancsi0726 (big blind) folded on the Flop
 Seat 6: Sergio9869 showed [8c Ad] and lost with high card Ace
+
+
+PokerStars Hand #259280287259:  Hold'em No Limit (100/200) - 2026/01/12 4:48:07 ET
+Table 'Eurykleia IV' 6-max (Play Money) Seat #6 is the button
+Seat 1: Got2BReal (9011 in chips)
+Seat 3: Z420909 (8800 in chips)
+Seat 4: Jdelapaz89 (5431 in chips)
+Seat 6: jjoshe (49323 in chips)
+Got2BReal: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [9h 2c]
+Jdelapaz89: calls 200
+jjoshe: calls 200
+Got2BReal: raises 200 to 400
+NagyJancsi0726 joins the table at seat #5
+NagyJancsi0726 is disconnected
+alexcop35 joins the table at seat #2
+Z420909: calls 200
+Jdelapaz89: calls 200
+jjoshe: raises 8400 to 8800
+Got2BReal: raises 211 to 9011 and is all-in
+Z420909: folds
+Jdelapaz89: folds
+jjoshe: calls 211
+*** FLOP *** [4d 8d 9d]
+*** TURN *** [4d 8d 9d] [9s]
+*** RIVER *** [4d 8d 9d 9s] [4h]
+*** SHOW DOWN ***
+Got2BReal: shows [Ad Kh] (two pair, Nines and Fours)
+jjoshe: shows [Qc As] (two pair, Nines and Fours)
+Got2BReal collected 8894 from pot
+jjoshe collected 8893 from pot
+*** SUMMARY ***
+Total pot 18822 | Rake 1035
+Board [4d 8d 9d 9s 4h]
+Seat 1: Got2BReal (small blind) showed [Ad Kh] and won (8894) with two pair, Nines and Fours
+Seat 3: Z420909 (big blind) folded before Flop
+Seat 4: Jdelapaz89 folded before Flop
+Seat 6: jjoshe (button) showed [Qc As] and won (8893) with two pair, Nines and Fours
+
+
+PokerStars Hand #259280293830:  Hold'em No Limit (100/200) - 2026/01/12 4:49:32 ET
+Table 'Eurykleia IV' 6-max (Play Money) Seat #3 is the button
+Seat 1: ctu1234 (8000 in chips)
+Seat 2: alexcop35 (20000 in chips)
+Seat 3: Z420909 (9947 in chips)
+Seat 4: Jdelapaz89 (4831 in chips)
+Seat 5: NagyJancsi0726 (18687 in chips)
+Seat 6: jjoshe (49005 in chips)
+Jdelapaz89: posts small blind 100
+NagyJancsi0726: posts big blind 200
+ctu1234: posts big blind 200
+alexcop35: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [2s Jh]
+jjoshe: calls 200
+ctu1234: checks
+alexcop35: checks
+Z420909: folds
+Jdelapaz89: calls 100
+NagyJancsi0726: checks
+*** FLOP *** [9c Kc Tc]
+Jdelapaz89: checks
+NagyJancsi0726: bets 200
+jjoshe: folds
+ctu1234: folds
+alexcop35: folds
+Jdelapaz89: folds
+Uncalled bet (200) returned to NagyJancsi0726
+NagyJancsi0726 collected 945 from pot
+*** SUMMARY ***
+Total pot 1000 | Rake 55
+Board [9c Kc Tc]
+Seat 1: ctu1234 folded on the Flop (didn't bet)
+Seat 2: alexcop35 folded on the Flop (didn't bet)
+Seat 3: Z420909 (button) folded before Flop (didn't bet)
+Seat 4: Jdelapaz89 (small blind) folded on the Flop
+Seat 5: NagyJancsi0726 (big blind) collected (945)
+Seat 6: jjoshe folded on the Flop

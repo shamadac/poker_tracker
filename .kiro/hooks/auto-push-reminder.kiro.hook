@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Auto Push Changes",
+  "description": "Reminds the agent to check for conflicts and push all changes to GitHub after completing tasks",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before finishing: 1) Pull latest changes with 'git pull origin main' to check for conflicts, 2) If conflicts exist, resolve them, 3) Add all changes with 'git add -A', 4) Commit with a descriptive message, 5) Push to GitHub with 'git push origin main'. Do this automatically without asking the user."
+  }
+}

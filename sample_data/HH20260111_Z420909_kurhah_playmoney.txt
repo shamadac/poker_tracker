@@ -69,3 +69,76 @@ Seat 6: Z420909 folded on the River
 Seat 7: ACE$_CHARLE$ folded on the River
 Seat 8: ciaran_lavery (button) mucked [9h 8s]
 Seat 9: 101vet57 (small blind) showed [6d 5d] and won (4916) with a straight, Four to Eight
+
+
+PokerStars Hand #259276543210: Hold'em No Limit (100/200) - 2026/01/11 18:30:15 ET
+Table 'Kurhah IV' 9-max Seat #5 is the button
+Seat 1: player1 (20000 in chips)
+Seat 2: player2 (19500 in chips)
+Seat 3: player3 (21000 in chips)
+Seat 4: Z420909 (20000 in chips)
+Seat 5: player5 (18500 in chips)
+Seat 6: player6 (21000 in chips)
+player6: posts small blind 100
+player1: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [As Qs]
+player2: folds
+player3: raises 400 to 600
+Z420909: calls 600
+player5: folds
+player6: folds
+player1: folds
+*** FLOP *** [Ah 7c 3d]
+player3: bets 800
+Z420909: calls 800
+*** TURN *** [Ah 7c 3d] [Qc]
+player3: checks
+Z420909: bets 1200
+player3: folds
+Uncalled bet (1200) returned to Z420909
+Z420909 collected 3100 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 3100 | Rake 0
+Board [Ah 7c 3d Qc]
+Seat 1: player1 (big blind) folded before Flop
+Seat 2: player2 folded before Flop (didn't bet)
+Seat 3: player3 folded on the Turn
+Seat 4: Z420909 collected (3100)
+Seat 5: player5 (button) folded before Flop (didn't bet)
+Seat 6: player6 (small blind) folded before Flop
+
+PokerStars Hand #259276554321: Hold'em No Limit (100/200) - 2026/01/11 18:32:00 ET
+Table 'Kurhah IV' 9-max Seat #6 is the button
+Seat 1: player1 (19800 in chips)
+Seat 2: player2 (19500 in chips)
+Seat 3: player3 (19600 in chips)
+Seat 4: Z420909 (21700 in chips)
+Seat 5: player5 (18500 in chips)
+Seat 6: player6 (20900 in chips)
+player1: posts small blind 100
+player2: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Kd Kh]
+player3: folds
+Z420909: raises 400 to 600
+player5: folds
+player6: calls 600
+player1: folds
+player2: folds
+*** FLOP *** [9h 5c 2d]
+Z420909: bets 800
+player6: folds
+Uncalled bet (800) returned to Z420909
+Z420909 collected 1500 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 1500 | Rake 0
+Board [9h 5c 2d]
+Seat 1: player1 (small blind) folded before Flop
+Seat 2: player2 (big blind) folded before Flop
+Seat 3: player3 folded before Flop (didn't bet)
+Seat 4: Z420909 collected (1500)
+Seat 5: player5 folded before Flop (didn't bet)
+Seat 6: player6 (button) folded on the Flop

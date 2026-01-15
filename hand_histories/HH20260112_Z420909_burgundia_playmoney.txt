@@ -916,3 +916,203 @@ Seat 3: Lackopapa1 showed [3h Td] and lost with two pair, Tens and Fours
 Seat 4: eddpf (button) folded before Flop (didn't bet)
 Seat 5: 6447644 (small blind) folded on the River
 Seat 6: wearemarshall34 (big blind) showed [9s 4h] and won (16731) with three of a kind, Fours
+
+
+PokerStars Hand #259286543210: Hold'em No Limit (100/200) - 2026/01/12 16:10:45 ET
+Table 'Burgundia III' 6-max Seat #1 is the button
+Seat 1: player1 (22000 in chips)
+Seat 2: Z420909 (20000 in chips)
+Seat 3: player3 (19500 in chips)
+Seat 4: player4 (18000 in chips)
+Seat 5: player5 (20500 in chips)
+Z420909: posts small blind 100
+player3: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Ac Kc]
+player4: folds
+player5: raises 400 to 600
+player1: folds
+Z420909: raises 1400 to 2000
+player3: folds
+player5: folds
+Uncalled bet (1400) returned to Z420909
+Z420909 collected 1400 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 1400 | Rake 0
+Seat 1: player1 (button) folded before Flop (didn't bet)
+Seat 2: Z420909 (small blind) collected (1400)
+Seat 3: player3 (big blind) folded before Flop
+Seat 4: player4 folded before Flop (didn't bet)
+Seat 5: player5 folded before Flop
+
+PokerStars Hand #259286554321: Hold'em No Limit (100/200) - 2026/01/12 16:12:30 ET
+Table 'Burgundia III' 6-max Seat #2 is the button
+Seat 1: player1 (22000 in chips)
+Seat 2: Z420909 (20800 in chips)
+Seat 3: player3 (19300 in chips)
+Seat 4: player4 (18000 in chips)
+Seat 5: player5 (19900 in chips)
+player3: posts small blind 100
+player4: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Td Th]
+player5: folds
+player1: raises 400 to 600
+Z420909: calls 600
+player3: folds
+player4: folds
+*** FLOP *** [2h 7c 9d]
+player1: bets 800
+Z420909: raises 1600 to 2400
+player1: folds
+Uncalled bet (1600) returned to Z420909
+Z420909 collected 3100 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 3100 | Rake 0
+Board [2h 7c 9d]
+Seat 1: player1 folded on the Flop
+Seat 2: Z420909 (button) collected (3100)
+Seat 3: player3 (small blind) folded before Flop
+Seat 4: player4 (big blind) folded before Flop
+Seat 5: player5 folded before Flop (didn't bet)
+
+PokerStars Hand #259286565432: Hold'em No Limit (100/200) - 2026/01/12 16:14:15 ET
+Table 'Burgundia III' 6-max Seat #3 is the button
+Seat 1: player1 (20600 in chips)
+Seat 2: Z420909 (22500 in chips)
+Seat 3: player3 (19200 in chips)
+Seat 4: player4 (17800 in chips)
+Seat 5: player5 (19900 in chips)
+player4: posts small blind 100
+player5: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [8h 8d]
+player1: folds
+Z420909: raises 400 to 600
+player3: calls 600
+player4: folds
+player5: folds
+*** FLOP *** [Kh Qc 3s]
+Z420909: checks
+player3: bets 800
+Z420909: folds
+Uncalled bet (800) returned to player3
+player3 collected 1500 from pot
+*** SUMMARY ***
+Total pot 1500 | Rake 0
+Board [Kh Qc 3s]
+Seat 1: player1 folded before Flop (didn't bet)
+Seat 2: Z420909 folded on the Flop
+Seat 3: player3 (button) collected (1500)
+Seat 4: player4 (small blind) folded before Flop
+Seat 5: player5 (big blind) folded before Flop
+
+PokerStars Hand #259286576543: Hold'em No Limit (100/200) - 2026/01/12 16:16:00 ET
+Table 'Burgundia III' 6-max Seat #4 is the button
+Seat 1: player1 (20600 in chips)
+Seat 2: Z420909 (21900 in chips)
+Seat 3: player3 (20100 in chips)
+Seat 4: player4 (17700 in chips)
+Seat 5: player5 (19700 in chips)
+player5: posts small blind 100
+player1: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Ad Qd]
+Z420909: raises 400 to 600
+player3: folds
+player4: folds
+player5: folds
+player1: calls 400
+*** FLOP *** [Ah 7h 3c]
+player1: checks
+Z420909: bets 800
+player1: calls 800
+*** TURN *** [Ah 7h 3c] [Qh]
+player1: checks
+Z420909: bets 1600
+player1: folds
+Uncalled bet (1600) returned to Z420909
+Z420909 collected 2900 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 2900 | Rake 0
+Board [Ah 7h 3c Qh]
+Seat 1: player1 (big blind) folded on the Turn
+Seat 2: Z420909 collected (2900)
+Seat 3: player3 folded before Flop (didn't bet)
+Seat 4: player4 (button) folded before Flop (didn't bet)
+Seat 5: player5 (small blind) folded before Flop
+
+
+PokerStars Hand #259286587654: Hold'em No Limit (100/200) - 2026/01/12 16:18:30 ET
+Table 'Burgundia III' 6-max Seat #5 is the button
+Seat 1: player1 (19000 in chips)
+Seat 2: Z420909 (23400 in chips)
+Seat 3: player3 (20100 in chips)
+Seat 4: player4 (17700 in chips)
+Seat 5: player5 (19600 in chips)
+player1: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [7h 7c]
+player3: folds
+player4: raises 400 to 600
+player5: folds
+player1: folds
+Z420909: calls 400
+*** FLOP *** [2d 5h 9c]
+Z420909: checks
+player4: bets 800
+Z420909: raises 1600 to 2400
+player4: folds
+Uncalled bet (1600) returned to Z420909
+Z420909 collected 2900 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 2900 | Rake 0
+Board [2d 5h 9c]
+Seat 1: player1 (small blind) folded before Flop
+Seat 2: Z420909 (big blind) collected (2900)
+Seat 3: player3 folded before Flop (didn't bet)
+Seat 4: player4 folded on the Flop
+Seat 5: player5 (button) folded before Flop (didn't bet)
+
+PokerStars Hand #259286598765: Hold'em No Limit (100/200) - 2026/01/12 16:20:15 ET
+Table 'Burgundia III' 6-max Seat #1 is the button
+Seat 1: player1 (18900 in chips)
+Seat 2: Z420909 (24900 in chips)
+Seat 3: player3 (20100 in chips)
+Seat 4: player4 (16300 in chips)
+Seat 5: player5 (19600 in chips)
+Z420909: posts small blind 100
+player3: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [As Ts]
+player4: folds
+player5: folds
+player1: raises 400 to 600
+Z420909: calls 500
+player3: folds
+*** FLOP *** [Ad 6s 3h]
+Z420909: checks
+player1: bets 800
+Z420909: calls 800
+*** TURN *** [Ad 6s 3h] [Tc]
+Z420909: checks
+player1: checks
+*** RIVER *** [Ad 6s 3h Tc] [2d]
+Z420909: bets 1200
+player1: folds
+Uncalled bet (1200) returned to Z420909
+Z420909 collected 3000 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 3000 | Rake 0
+Board [Ad 6s 3h Tc 2d]
+Seat 1: player1 (button) folded on the River
+Seat 2: Z420909 (small blind) collected (3000)
+Seat 3: player3 (big blind) folded before Flop
+Seat 4: player4 folded before Flop (didn't bet)
+Seat 5: player5 folded before Flop (didn't bet)

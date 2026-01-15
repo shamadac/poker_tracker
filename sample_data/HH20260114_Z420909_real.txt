@@ -145,3 +145,97 @@ Seat 2: Z420909 (small blind) folded before Flop
 Seat 4: MackChad (big blind) folded before Flop
 Seat 5: Jovinater collected ($0.12)
 Seat 6: frank zha303 folded before Flop (didn't bet)
+
+
+PokerStars Hand #259309876544: Hold'em No Limit ($0.02/$0.05 CAD) - 2026/01/14 12:31:20 ET
+Table 'Palamedes IV' 6-max Seat #2 is the button
+Seat 1: smiley99er ($6.65 in chips)
+Seat 2: Z420909 ($2.07 in chips)
+Seat 4: MackChad ($5.95 in chips)
+Seat 5: Jovinater ($4.66 in chips)
+Seat 6: frank zha303 ($8.64 in chips)
+MackChad: posts small blind $0.02
+Jovinater: posts big blind $0.05
+*** HOLE CARDS ***
+Dealt to Z420909 [Ah Kh]
+frank zha303: folds
+smiley99er: raises $0.10 to $0.15
+Z420909: raises $0.30 to $0.45
+MackChad: folds
+Jovinater: folds
+smiley99er: folds
+Uncalled bet ($0.30) returned to Z420909
+Z420909 collected $0.37 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot $0.37 | Rake $0
+Seat 1: smiley99er folded before Flop
+Seat 2: Z420909 (button) collected ($0.37)
+Seat 4: MackChad (small blind) folded before Flop
+Seat 5: Jovinater (big blind) folded before Flop
+Seat 6: frank zha303 folded before Flop (didn't bet)
+
+PokerStars Hand #259309887655: Hold'em No Limit ($0.02/$0.05 CAD) - 2026/01/14 12:32:45 ET
+Table 'Palamedes IV' 6-max Seat #4 is the button
+Seat 1: smiley99er ($6.50 in chips)
+Seat 2: Z420909 ($2.29 in chips)
+Seat 4: MackChad ($5.93 in chips)
+Seat 5: Jovinater ($4.61 in chips)
+Seat 6: frank zha303 ($8.64 in chips)
+Jovinater: posts small blind $0.02
+frank zha303: posts big blind $0.05
+*** HOLE CARDS ***
+Dealt to Z420909 [Qc Qd]
+smiley99er: folds
+Z420909: raises $0.10 to $0.15
+MackChad: calls $0.15
+Jovinater: folds
+frank zha303: folds
+*** FLOP *** [7h 3c 2d]
+Z420909: bets $0.20
+MackChad: folds
+Uncalled bet ($0.20) returned to Z420909
+Z420909 collected $0.36 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot $0.37 | Rake $0.01
+Board [7h 3c 2d]
+Seat 1: smiley99er folded before Flop (didn't bet)
+Seat 2: Z420909 collected ($0.36)
+Seat 4: MackChad (button) folded on the Flop
+Seat 5: Jovinater (small blind) folded before Flop
+Seat 6: frank zha303 (big blind) folded before Flop
+
+PokerStars Hand #259309898766: Hold'em No Limit ($0.02/$0.05 CAD) - 2026/01/14 12:34:10 ET
+Table 'Palamedes IV' 6-max Seat #5 is the button
+Seat 1: smiley99er ($6.50 in chips)
+Seat 2: Z420909 ($2.50 in chips)
+Seat 4: MackChad ($5.78 in chips)
+Seat 5: Jovinater ($4.59 in chips)
+Seat 6: frank zha303 ($8.59 in chips)
+frank zha303: posts small blind $0.02
+smiley99er: posts big blind $0.05
+*** HOLE CARDS ***
+Dealt to Z420909 [Jd Jh]
+Z420909: raises $0.10 to $0.15
+MackChad: calls $0.15
+Jovinater: folds
+frank zha303: folds
+smiley99er: folds
+*** FLOP *** [9s 5h 2c]
+Z420909: bets $0.20
+MackChad: calls $0.20
+*** TURN *** [9s 5h 2c] [Kh]
+Z420909: checks
+MackChad: bets $0.30
+Z420909: folds
+Uncalled bet ($0.30) returned to MackChad
+MackChad collected $0.75 from pot
+*** SUMMARY ***
+Total pot $0.77 | Rake $0.02
+Board [9s 5h 2c Kh]
+Seat 1: smiley99er (big blind) folded before Flop
+Seat 2: Z420909 folded on the Turn
+Seat 4: MackChad collected ($0.75)
+Seat 5: Jovinater (button) folded before Flop (didn't bet)
+Seat 6: frank zha303 (small blind) folded before Flop

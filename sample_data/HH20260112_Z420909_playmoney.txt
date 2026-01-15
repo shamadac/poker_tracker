@@ -262,3 +262,584 @@ Seat 3: Lackopapa1 (small blind) showed [5d Qh] and won (20664) with three of a 
 Seat 4: eddpf (big blind) folded before Flop
 Seat 5: 6447644 folded on the Flop
 Seat 6: wearemarshall34 folded on the Flop
+
+
+PokerStars Hand #259280408230:  Hold'em No Limit (100/200) - 2026/01/12 5:15:14 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #1 is the button
+Seat 3: jajimoska (31505 in chips) is sitting out
+Seat 4: carlosdelsouc (7800 in chips) is sitting out
+Seat 1: 2stupitofold (33074 in chips)
+Seat 2: Z420909 (9635 in chips)
+Seat 5: 6447644 (20000 in chips)
+Seat 6: erni822 (75092 in chips)
+Z420909: posts small blind 100
+6447644: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Ts 9h]
+erni822: calls 200
+2stupitofold: calls 200
+Z420909: calls 100
+6447644: checks
+*** FLOP *** [5c Jc 8d]
+Z420909: checks
+6447644: checks
+erni822: checks
+2stupitofold: bets 1156
+Z420909: calls 1156
+6447644: calls 1156
+erni822: calls 1156
+*** TURN *** [5c Jc 8d] [9s]
+Z420909: checks
+6447644: checks
+erni822: checks
+2stupitofold: bets 5126
+Z420909: folds
+6447644: raises 13518 to 18644 and is all-in
+erni822: folds
+2stupitofold: calls 13518
+*** RIVER *** [5c Jc 8d 9s] [7h]
+*** SHOW DOWN ***
+6447644: shows [6c 7d] (a straight, Five to Nine)
+2stupitofold: shows [Jh Ks] (a pair of Jacks)
+6447644 collected 40363 from pot
+*** SUMMARY ***
+Total pot 42712 | Rake 2349
+Board [5c Jc 8d 9s 7h]
+Seat 3: jajimoska
+Seat 4: carlosdelsouc
+Seat 1: 2stupitofold (button) showed [Jh Ks] and lost with a pair of Jacks
+Seat 2: Z420909 (small blind) folded on the Turn
+Seat 5: 6447644 (big blind) showed [6c 7d] and won (40363) with a straight, Five to Nine
+Seat 6: erni822 folded on the Turn
+
+
+PokerStars Hand #259280423574:  Hold'em No Limit (100/200) - 2026/01/12 5:18:24 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #6 is the button
+Seat 3: jajimoska (31505 in chips) is sitting out
+Seat 4: carlosdelsouc (7800 in chips) is sitting out
+Seat 1: 2stupitofold (15205 in chips)
+Seat 2: Z420909 (25620 in chips)
+Seat 5: 6447644 (40263 in chips)
+Seat 6: erni822 (67741 in chips)
+2stupitofold: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Jd 7h]
+6447644: calls 200
+erni822: calls 200
+2stupitofold: raises 15005 to 15205 and is all-in
+Z420909: folds
+6447644: calls 15005
+erni822: folds [2s]
+*** FLOP *** [6h 2c 3h]
+*** TURN *** [6h 2c 3h] [Ts]
+*** RIVER *** [6h 2c 3h Ts] [2d]
+*** SHOW DOWN ***
+2stupitofold: shows [Qd Kc] (a pair of Deuces)
+6447644: shows [9s 9d] (two pair, Nines and Deuces)
+6447644 collected 29115 from pot
+*** SUMMARY ***
+Total pot 30810 | Rake 1695
+Board [6h 2c 3h Ts 2d]
+Seat 3: jajimoska
+Seat 4: carlosdelsouc
+Seat 1: 2stupitofold (small blind) showed [Qd Kc] and lost with a pair of Deuces
+Seat 2: Z420909 (big blind) folded before Flop
+Seat 5: 6447644 showed [9s 9d] and won (29115) with two pair, Nines and Deuces
+Seat 6: erni822 (button) folded before Flop
+
+
+PokerStars Hand #259280427012:  Hold'em No Limit (100/200) - 2026/01/12 5:19:06 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #2 is the button
+Seat 1: 2stupitofold (0 in chips) is sitting out
+Seat 3: jajimoska (31505 in chips) is sitting out
+Seat 4: carlosdelsouc (7800 in chips) is sitting out
+Seat 2: Z420909 (25420 in chips)
+Seat 5: 6447644 (54173 in chips)
+Seat 6: erni822 (67541 in chips)
+6447644: posts small blind 100
+erni822: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [8h 7h]
+Z420909: calls 200
+6447644: calls 100
+erni822: checks
+*** FLOP *** [5c 6c 7c]
+6447644: checks
+erni822: bets 567
+Z420909: calls 567
+6447644: calls 567
+*** TURN *** [5c 6c 7c] [2h]
+6447644: checks
+erni822: bets 2174
+Z420909: folds
+6447644: calls 2174
+*** RIVER *** [5c 6c 7c 2h] [5s]
+6447644: checks
+erni822: bets 6283
+6447644: folds
+Uncalled bet (6283) returned to erni822
+erni822 collected 6283 from pot
+erni822: shows [4c 8c] (a straight flush, Four to Eight)
+*** SUMMARY ***
+Total pot 6649 | Rake 366
+Board [5c 6c 7c 2h 5s]
+Seat 1: 2stupitofold
+Seat 3: jajimoska
+Seat 4: carlosdelsouc
+Seat 2: Z420909 (button) folded on the Turn
+Seat 5: 6447644 (small blind) folded on the River
+Seat 6: erni822 (big blind) collected (6283)
+
+
+PokerStars Hand #259280431250:  Hold'em No Limit (100/200) - 2026/01/12 5:19:58 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #5 is the button
+Seat 3: jajimoska (31505 in chips) is sitting out
+Seat 4: carlosdelsouc (7800 in chips) is sitting out
+Seat 1: 2stupitofold (20000 in chips)
+Seat 2: Z420909 (24653 in chips)
+Seat 5: 6447644 (51232 in chips)
+Seat 6: erni822 (70883 in chips)
+erni822: posts small blind 100
+2stupitofold: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Ad 6c]
+Z420909: calls 200
+6447644: calls 200
+erni822: calls 100
+2stupitofold has timed out
+2stupitofold: checks
+*** FLOP *** [Kd 3d Ks]
+erni822: checks
+2stupitofold has timed out
+2stupitofold: checks
+Z420909: checks
+6447644: bets 200
+erni822: folds
+2stupitofold: calls 200
+Z420909: calls 200
+*** TURN *** [Kd 3d Ks] [2h]
+2stupitofold has timed out
+2stupitofold: checks
+Z420909: checks
+6447644: checks
+*** RIVER *** [Kd 3d Ks 2h] [3s]
+2stupitofold has timed out
+2stupitofold: checks
+Z420909: checks
+6447644: bets 200
+2stupitofold has timed out
+2stupitofold: folds
+Z420909: calls 200
+*** SHOW DOWN ***
+6447644: shows [3h 9h] (a full house, Threes full of Kings)
+Z420909: mucks hand
+6447644 collected 1701 from pot
+*** SUMMARY ***
+Total pot 1800 | Rake 99
+Board [Kd 3d Ks 2h 3s]
+Seat 3: jajimoska
+Seat 4: carlosdelsouc
+Seat 1: 2stupitofold (big blind) folded on the River
+Seat 2: Z420909 mucked [Ad 6c]
+Seat 5: 6447644 (button) showed [3h 9h] and won (1701) with a full house, Threes full of Kings
+Seat 6: erni822 (small blind) folded on the Flop
+
+
+PokerStars Hand #259280444466:  Hold'em No Limit (100/200) - 2026/01/12 5:22:36 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #6 is the button
+Seat 1: 2stupitofold (19600 in chips) is sitting out
+Seat 3: jajimoska (31505 in chips) is sitting out
+Seat 4: carlosdelsouc (7800 in chips) is sitting out
+Seat 2: Z420909 (24053 in chips)
+Seat 5: 6447644 (52333 in chips)
+Seat 6: erni822 (70683 in chips)
+Z420909: posts small blind 100
+6447644: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [As 5c]
+erni822: calls 200
+Z420909: calls 100
+6447644: checks
+*** FLOP *** [Kh 3s 5s]
+Z420909: bets 200
+6447644: calls 200
+erni822: calls 200
+*** TURN *** [Kh 3s 5s] [Js]
+Z420909: checks
+6447644: checks
+erni822: checks
+*** RIVER *** [Kh 3s 5s Js] [8d]
+Z420909: checks
+6447644: checks
+erni822: bets 200
+Z420909: calls 200
+6447644: folds
+*** SHOW DOWN ***
+erni822: shows [8h 2h] (a pair of Eights)
+Z420909: mucks hand
+erni822 collected 1512 from pot
+jajimoska leaves the table
+carlosdelsouc leaves the table
+*** SUMMARY ***
+Total pot 1600 | Rake 88
+Board [Kh 3s 5s Js 8d]
+Seat 1: 2stupitofold
+Seat 3: jajimoska
+Seat 4: carlosdelsouc
+Seat 2: Z420909 (small blind) mucked [As 5c]
+Seat 5: 6447644 (big blind) folded on the River
+Seat 6: erni822 (button) showed [8h 2h] and won (1512) with a pair of Eights
+
+
+PokerStars Hand #259280451361:  Hold'em No Limit (100/200) - 2026/01/12 5:23:58 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #2 is the button
+Seat 5: 6447644 (51933 in chips) is sitting out
+Seat 1: 2stupitofold (19600 in chips)
+Seat 2: Z420909 (23453 in chips)
+Seat 6: erni822 (71595 in chips)
+erni822: posts small blind 100
+2stupitofold: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [5s 5c]
+Z420909: calls 200
+erni822: calls 100
+Lackopapa1 joins the table at seat #3
+eddpf joins the table at seat #4
+2stupitofold has timed out
+2stupitofold: checks
+*** FLOP *** [2d Th 2h]
+erni822 has timed out
+erni822: checks
+2stupitofold has timed out
+2stupitofold: checks
+Z420909: bets 200
+erni822: calls 200
+2stupitofold: calls 200
+*** TURN *** [2d Th 2h] [9s]
+erni822 has timed out
+erni822: checks
+2stupitofold has timed out
+2stupitofold: checks
+Z420909: bets 567
+erni822: raises 1367 to 1934
+2stupitofold: folds
+Z420909: folds
+Uncalled bet (1367) returned to erni822
+erni822 collected 2206 from pot
+*** SUMMARY ***
+Total pot 2334 | Rake 128
+Board [2d Th 2h 9s]
+Seat 5: 6447644
+Seat 1: 2stupitofold (big blind) folded on the Turn
+Seat 2: Z420909 (button) folded on the Turn
+Seat 6: erni822 (small blind) collected (2206)
+
+
+PokerStars Hand #259280466208:  Hold'em No Limit (100/200) - 2026/01/12 5:26:55 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #6 is the button
+Seat 1: 2stupitofold (19200 in chips)
+Seat 2: Z420909 (22486 in chips)
+Seat 3: Lackopapa1 (8000 in chips)
+Seat 4: eddpf (20000 in chips)
+Seat 5: 6447644 (51933 in chips)
+Seat 6: erni822 (72834 in chips)
+2stupitofold: posts small blind 100
+Z420909: posts big blind 200
+Lackopapa1: posts big blind 200
+eddpf: posts big blind 200
+6447644: posts small blind 100
+*** HOLE CARDS ***
+Dealt to Z420909 [9h 9c]
+Lackopapa1: raises 200 to 400
+eddpf: folds
+6447644: folds
+erni822: calls 400
+2stupitofold: folds
+Z420909: calls 200
+*** FLOP *** [Kc 4d Kh]
+2stupitofold leaves the table
+Sirsmokealot99 joins the table at seat #1
+Sirsmokealot99 is disconnected
+Z420909: bets 200
+Lackopapa1: raises 400 to 600
+erni822: folds
+Z420909: folds
+Uncalled bet (400) returned to Lackopapa1
+Lackopapa1 collected 1890 from pot
+Lackopapa1: doesn't show hand
+*** SUMMARY ***
+Total pot 2000 | Rake 110
+Board [Kc 4d Kh]
+Seat 1: 2stupitofold (small blind) folded before Flop
+Seat 2: Z420909 (big blind) folded on the Flop
+Seat 3: Lackopapa1 collected (1890)
+Seat 4: eddpf folded before Flop (didn't bet)
+Seat 5: 6447644 folded before Flop (didn't bet)
+Seat 6: erni822 (button) folded on the Flop
+
+
+PokerStars Hand #259280470256:  Hold'em No Limit (100/200) - 2026/01/12 5:27:44 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #2 is the button
+Seat 1: Sirsmokealot99 (8000 in chips)
+Seat 2: Z420909 (21886 in chips)
+Seat 3: Lackopapa1 (9290 in chips)
+Seat 4: eddpf (19800 in chips)
+Seat 5: 6447644 (51833 in chips)
+Seat 6: erni822 (72434 in chips)
+Lackopapa1: posts small blind 100
+eddpf: posts big blind 200
+Sirsmokealot99: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [5s 7h]
+6447644: calls 200
+erni822: raises 1300 to 1500
+Sirsmokealot99: folds
+Z420909: folds
+Lackopapa1: folds
+eddpf: folds
+6447644: folds
+Uncalled bet (1300) returned to erni822
+erni822 collected 900 from pot
+*** SUMMARY ***
+Total pot 900 | Rake 0
+Seat 1: Sirsmokealot99 folded before Flop (didn't bet)
+Seat 2: Z420909 (button) folded before Flop (didn't bet)
+Seat 3: Lackopapa1 (small blind) folded before Flop
+Seat 4: eddpf (big blind) folded before Flop
+Seat 5: 6447644 folded before Flop
+Seat 6: erni822 collected (900)
+
+
+PokerStars Hand #259280472776:  Hold'em No Limit (100/200) - 2026/01/12 5:28:15 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #3 is the button
+Seat 1: Sirsmokealot99 (7800 in chips)
+Seat 2: Z420909 (21886 in chips)
+Seat 3: Lackopapa1 (9190 in chips)
+Seat 4: eddpf (19600 in chips)
+Seat 5: 6447644 (51633 in chips)
+Seat 6: erni822 (73134 in chips)
+eddpf: posts small blind 100
+6447644: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [4s Tc]
+erni822: folds
+Sirsmokealot99: calls 200
+Z420909: folds
+Lackopapa1 has timed out
+Lackopapa1: folds
+eddpf: calls 100
+6447644: checks
+*** FLOP *** [6d Td 8c]
+eddpf: checks
+6447644: checks
+Sirsmokealot99: bets 200
+eddpf: calls 200
+6447644: calls 200
+*** TURN *** [6d Td 8c] [Jc]
+eddpf: checks
+6447644: checks
+Sirsmokealot99: checks
+*** RIVER *** [6d Td 8c Jc] [Qs]
+eddpf: bets 1600
+6447644: folds
+Sirsmokealot99: folds
+Uncalled bet (1600) returned to eddpf
+eddpf collected 1134 from pot
+eddpf: doesn't show hand
+*** SUMMARY ***
+Total pot 1200 | Rake 66
+Board [6d Td 8c Jc Qs]
+Seat 1: Sirsmokealot99 folded on the River
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: Lackopapa1 (button) folded before Flop (didn't bet)
+Seat 4: eddpf (small blind) collected (1134)
+Seat 5: 6447644 (big blind) folded on the River
+Seat 6: erni822 folded before Flop (didn't bet)
+
+
+PokerStars Hand #259280479256:  Hold'em No Limit (100/200) - 2026/01/12 5:29:33 ET
+Table 'Beljawskya IV' 6-max (Play Money) Seat #4 is the button
+Seat 1: Sirsmokealot99 (7400 in chips)
+Seat 2: Z420909 (21886 in chips)
+Seat 3: Lackopapa1 (9190 in chips)
+Seat 4: eddpf (20334 in chips)
+Seat 5: 6447644 (51233 in chips)
+Seat 6: erni822 (73134 in chips)
+6447644: posts small blind 100
+erni822: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [5d 7d]
+Sirsmokealot99: folds
+Z420909: folds
+Lackopapa1: calls 200
+Sirsmokealot99 leaves the table
+eddpf: calls 200
+6447644: calls 100
+erni822: checks
+*** FLOP *** [8c Kh 9d]
+Iniesta1422 joins the table at seat #1
+Iniesta1422 is disconnected
+6447644: checks
+erni822: checks
+Lackopapa1: checks
+eddpf: checks
+*** TURN *** [8c Kh 9d] [7c]
+6447644: checks
+erni822: checks
+Lackopapa1: bets 800
+eddpf: folds
+6447644: raises 2356 to 3156
+erni822: folds
+Lackopapa1: calls 2356
+*** RIVER *** [8c Kh 9d 7c] [6c]
+6447644: bets 6721
+Lackopapa1: calls 5834 and is all-in
+Uncalled bet (887) returned to 6447644
+*** SHOW DOWN ***
+6447644: shows [6d Ts] (a straight, Six to Ten)
+Lackopapa1: shows [Tc 6h] (a straight, Six to Ten)
+6447644 collected 8874 from pot
+Lackopapa1 collected 8873 from pot
+*** SUMMARY ***
+Total pot 18780 | Rake 1033
+Board [8c Kh 9d 7c 6c]
+Seat 1: Sirsmokealot99 folded before Flop (didn't bet)
+Seat 2: Z420909 folded before Flop (didn't bet)
+Seat 3: Lackopapa1 showed [Tc 6h] and won (8873) with a straight, Six to Ten
+Seat 4: eddpf (button) folded on the Turn
+Seat 5: 6447644 (small blind) showed [6d Ts] and won (8874) with a straight, Six to Ten
+Seat 6: erni822 (big blind) folded on the Turn
+
+
+PokerStars Hand #259285987654: Hold'em No Limit (100/200) - 2026/01/12 14:22:30 ET
+Table 'Beljawskya IV' 6-max Seat #2 is the button
+Seat 1: player1 (19800 in chips)
+Seat 2: Z420909 (20000 in chips)
+Seat 3: player3 (18500 in chips)
+Seat 4: player4 (21500 in chips)
+Seat 5: player5 (20200 in chips)
+player3: posts small blind 100
+player4: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [As Ks]
+player5: folds
+player1: raises 400 to 600
+Z420909: raises 1200 to 1800
+player3: folds
+player4: folds
+player1: folds
+Uncalled bet (1200) returned to Z420909
+Z420909 collected 1500 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 1500 | Rake 0
+Seat 1: player1 folded before Flop
+Seat 2: Z420909 (button) collected (1500)
+Seat 3: player3 (small blind) folded before Flop
+Seat 4: player4 (big blind) folded before Flop
+Seat 5: player5 folded before Flop (didn't bet)
+
+PokerStars Hand #259285998765: Hold'em No Limit (100/200) - 2026/01/12 14:24:15 ET
+Table 'Beljawskya IV' 6-max Seat #3 is the button
+Seat 1: player1 (19200 in chips)
+Seat 2: Z420909 (20900 in chips)
+Seat 3: player3 (18400 in chips)
+Seat 4: player4 (21300 in chips)
+Seat 5: player5 (20200 in chips)
+player4: posts small blind 100
+player5: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Qd Qc]
+player1: folds
+Z420909: raises 400 to 600
+player3: calls 600
+player4: folds
+player5: folds
+*** FLOP *** [7h 3c 2d]
+Z420909: bets 800
+player3: folds
+Uncalled bet (800) returned to Z420909
+Z420909 collected 1500 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 1500 | Rake 0
+Board [7h 3c 2d]
+Seat 1: player1 folded before Flop (didn't bet)
+Seat 2: Z420909 collected (1500)
+Seat 3: player3 (button) folded on the Flop
+Seat 4: player4 (small blind) folded before Flop
+Seat 5: player5 (big blind) folded before Flop
+
+PokerStars Hand #259286009876: Hold'em No Limit (100/200) - 2026/01/12 14:26:00 ET
+Table 'Beljawskya IV' 6-max Seat #4 is the button
+Seat 1: player1 (19200 in chips)
+Seat 2: Z420909 (21800 in chips)
+Seat 3: player3 (17800 in chips)
+Seat 4: player4 (21200 in chips)
+Seat 5: player5 (20000 in chips)
+player5: posts small blind 100
+player1: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Jd Jh]
+Z420909: raises 400 to 600
+player3: folds
+player4: calls 600
+player5: folds
+player1: folds
+*** FLOP *** [9s 5h 2c]
+Z420909: bets 800
+player4: calls 800
+*** TURN *** [9s 5h 2c] [Kh]
+Z420909: checks
+player4: bets 1200
+Z420909: folds
+Uncalled bet (1200) returned to player4
+player4 collected 3100 from pot
+*** SUMMARY ***
+Total pot 3100 | Rake 0
+Board [9s 5h 2c Kh]
+Seat 1: player1 (big blind) folded before Flop
+Seat 2: Z420909 folded on the Turn
+Seat 3: player3 folded before Flop (didn't bet)
+Seat 4: player4 (button) collected (3100)
+Seat 5: player5 (small blind) folded before Flop
+
+
+PokerStars Hand #259286020987: Hold'em No Limit (100/200) - 2026/01/12 14:28:00 ET
+Table 'Beljawskya IV' 6-max Seat #5 is the button
+Seat 1: player1 (19200 in chips)
+Seat 2: Z420909 (20400 in chips)
+Seat 3: player3 (17800 in chips)
+Seat 4: player4 (22900 in chips)
+Seat 5: player5 (19900 in chips)
+player1: posts small blind 100
+Z420909: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Ac Jc]
+player3: folds
+player4: folds
+player5: raises 400 to 600
+player1: folds
+Z420909: calls 400
+*** FLOP *** [Ah 5c 2d]
+Z420909: checks
+player5: bets 800
+Z420909: calls 800
+*** TURN *** [Ah 5c 2d] [Jd]
+Z420909: checks
+player5: checks
+*** RIVER *** [Ah 5c 2d Jd] [3h]
+Z420909: bets 1200
+player5: folds
+Uncalled bet (1200) returned to Z420909
+Z420909 collected 2900 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 2900 | Rake 0
+Board [Ah 5c 2d Jd 3h]
+Seat 1: player1 (small blind) folded before Flop
+Seat 2: Z420909 (big blind) collected (2900)
+Seat 3: player3 folded before Flop (didn't bet)
+Seat 4: player4 folded before Flop (didn't bet)
+Seat 5: player5 (button) folded on the River

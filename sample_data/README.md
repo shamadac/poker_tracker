@@ -5,14 +5,14 @@ This folder contains real PokerStars hand history files exported from PokerTrack
 ## Files Included
 
 ### Real Money Games
-- `HH20260114_Z420909_real.txt` - 4 hands at $0.02/$0.05 CAD (Palamedes IV table)
-- `HH20260114_Z420909_perihelion_real.txt` - 1 hand at $0.02/$0.05 CAD (Perihelion II table)
+- `HH20260114_Z420909_real.txt` - 7 hands at $0.02/$0.05 CAD (Palamedes IV table)
+- `HH20260114_Z420909_perihelion_real.txt` - 3 hands at $0.02/$0.05 CAD (Perihelion II table)
 
 ### Play Money Games
-- `HH20260112_Z420909_playmoney.txt` - 6 hands at 100/200 (Beljawskya IV table)
-- `HH20260112_Z420909_eurykleia_playmoney.txt` - 3 hands at 100/200 (Eurykleia IV table)
-- `HH20260112_Z420909_burgundia_playmoney.txt` - 6 hands at 100/200 (Burgundia III table)
-- `HH20260111_Z420909_kurhah_playmoney.txt` - 1 hand at 100/200 (Kurhah IV 9-max table)
+- `HH20260112_Z420909_playmoney.txt` - 20 hands at 100/200 (Beljawskya IV table)
+- `HH20260112_Z420909_eurykleia_playmoney.txt` - 10 hands at 100/200 (Eurykleia IV table)
+- `HH20260112_Z420909_burgundia_playmoney.txt` - 27 hands at 100/200 (Burgundia III table)
+- `HH20260111_Z420909_kurhah_playmoney.txt` - 3 hands at 100/200 (Kurhah IV 9-max table)
 
 ## How to Use
 
@@ -34,9 +34,9 @@ Replace these sample files with your actual PokerStars hand history files. The a
 
 ## Sample Data Statistics
 
-- **Total Hands**: 21 hands
-- **Real Money**: 5 hands ($0.02/$0.05 CAD)
-- **Play Money**: 16 hands (100/200 stakes)
+- **Total Hands**: 70 hands
+- **Real Money**: 10 hands ($0.02/$0.05 CAD)
+- **Play Money**: 60 hands (100/200 stakes)
 - **Player**: Z420909
 - **Date Range**: January 11-14, 2026
 - **Tables**: 6-max and 9-max formats

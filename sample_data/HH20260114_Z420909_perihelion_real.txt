@@ -39,3 +39,63 @@ Seat 3: Z420909 showed [Ad 3h] and lost with two pair, Aces and Queens
 Seat 4: TAKINURFLOW (button) folded before Flop
 Seat 5: zayd88 (small blind) showed [As Js] and won ($3.92) with two pair, Aces and Queens
 Seat 6: phlopit (big blind) folded before Flop
+
+
+PokerStars Hand #259310123456: Hold'em No Limit ($0.02/$0.05 CAD) - 2026/01/14 13:15:30 ET
+Table 'Perihelion II' 6-max Seat #3 is the button
+Seat 1: player1 ($5.50 in chips)
+Seat 2: player2 ($4.80 in chips)
+Seat 3: Z420909 ($5 in chips)
+Seat 4: player4 ($6.20 in chips)
+Seat 5: player5 ($3.90 in chips)
+player4: posts small blind $0.02
+player5: posts big blind $0.05
+*** HOLE CARDS ***
+Dealt to Z420909 [Ac Kd]
+player1: folds
+player2: raises $0.10 to $0.15
+Z420909: raises $0.35 to $0.50
+player4: folds
+player5: folds
+player2: folds
+Uncalled bet ($0.35) returned to Z420909
+Z420909 collected $0.37 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot $0.37 | Rake $0
+Seat 1: player1 folded before Flop (didn't bet)
+Seat 2: player2 folded before Flop
+Seat 3: Z420909 (button) collected ($0.37)
+Seat 4: player4 (small blind) folded before Flop
+Seat 5: player5 (big blind) folded before Flop
+
+PokerStars Hand #259310134567: Hold'em No Limit ($0.02/$0.05 CAD) - 2026/01/14 13:17:15 ET
+Table 'Perihelion II' 6-max Seat #4 is the button
+Seat 1: player1 ($5.50 in chips)
+Seat 2: player2 ($4.65 in chips)
+Seat 3: Z420909 ($5.22 in chips)
+Seat 4: player4 ($6.18 in chips)
+Seat 5: player5 ($3.85 in chips)
+player5: posts small blind $0.02
+player1: posts big blind $0.05
+*** HOLE CARDS ***
+Dealt to Z420909 [Qs Qh]
+player2: folds
+Z420909: raises $0.10 to $0.15
+player4: calls $0.15
+player5: folds
+player1: folds
+*** FLOP *** [8h 4c 2d]
+Z420909: bets $0.20
+player4: folds
+Uncalled bet ($0.20) returned to Z420909
+Z420909 collected $0.36 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot $0.37 | Rake $0.01
+Board [8h 4c 2d]
+Seat 1: player1 (big blind) folded before Flop
+Seat 2: player2 folded before Flop (didn't bet)
+Seat 3: Z420909 collected ($0.36)
+Seat 4: player4 (button) folded on the Flop
+Seat 5: player5 (small blind) folded before Flop

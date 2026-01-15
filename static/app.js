@@ -420,7 +420,7 @@ if (analyzeDetailedBtn) {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ limit: 10 }) // Analyze fewer hands for detailed view
+                body: JSON.stringify({ limit: 100 }) // Analyze all hands (up to 100)
             });
             
             const data = await response.json();

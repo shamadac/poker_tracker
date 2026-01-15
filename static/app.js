@@ -502,48 +502,117 @@ loadStatus();
 function formatAnalysisText(text) {
     if (!text) return '';
     
-    // Convert markdown-style headers to HTML
-    text = text.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
-    text = text.replace(/^### (.*?)$/gm, '<h4>$1</h4>');
+    // Escape HTML first
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
-    // Convert **bold** to <strong>
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Convert bullet points to proper lists
-    const lines = text.split('\n');
+    // Split into lines for processing
+    let lines = text.split('\n');
+    let html = [];
     let inList = false;
-    let formatted = [];
+    let listType = null;
     
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
+        let line = lines[i].trim();
         
-        // Check if line is a bullet point
-        if (line.match(/^[-*•]\s/)) {
-            if (!inList) {
-                formatted.push('<ul>');
-                inList = true;
-            }
-            formatted.push('<li>' + line.replace(/^[-*•]\s/, '') + '</li>');
-        } else if (line.match(/^\d+\.\s/)) {
-            if (!inList) {
-                formatted.push('<ol>');
-                inList = true;
-            }
-            formatted.push('<li>' + line.replace(/^\d+\.\s/, '') + '</li>');
-        } else {
+        if (!line) {
             if (inList) {
-                formatted.push('</ul>');
+                html.push(listType === 'ul' ? '</ul>' : '</ol>');
+                inList = false;
+                listType = null;
+            }
+            continue;
+        }
+        
+        // Detect headers with emojis (## 🎯 HEADER or **Header:**)
+        if (line.match(/^##\s+(.+)$/)) {
+            if (inList) {
+                html.push(listType === 'ul' ? '</ul>' : '</ol>');
                 inList = false;
             }
-            if (line) {
-                formatted.push('<p>' + line + '</p>');
-            }
+            const headerText = line.replace(/^##\s+/, '');
+            const headerClass = getHeaderClass(headerText);
+            html.push(`<h2 class="${headerClass}">${headerText}</h2>`);
+            continue;
         }
+        
+        // Detect bold headers (**Text:**)
+        if (line.match(/^\*\*(.+?):\*\*/) || line.match(/^(.+?):\s*$/)) {
+            if (inList) {
+                html.push(listType === 'ul' ? '</ul>' : '</ol>');
+                inList = false;
+            }
+            const headerText = line.replace(/^\*\*(.+?):\*\*/, '$1:').replace(/^(.+?):\s*$/, '$1');
+            const headerClass = getHeaderClass(headerText);
+            html.push(`<h4 class="${headerClass}">${headerText}</h4>`);
+            continue;
+        }
+        
+        // Detect numbered lists
+        if (line.match(/^\d+\.\s+/)) {
+            if (!inList || listType !== 'ol') {
+                if (inList) html.push('</ul>');
+                html.push('<ol>');
+                inList = true;
+                listType = 'ol';
+            }
+            const content = line.replace(/^\d+\.\s+/, '');
+            html.push(`<li>${formatInlineText(content)}</li>`);
+            continue;
+        }
+        
+        // Detect bullet points (-, *, •)
+        if (line.match(/^[-*•]\s+/)) {
+            if (!inList || listType !== 'ul') {
+                if (inList) html.push('</ol>');
+                html.push('<ul>');
+                inList = true;
+                listType = 'ul';
+            }
+            const content = line.replace(/^[-*•]\s+/, '');
+            html.push(`<li>${formatInlineText(content)}</li>`);
+            continue;
+        }
+        
+        // Regular paragraph
+        if (inList) {
+            html.push(listType === 'ul' ? '</ul>' : '</ol>');
+            inList = false;
+            listType = null;
+        }
+        html.push(`<p>${formatInlineText(line)}</p>`);
     }
     
     if (inList) {
-        formatted.push('</ul>');
+        html.push(listType === 'ul' ? '</ul>' : '</ol>');
     }
     
-    return formatted.join('\n');
+    return html.join('\n');
+}
+
+// Format inline text (bold, italic, code)
+function formatInlineText(text) {
+    // Bold **text**
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Italic *text*
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Code `text`
+    text = text.replace(/`(.+?)`/g, '<code>$1</code>');
+    // Quotes "text"
+    text = text.replace(/"([^"]+)"/g, '<span class="quote">"$1"</span>');
+    return text;
+}
+
+// Get CSS class based on header content
+function getHeaderClass(text) {
+    const lower = text.toLowerCase();
+    if (lower.includes('well') || lower.includes('strength') || lower.includes('doing well') || lower.includes('winning')) {
+        return 'header-success';
+    }
+    if (lower.includes('mistake') || lower.includes('fix') || lower.includes('avoid') || lower.includes('problem')) {
+        return 'header-danger';
+    }
+    if (lower.includes('improve') || lower.includes('tip') || lower.includes('learn') || lower.includes('concept') || lower.includes('style')) {
+        return 'header-info';
+    }
+    return 'header-default';
 }

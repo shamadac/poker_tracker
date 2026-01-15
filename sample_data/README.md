@@ -1,12 +1,10 @@
 # Sample Hand History Data
 
-This folder contains sample PokerStars hand history files for testing the Poker Analyzer app.
+This folder contains real PokerStars hand history files exported from PokerTracker 4 for testing the Poker Analyzer app.
 
 ## Files Included
 
-- `HH20250115_Z420909_001.txt` - Real money hands ($0.01/$0.02 stakes)
-- `HH20250115_Z420909_002.txt` - Real money hands ($0.01/$0.02 stakes)
-- `HH20250115_Z420909_003_PlayMoney.txt` - Play money hands (10/20 stakes)
+- `HH20260114_Z420909_real.txt` - Real money hands ($0.02/$0.05 CAD stakes)
 
 ## How to Use
 
@@ -28,27 +26,25 @@ Replace these sample files with your actual PokerStars hand history files. The a
 
 ## Sample Data Statistics
 
-- **Total Hands**: 9 hands
-- **Real Money**: 6 hands
-- **Play Money**: 3 hands
+- **Total Hands**: 4 hands
+- **Stakes**: $0.02/$0.05 CAD
 - **Player**: Z420909
-- **Win Rate**: ~67% (6 wins, 3 losses/folds)
+- **Table**: Palamedes IV (6-max)
+- **Date**: January 14, 2026
 
 ## Hand Types Included
 
-The sample data includes various scenarios:
-- Premium hands (AA, KK, QQ)
-- Suited connectors (9s8s)
-- Suited broadway (AhKd, QhJh)
-- Flush draws and completions
-- Pre-flop aggression
-- Post-flop play
-- All-in situations
-- Fold decisions
+The sample data includes real gameplay scenarios:
+- Weak hands (8h2d, 8s2c, 3d6c, 4cTh)
+- C-bet on flop with bottom pair
+- Pre-flop folds with trash hands
+- Position play (SB, BB)
+- Multi-way pots
+- Fold to aggression
 
-This variety helps test all features of the analyzer including:
+This real data helps test all features of the analyzer including:
 - VPIP and PFR calculations
-- Aggression factor tracking
 - Position analysis
 - Win rate statistics
-- Hand strength evaluation
+- Hand selection evaluation
+- Fold discipline tracking

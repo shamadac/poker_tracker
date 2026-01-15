@@ -1,0 +1,131 @@
+PokerStars Hand #123456789001: Hold'em No Limit ($0.01/$0.02 USD) - 2025/01/15 10:15:30 ET
+Table 'Sample Table I' 6-max Seat #1 is the button
+Seat 1: Z420909 ($2.00 in chips)
+Seat 2: Player2 ($2.50 in chips)
+Seat 3: Player3 ($1.80 in chips)
+Seat 4: Player4 ($3.20 in chips)
+Seat 5: Player5 ($2.10 in chips)
+Seat 6: Player6 ($1.95 in chips)
+Player2: posts small blind $0.01
+Player3: posts big blind $0.02
+*** HOLE CARDS ***
+Dealt to Z420909 [Ah Kd]
+Player4: folds
+Player5: raises $0.06 to $0.06
+Player6: folds
+Z420909: raises $0.18 to $0.24
+Player2: folds
+Player3: folds
+Player5: calls $0.18
+*** FLOP *** [Ac 7h 2d]
+Player5: checks
+Z420909: bets $0.30
+Player5: calls $0.30
+*** TURN *** [Ac 7h 2d] [Kh]
+Player5: checks
+Z420909: bets $0.60
+Player5: folds
+Uncalled bet ($0.60) returned to Z420909
+Z420909 collected $1.08 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot $1.11 | Rake $0.03
+Board [Ac 7h 2d Kh]
+Seat 1: Z420909 (button) collected ($1.08)
+Seat 2: Player2 (small blind) folded before Flop
+Seat 3: Player3 (big blind) folded before Flop
+Seat 4: Player4 folded before Flop (didn't bet)
+Seat 5: Player5 folded on the Turn
+Seat 6: Player6 folded before Flop (didn't bet)
+
+
+PokerStars Hand #123456789002: Hold'em No Limit ($0.01/$0.02 USD) - 2025/01/15 10:18:45 ET
+Table 'Sample Table I' 6-max Seat #2 is the button
+Seat 1: Z420909 ($2.54 in chips)
+Seat 2: Player2 ($2.49 in chips)
+Seat 3: Player3 ($1.78 in chips)
+Seat 4: Player4 ($3.20 in chips)
+Seat 5: Player5 ($1.56 in chips)
+Seat 6: Player6 ($1.95 in chips)
+Player3: posts small blind $0.01
+Player4: posts big blind $0.02
+*** HOLE CARDS ***
+Dealt to Z420909 [9s 8s]
+Player5: folds
+Player6: raises $0.06 to $0.06
+Z420909: calls $0.06
+Player2: folds
+Player3: folds
+Player4: calls $0.04
+*** FLOP *** [Ts 7s 2h]
+Player4: checks
+Player6: bets $0.12
+Z420909: raises $0.30 to $0.42
+Player4: folds
+Player6: calls $0.30
+*** TURN *** [Ts 7s 2h] [6s]
+Player6: checks
+Z420909: bets $0.80
+Player6: raises $0.67 to $1.47 and is all-in
+Z420909: calls $0.67
+*** RIVER *** [Ts 7s 2h 6s] [3d]
+*** SHOW DOWN ***
+Player6: shows [Jh Th] (a pair of Tens)
+Z420909: shows [9s 8s] (a flush, Ten high)
+Z420909 collected $3.82 from pot
+*** SUMMARY ***
+Total pot $3.97 | Rake $0.15
+Board [Ts 7s 2h 6s 3d]
+Seat 1: Z420909 showed [9s 8s] and won ($3.82) with a flush, Ten high
+Seat 2: Player2 (button) folded before Flop (didn't bet)
+Seat 3: Player3 (small blind) folded before Flop
+Seat 4: Player4 (big blind) folded on the Flop
+Seat 5: Player5 folded before Flop (didn't bet)
+Seat 6: Player6 showed [Jh Th] and lost with a pair of Tens
+
+
+PokerStars Hand #123456789003: Hold'em No Limit ($0.01/$0.02 USD) - 2025/01/15 10:22:10 ET
+Table 'Sample Table I' 6-max Seat #3 is the button
+Seat 1: Z420909 ($4.41 in chips)
+Seat 2: Player2 ($2.49 in chips)
+Seat 3: Player3 ($1.77 in chips)
+Seat 4: Player4 ($3.14 in chips)
+Seat 5: Player5 ($1.56 in chips)
+Seat 6: Player7 ($2.00 in chips)
+Player4: posts small blind $0.01
+Player5: posts big blind $0.02
+Player7: posts big blind $0.02
+*** HOLE CARDS ***
+Dealt to Z420909 [Qh Jh]
+Player7: checks
+Z420909: raises $0.08 to $0.08
+Player2: folds
+Player3: folds
+Player4: folds
+Player5: calls $0.06
+Player7: calls $0.06
+*** FLOP *** [Kh 9h 3c]
+Player5: checks
+Player7: checks
+Z420909: bets $0.16
+Player5: folds
+Player7: calls $0.16
+*** TURN *** [Kh 9h 3c] [2h]
+Player7: checks
+Z420909: bets $0.40
+Player7: raises $1.36 to $1.76 and is all-in
+Z420909: calls $1.36
+*** RIVER *** [Kh 9h 3c 2h] [5d]
+*** SHOW DOWN ***
+Player7: shows [Kd 9d] (two pair, Kings and Nines)
+Z420909: shows [Qh Jh] (a flush, King high)
+Z420909 collected $3.92 from pot
+*** SUMMARY ***
+Total pot $4.09 | Rake $0.17
+Board [Kh 9h 3c 2h 5d]
+Seat 1: Z420909 showed [Qh Jh] and won ($3.92) with a flush, King high
+Seat 2: Player2 folded before Flop (didn't bet)
+Seat 3: Player3 (button) folded before Flop (didn't bet)
+Seat 4: Player4 (small blind) folded before Flop
+Seat 5: Player5 (big blind) folded on the Flop
+Seat 6: Player7 showed [Kd 9d] and lost with two pair, Kings and Nines

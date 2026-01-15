@@ -284,62 +284,182 @@ document.getElementById('scan-btn').addEventListener('click', async () => {
     }
 });
 
-// Analyze hands
-document.getElementById('analyze-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('analyze-btn');
-    const results = document.getElementById('analyze-results');
-    const container = document.getElementById('analyses-container');
-    const limit = parseInt(document.getElementById('hand-limit').value);
-    
-    btn.disabled = true;
-    btn.textContent = 'Analyzing...';
-    results.className = 'results info show';
-    results.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing hands with AI... This may take a minute...</div>';
-    container.innerHTML = '';
-    
-    try {
-        const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ limit })
-        });
+// Analyze hands (old button - for backward compatibility)
+const analyzeBtn = document.getElementById('analyze-btn');
+if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', async () => {
+        const results = document.getElementById('analyze-results');
+        const container = document.getElementById('analyses-container');
+        const limit = parseInt(document.getElementById('hand-limit').value);
         
-        const data = await response.json();
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = 'Analyzing...';
+        results.className = 'results info show';
+        results.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing hands with AI... This may take a minute...</div>';
+        container.innerHTML = '';
         
-        if (data.success) {
-            results.className = 'results success show';
-            results.innerHTML = `
-                <strong>✓ Analysis Complete</strong><br>
-                Analyzed ${data.analyzed} of ${data.total_hands} total hands
-            `;
-            
-            // Display analyses
-            data.analyses.forEach(analysis => {
-                const card = document.createElement('div');
-                card.className = 'analysis-card';
-                card.innerHTML = `
-                    <div class="analysis-header">
-                        <h3>Hand #${analysis.hand_id}</h3>
-                        <div class="hand-info">
-                            Cards: ${analysis.cards} | Result: ${analysis.result}
-                        </div>
-                    </div>
-                    <div class="analysis-content">${analysis.analysis}</div>
-                `;
-                container.appendChild(card);
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limit })
             });
-        } else {
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                results.className = 'results success show';
+                results.innerHTML = `
+                    <strong>✓ Analysis Complete</strong><br>
+                    Analyzed ${data.analyzed} of ${data.total_hands} total hands
+                `;
+                
+                // Display analyses
+                data.analyses.forEach(analysis => {
+                    const card = document.createElement('div');
+                    card.className = 'analysis-card';
+                    card.innerHTML = `
+                        <div class="analysis-header">
+                            <h3>Hand #${analysis.hand_id}</h3>
+                            <div class="hand-info">
+                                Cards: ${analysis.cards} | Result: ${analysis.result}
+                            </div>
+                        </div>
+                        <div class="analysis-content">${analysis.analysis}</div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else {
+                results.className = 'results error show';
+                results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;
+            }
+        } catch (error) {
             results.className = 'results error show';
-            results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;
+            results.innerHTML = `<strong>✗ Error:</strong> ${error.message}`;
+        } finally {
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'Analyze Hands';
         }
-    } catch (error) {
-        results.className = 'results error show';
-        results.innerHTML = `<strong>✗ Error:</strong> ${error.message}`;
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Analyze Hands';
-    }
-});
+    });
+}
+
+// Analyze Summary button
+const analyzeSummaryBtn = document.getElementById('analyze-summary-btn');
+if (analyzeSummaryBtn) {
+    analyzeSummaryBtn.addEventListener('click', async () => {
+        const results = document.getElementById('analyze-results');
+        const summaryContainer = document.getElementById('summary-container');
+        const analysesContainer = document.getElementById('analyses-container');
+        
+        analyzeSummaryBtn.disabled = true;
+        analyzeSummaryBtn.textContent = '📊 Analyzing...';
+        results.className = 'results info show';
+        results.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing all hands... This may take a minute...</div>';
+        summaryContainer.innerHTML = '';
+        analysesContainer.innerHTML = '';
+        
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limit: 100 }) // Analyze more hands for summary
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                results.className = 'results success show';
+                results.innerHTML = `
+                    <strong>✓ Analysis Complete</strong><br>
+                    Analyzed ${data.analyzed} of ${data.total_hands} total hands
+                `;
+                
+                // Display summary
+                const summaryCard = document.createElement('div');
+                summaryCard.className = 'analysis-card';
+                summaryCard.innerHTML = `
+                    <div class="analysis-header">
+                        <h3>📊 Overall Summary</h3>
+                    </div>
+                    <div class="analysis-content">
+                        <p><strong>Total Hands Analyzed:</strong> ${data.analyzed}</p>
+                        <p>Your AI coach has reviewed your recent play. Check individual hand analyses below for detailed feedback.</p>
+                    </div>
+                `;
+                summaryContainer.appendChild(summaryCard);
+            } else {
+                results.className = 'results error show';
+                results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;
+            }
+        } catch (error) {
+            results.className = 'results error show';
+            results.innerHTML = `<strong>✗ Error:</strong> ${error.message}`;
+        } finally {
+            analyzeSummaryBtn.disabled = false;
+            analyzeSummaryBtn.textContent = '📊 Analyze All Hands (Summary Only)';
+        }
+    });
+}
+
+// Analyze Detailed button
+const analyzeDetailedBtn = document.getElementById('analyze-detailed-btn');
+if (analyzeDetailedBtn) {
+    analyzeDetailedBtn.addEventListener('click', async () => {
+        const results = document.getElementById('analyze-results');
+        const container = document.getElementById('analyses-container');
+        const summaryContainer = document.getElementById('summary-container');
+        
+        analyzeDetailedBtn.disabled = true;
+        analyzeDetailedBtn.textContent = '🔍 Analyzing...';
+        results.className = 'results info show';
+        results.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing individual hands with AI... This may take a few minutes...</div>';
+        container.innerHTML = '';
+        summaryContainer.innerHTML = '';
+        
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limit: 10 }) // Analyze fewer hands for detailed view
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                results.className = 'results success show';
+                results.innerHTML = `
+                    <strong>✓ Analysis Complete</strong><br>
+                    Analyzed ${data.analyzed} of ${data.total_hands} total hands
+                `;
+                
+                // Display detailed analyses
+                data.analyses.forEach(analysis => {
+                    const card = document.createElement('div');
+                    card.className = 'analysis-card';
+                    card.innerHTML = `
+                        <div class="analysis-header">
+                            <h3>Hand #${analysis.hand_id}</h3>
+                            <div class="hand-info">
+                                Cards: ${analysis.cards} | Result: ${analysis.result}
+                            </div>
+                        </div>
+                        <div class="analysis-content">${analysis.analysis}</div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else {
+                results.className = 'results error show';
+                results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;
+            }
+        } catch (error) {
+            results.className = 'results error show';
+            results.innerHTML = `<strong>✗ Error:</strong> ${error.message}`;
+        } finally {
+            analyzeDetailedBtn.disabled = false;
+            analyzeDetailedBtn.textContent = '🔍 Analyze Individual Hands';
+        }
+    });
+}
 
 // Load status on page load
 loadStatus();

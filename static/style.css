@@ -660,3 +660,121 @@ header h1 {
 button, .btn, .stat-card, .analysis-card {
     transition: all 0.2s ease;
 }
+
+
+.provider-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.provider-selector label {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.provider-selector label:hover {
+    border-color: #2a5298;
+    background: #f8f9fa;
+}
+
+.provider-selector input[type="radio"] {
+    margin-right: 15px;
+    width: 20px;
+    height: 20px;
+}
+
+.provider-selector input[type="radio"]:checked + .provider-option {
+    color: #2a5298;
+}
+
+.provider-option {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.provider-option strong {
+    font-size: 1.1em;
+}
+
+.provider-option small {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.provider-settings {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.provider-settings .input-group {
+    margin-bottom: 15px;
+}
+
+.provider-settings input[type="password"],
+.provider-settings select {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.provider-settings small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+}
+
+.provider-settings small a {
+    color: #2a5298;
+    text-decoration: none;
+}
+
+.provider-settings small a:hover {
+    text-decoration: underline;
+}
+
+.status-detail {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.status-detail.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-detail.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-detail.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #5a6268;
+}

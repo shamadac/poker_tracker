@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphs & Charts - Poker Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/graphs.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="graphs-container">
+        <header class="graphs-header">
+            <div class="header-content">
+                <h1>📈 Performance Graphs</h1>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-secondary">← Back to Analysis</a>
+                    <a href="/dashboard" class="btn btn-secondary">📊 Dashboard</a>
+                    <button id="refresh-graphs-btn" class="btn btn-primary">🔄 Refresh</button>
+                </div>
+            </div>
+        </header>
+
+        <div id="loading-screen" class="loading-screen">
+            <div class="spinner"></div>
+            <p>Loading your poker data...</p>
+        </div>
+
+        <div id="graphs-content" style="display: none;">
+            <!-- Filter Controls -->
+            <section class="filter-section">
+                <h2>📊 Customize Your View</h2>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>Game Type</label>
+                        <select id="filter-game-type" class="filter-select">
+                            <option value="all">All Games</option>
+                            <option value="real">Real Money Only</option>
+                            <option value="play">Play Money Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Time Period</label>
+                        <select id="filter-time" class="filter-select">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">Last 7 Days</option>
+                            <option value="month">Last 30 Days</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Stakes</label>
+                        <select id="filter-stakes" class="filter-select">
+                            <option value="all">All Stakes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-info" id="filter-info">
+                    Showing all hands
+                </div>
+            </section>
+
+            <!-- Win Rate Over Time -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>💰 Win Rate Over Time</h2>
+                    <p class="chart-description">Track your winning percentage as you play more hands</p>
+                </div>
+                <div class="chart-container-wrapper">
+                    <canvas id="winRateChart"></canvas>
+                </div>
+            </section>
+
+            <!-- VPIP & PFR Trend -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>🎯 Playing Style Trend (VPIP & PFR)</h2>
+                    <p class="chart-description">
+                        <strong>VPIP</strong> = How often you play hands (lower = tighter) | 
+                        <strong>PFR</strong> = How often you raise pre-flop (higher = more aggressive)
+                    </p>
+                </div>
+                <div class="chart-container-wrapper">
+                    <canvas id="vpipPfrChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Position Performance -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>📍 Performance by Position</h2>
+                    <p class="chart-description">See which table positions are most profitable for you</p>
+                </div>
+                <div class="chart-container-wrapper">
+                    <canvas id="positionChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Hand Results Distribution -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>🎲 Hand Results Distribution</h2>
+                    <p class="chart-description">Breakdown of wins, losses, and folds</p>
+                </div>
+                <div class="chart-container-wrapper">
+                    <canvas id="resultsChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Aggression Over Time -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>⚡ Aggression Factor Trend</h2>
+                    <p class="chart-description">
+                        Measures how often you bet/raise vs call. Higher = more aggressive (good!)
+                    </p>
+                </div>
+                <div class="chart-container-wrapper">
+                    <canvas id="aggressionChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Session Performance -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>📅 Daily Performance</h2>
+                    <p class="chart-description">Win rate by day - spot your best and worst sessions</p>
+                </div>
+                <div class="chart-container-wrapper">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="/static/graphs.js"></script>
+</body>
+</html>

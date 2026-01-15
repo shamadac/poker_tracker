@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Skill Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/cards.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🃏 Poker Skill Analyzer</h1>
+            <p class="subtitle">AI-powered hand analysis for PokerStars</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="label">Player:</span>
+                <span id="player-name" class="value">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Ollama:</span>
+                <span id="ollama-status" class="value">Checking...</span>
+            </div>
+            <div class="status-item">
+                <a href="/dashboard" class="btn btn-secondary" style="text-decoration: none;">📊 Dashboard</a>
+                <a href="/graphs" class="btn btn-secondary" style="text-decoration: none;">📈 Graphs</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Step 1: Scan for Hands</h2>
+            <p>Automatically detects hand histories from PokerStars on your Mac</p>
+            <button id="scan-btn" class="btn btn-primary">Scan for Hand Histories</button>
+            <div id="scan-results" class="results"></div>
+        </div>
+
+        <div class="card">
+            <h2>Step 2: Analyze Your Game</h2>
+            <p>Get AI-powered strategic insights and comprehensive playstyle evaluation</p>
+            
+            <div class="info-box">
+                <strong>💡 Choose Your Analysis Type:</strong>
+                <ul>
+                    <li><strong>Summary Only:</strong> Fast! Analyzes ALL your hands and gives overall feedback with beginner-friendly explanations</li>
+                    <li><strong>Individual Hands:</strong> Slower. Reviews specific hands one-by-one with detailed AI coaching</li>
+                </ul>
+            </div>
+            
+            <div class="analysis-options">
+                <button id="analyze-summary-btn" class="btn btn-success" disabled>
+                    📊 Analyze All Hands (Summary Only)
+                </button>
+                <button id="analyze-detailed-btn" class="btn btn-secondary" disabled>
+                    🔍 Analyze Individual Hands
+                </button>
+            </div>
+            
+            <div id="progress-container" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="progress-text" class="progress-text">Initializing...</div>
+            </div>
+            
+            <div id="analyze-results" class="results"></div>
+        </div>
+
+        <div id="summary-container"></div>
+        <div id="stats-container"></div>
+        <div id="playstyle-container"></div>
+        <div id="analyses-container"></div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script src="/static/cards.js"></script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+/* Dashboard Specific Styles */
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-header {
+    background: white;
+    border-radius: 10px;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content h1 {
+    color: #1e3c72;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.loading-screen {
+    background: white;
+    border-radius: 10px;
+    padding: 60px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.loading-screen p {
+    margin-top: 20px;
+    color: #666;
+    font-size: 1.1em;
+}
+
+/* Overview Section */
+.overview-section {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.overview-section h2 {
+    color: #1e3c72;
+    margin-bottom: 20px;
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.overview-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.overview-card:hover {
+    transform: translateY(-5px);
+}
+
+.overview-card:nth-child(2) {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.overview-card:nth-child(3) {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.overview-card:nth-child(4) {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.overview-card:nth-child(5) {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.overview-card:nth-child(6) {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
+
+.overview-label {
+    font-size: 0.9em;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.overview-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.overview-hint {
+    font-size: 0.75em;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+/* Chart Section */
+.chart-section {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chart-section h2 {
+    color: #1e3c72;
+    margin-bottom: 20px;
+}
+
+.performance-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.chart-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.chart-label {
+    min-width: 80px;
+    font-weight: 600;
+    color: #555;
+}
+
+.chart-bar-container {
+    flex: 1;
+    background: #f0f0f0;
+    border-radius: 8px;
+    height: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    border-radius: 8px;
+    transition: width 1s ease;
+    color: white;
+    font-weight: 600;
+    min-width: 50px;
+}
+
+.chart-bar.wins {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.chart-bar.losses {
+    background: linear-gradient(90deg, #dc3545, #c82333);
+}
+
+.chart-bar.folds {
+    background: linear-gradient(90deg, #6c757d, #5a6268);
+}
+
+.chart-value {
+    font-size: 1.1em;
+}
+
+/* Hands Section */
+.hands-section {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header-row h2 {
+    color: #1e3c72;
+    margin: 0;
+}
+
+.table-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 8px 15px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95em;
+    width: 200px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #2a5298;
+}
+
+.filter-select {
+    padding: 8px 15px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95em;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #2a5298;
+}
+
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.hands-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.hands-table thead {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+}
+
+.hands-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.hands-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.hands-table tbody tr {
+    transition: background 0.2s;
+}
+
+.hands-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.hands-table tbody tr.win-row {
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.hands-table tbody tr.loss-row {
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.hand-id-cell {
+    font-family: monospace;
+    color: #2a5298;
+    font-weight: 600;
+}
+
+.cards-cell {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.result-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.result-badge.won {
+    background: #d4edda;
+    color: #155724;
+}
+
+.result-badge.lost {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.result-badge.folded {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.position-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 600;
+    background: #e9ecef;
+    color: #495057;
+}
+
+.table-footer {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .overview-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 10px;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .section-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .table-controls {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .table-container {
+        font-size: 0.85em;
+    }
+}
+
+/* Money Type Badges */
+.money-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.money-badge.play-money {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.money-badge.real-money {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}

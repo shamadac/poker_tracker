@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Dashboard - Poker Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>📊 Statistics Dashboard</h1>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-secondary">← Back to Analysis</a>
+                    <a href="/graphs" class="btn btn-secondary">📈 Graphs</a>
+                    <button id="refresh-btn" class="btn btn-primary">🔄 Refresh Data</button>
+                </div>
+            </div>
+        </header>
+
+        <div id="loading-screen" class="loading-screen">
+            <div class="spinner"></div>
+            <p>Loading your poker statistics...</p>
+        </div>
+
+        <div id="dashboard-content" style="display: none;">
+            <!-- Overview Stats -->
+            <section class="overview-section">
+                <h2>Overview</h2>
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="overview-label">Total Hands</div>
+                        <div class="overview-value" id="total-hands">0</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-label">Win Rate</div>
+                        <div class="overview-value" id="win-rate">0%</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-label">VPIP</div>
+                        <div class="overview-value" id="vpip">0%</div>
+                        <div class="overview-hint">How often you play hands</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-label">PFR</div>
+                        <div class="overview-value" id="pfr">0%</div>
+                        <div class="overview-hint">How often you raise pre-flop</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-label">Aggression</div>
+                        <div class="overview-value" id="aggression">0</div>
+                        <div class="overview-hint">Bet/Raise vs Call ratio</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-label">Hands Won</div>
+                        <div class="overview-value" id="hands-won">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Win/Loss Chart -->
+            <section class="chart-section">
+                <h2>Performance Breakdown</h2>
+                <div class="performance-chart">
+                    <div class="chart-row">
+                        <div class="chart-label">Wins</div>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar wins" id="wins-bar" style="width: 0%">
+                                <span class="chart-value" id="wins-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Losses</div>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar losses" id="losses-bar" style="width: 0%">
+                                <span class="chart-value" id="losses-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Folds</div>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar folds" id="folds-bar" style="width: 0%">
+                                <span class="chart-value" id="folds-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hands Table -->
+            <section class="hands-section">
+                <div class="section-header-row">
+                    <h2>Hand History</h2>
+                    <div class="table-controls">
+                        <input type="text" id="search-input" placeholder="Search hands..." class="search-input">
+                        <select id="filter-money-type" class="filter-select">
+                            <option value="all">All Games</option>
+                            <option value="real">Real Money Only</option>
+                            <option value="play">Play Money Only</option>
+                        </select>
+                        <select id="filter-result" class="filter-select">
+                            <option value="all">All Results</option>
+                            <option value="won">Wins Only</option>
+                            <option value="lost">Losses Only</option>
+                            <option value="folded">Folds Only</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="hands-table">
+                        <thead>
+                            <tr>
+                                <th>Hand ID</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Game</th>
+                                <th>Stakes</th>
+                                <th>Cards</th>
+                                <th>Position</th>
+                                <th>Result</th>
+                                <th>Pot</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hands-table-body">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-footer">
+                    <div id="table-info">Showing 0 hands</div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>

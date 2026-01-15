@@ -30,6 +30,9 @@ async function loadGraphs() {
             createSessionChart();
             createBankrollChart();
             createStartingHandsChart();
+            createHandRangeHeatmap();
+            createStreakChart();
+            createRadarChart();
             
             // Show graphs
             loadingScreen.style.display = 'none';
@@ -1030,6 +1033,293 @@ function createStartingHandsChart() {
     });
 }
 
+// Create Hand Range Heatmap (PT4 Competitor Feature)
+function createHandRangeHeatmap() {
+    const container = document.getElementById('handRangeHeatmap');
+    container.innerHTML = '';
+    
+    // Poker hand matrix (13x13 grid)
+    const ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+    
+    // Count hands played
+    const handCounts = {};
+    const handWins = {};
+    
+    filteredHands.forEach(hand => {
+        if (!hand.hole_cards || hand.hole_cards === 'unknown') return;
+        
+        const cards = hand.hole_cards.toUpperCase();
+        // Normalize hand notation
+        let handKey = cards.replace(/[shdc]/gi, '');
+        
+        if (!handCounts[handKey]) {
+            handCounts[handKey] = 0;
+            handWins[handKey] = 0;
+        }
+        handCounts[handKey]++;
+        if (hand.won) handWins[handKey]++;
+    });
+    
+    // Create grid
+    ranks.forEach((rank1, i) => {
+        ranks.forEach((rank2, j) => {
+            const cell = document.createElement('div');
+            cell.className = 'hand-cell';
+            
+            let handNotation = '';
+            let handKey = '';
+            
+            if (i === j) {
+                // Pocket pairs
+                handNotation = rank1 + rank1;
+                handKey = rank1 + rank1;
+            } else if (i < j) {
+                // Suited hands (upper right)
+                handNotation = rank1 + rank2 + 's';
+                handKey = rank1 + rank2;
+            } else {
+                // Offsuit hands (lower left)
+                handNotation = rank2 + rank1 + 'o';
+                handKey = rank2 + rank1;
+            }
+            
+            const count = handCounts[handKey] || 0;
+            const wins = handWins[handKey] || 0;
+            const winRate = count > 0 ? (wins / count) : 0;
+            
+            // Color based on profitability
+            let bgColor;
+            if (count === 0) {
+                bgColor = '#e5e7eb'; // Gray - not played
+            } else if (winRate >= 0.6) {
+                bgColor = '#10b981'; // Green - profitable
+            } else if (winRate >= 0.4) {
+                bgColor = '#f59e0b'; // Amber - break even
+            } else {
+                bgColor = '#ef4444'; // Red - losing
+            }
+            
+            cell.style.backgroundColor = bgColor;
+            cell.innerHTML = `
+                <span class="hand-cell-label">${handNotation}</span>
+                ${count > 0 ? `<span class="hand-cell-count">${count}</span>` : ''}
+            `;
+            
+            cell.title = count > 0 
+                ? `${handNotation}: ${count} hands, ${(winRate * 100).toFixed(0)}% win rate`
+                : `${handNotation}: Not played`;
+            
+            container.appendChild(cell);
+        });
+    });
+}
+
+// Create Streak Chart (PT4 Competitor Feature)
+function createStreakChart() {
+    const ctx = document.getElementById('streakChart');
+    
+    // Calculate streaks
+    const streaks = [];
+    let currentStreak = 0;
+    let streakType = null;
+    
+    filteredHands.forEach((hand, index) => {
+        const won = hand.won;
+        
+        if (streakType === null) {
+            streakType = won ? 'win' : 'loss';
+            currentStreak = 1;
+        } else if ((won && streakType === 'win') || (!won && streakType === 'loss')) {
+            currentStreak++;
+        } else {
+            streaks.push({
+                x: index,
+                y: streakType === 'win' ? currentStreak : -currentStreak,
+                type: streakType
+            });
+            streakType = won ? 'win' : 'loss';
+            currentStreak = 1;
+        }
+    });
+    
+    // Add final streak
+    if (currentStreak > 0) {
+        streaks.push({
+            x: filteredHands.length,
+            y: streakType === 'win' ? currentStreak : -currentStreak,
+            type: streakType
+        });
+    }
+    
+    charts.streak = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            datasets: [{
+                label: 'Streaks',
+                data: streaks,
+                backgroundColor: function(context) {
+                    return context.parsed.y > 0 ? '#10b981' : '#ef4444';
+                },
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        title: function(context) {
+                            return `Hand ${context[0].parsed.x}`;
+                        },
+                        label: function(context) {
+                            const value = Math.abs(context.parsed.y);
+                            const type = context.parsed.y > 0 ? 'Winning' : 'Losing';
+                            return `${type} streak: ${value} hands`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Hand Number',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Streak Length',
+                        font: { size: 12, weight: '600' }
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return Math.abs(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Radar Chart (PT4 Competitor Feature)
+function createRadarChart() {
+    const ctx = document.getElementById('radarChart');
+    
+    // Calculate key metrics
+    const totalHands = filteredHands.length;
+    const wins = filteredHands.filter(h => h.won).length;
+    const winRate = totalHands > 0 ? (wins / totalHands * 100) : 0;
+    
+    const vpipHands = filteredHands.filter(h => h.actions > 0).length;
+    const vpip = totalHands > 0 ? (vpipHands / totalHands * 100) : 0;
+    
+    const aggressiveHands = filteredHands.filter(h => 
+        h.result.toLowerCase().includes('bet') || 
+        h.result.toLowerCase().includes('raise')
+    ).length;
+    const aggression = vpipHands > 0 ? (aggressiveHands / vpipHands * 100) : 0;
+    
+    // Position awareness (BTN/CO win rate vs blinds)
+    const latePos = filteredHands.filter(h => h.position === 'BTN' || h.position === 'CO');
+    const latePosWins = latePos.filter(h => h.won).length;
+    const positionPlay = latePos.length > 0 ? (latePosWins / latePos.length * 100) : 50;
+    
+    // Fold discipline (fold rate)
+    const folds = filteredHands.filter(h => h.result.toLowerCase().includes('fold')).length;
+    const foldRate = totalHands > 0 ? (folds / totalHands * 100) : 0;
+    const discipline = 100 - Math.min(foldRate, 80); // Inverse - higher is better
+    
+    // Optimal values for comparison
+    const optimalValues = [55, 25, 60, 65, 70]; // Win Rate, VPIP, Aggression, Position, Discipline
+    const yourValues = [winRate, vpip, aggression, positionPlay, discipline];
+    
+    charts.radar = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Win Rate', 'VPIP', 'Aggression', 'Position Play', 'Discipline'],
+            datasets: [
+                {
+                    label: 'Your Stats',
+                    data: yourValues,
+                    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                    borderColor: '#2563eb',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#2563eb',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#2563eb',
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                },
+                {
+                    label: 'Optimal Play',
+                    data: optimalValues,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.r.toFixed(1)}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Update all charts
 function updateAllCharts() {
     // Destroy existing charts
@@ -1049,6 +1339,9 @@ function updateAllCharts() {
     createSessionChart();
     createBankrollChart();
     createStartingHandsChart();
+    createHandRangeHeatmap();
+    createStreakChart();
+    createRadarChart();
 }
 
 // Filter event listeners

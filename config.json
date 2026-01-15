@@ -4,7 +4,7 @@
   "ollama_url": "http://localhost:11434",
   "ollama_model": "llama2",
   "gemini_api_key": "AIzaSyC8kI1BbK8_nYJBXcxb1h9p4-tEmoHkcOA",
-  "gemini_model": "gemini-2.5-flash",
+  "gemini_model": "gemini-3-flash-preview",
   "hand_history_dir": "sample_data",
   "reports_dir": "reports",
   "auto_detect_enabled": true

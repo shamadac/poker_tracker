@@ -1,0 +1,8 @@
+{
+  "player_username": "Z420909",
+  "ollama_url": "http://localhost:11434",
+  "ollama_model": "llama2",
+  "hand_history_dir": "hand_histories",
+  "reports_dir": "reports",
+  "auto_detect_enabled": true
+}

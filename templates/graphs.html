@@ -29,14 +29,14 @@
         <div id="graphs-content" style="display: none;">
             <!-- Filter Controls -->
             <section class="filter-section">
-                <h2>📊 Customize Your View</h2>
+                <h2>Filters</h2>
                 <div class="filter-grid">
                     <div class="filter-group">
                         <label>Game Type</label>
                         <select id="filter-game-type" class="filter-select">
                             <option value="all">All Games</option>
-                            <option value="real">Real Money Only</option>
-                            <option value="play">Play Money Only</option>
+                            <option value="real">Real Money</option>
+                            <option value="play">Play Money</option>
                         </select>
                     </div>
                     
@@ -44,7 +44,6 @@
                         <label>Time Period</label>
                         <select id="filter-time" class="filter-select">
                             <option value="all">All Time</option>
-                            <option value="today">Today</option>
                             <option value="week">Last 7 Days</option>
                             <option value="month">Last 30 Days</option>
                         </select>
@@ -62,74 +61,60 @@
                 </div>
             </section>
 
-            <!-- Win Rate Over Time -->
+            <!-- Key Metrics Summary -->
+            <section class="metrics-summary">
+                <div class="metric-card">
+                    <div class="metric-value" id="metric-winrate">0%</div>
+                    <div class="metric-label">Win Rate</div>
+                    <div class="metric-hint">Hands you won</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metric-hands">0</div>
+                    <div class="metric-label">Total Hands</div>
+                    <div class="metric-hint">Hands played</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metric-vpip">0%</div>
+                    <div class="metric-label">VPIP</div>
+                    <div class="metric-hint">How often you play</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metric-position">-</div>
+                    <div class="metric-label">Best Position</div>
+                    <div class="metric-hint">Most profitable spot</div>
+                </div>
+            </section>
+
+            <!-- Win Rate Trend -->
             <section class="chart-section">
                 <div class="chart-header">
-                    <h2>💰 Win Rate Over Time</h2>
-                    <p class="chart-description">Track your winning percentage as you play more hands</p>
+                    <h2>Win Rate Trend</h2>
+                    <p class="chart-description">Your winning percentage over time</p>
                 </div>
                 <div class="chart-container-wrapper">
                     <canvas id="winRateChart"></canvas>
                 </div>
             </section>
 
-            <!-- VPIP & PFR Trend -->
+            <!-- Results Breakdown -->
             <section class="chart-section">
                 <div class="chart-header">
-                    <h2>🎯 Playing Style Trend (VPIP & PFR)</h2>
-                    <p class="chart-description">
-                        <strong>VPIP</strong> = How often you play hands (lower = tighter) | 
-                        <strong>PFR</strong> = How often you raise pre-flop (higher = more aggressive)
-                    </p>
+                    <h2>Results Breakdown</h2>
+                    <p class="chart-description">Distribution of wins, losses, and folds</p>
                 </div>
-                <div class="chart-container-wrapper">
-                    <canvas id="vpipPfrChart"></canvas>
+                <div class="chart-container-wrapper chart-small">
+                    <canvas id="resultsChart"></canvas>
                 </div>
             </section>
 
             <!-- Position Performance -->
             <section class="chart-section">
                 <div class="chart-header">
-                    <h2>📍 Performance by Position</h2>
-                    <p class="chart-description">See which table positions are most profitable for you</p>
+                    <h2>Performance by Position</h2>
+                    <p class="chart-description">Win rate at each table position</p>
                 </div>
                 <div class="chart-container-wrapper">
                     <canvas id="positionChart"></canvas>
-                </div>
-            </section>
-
-            <!-- Hand Results Distribution -->
-            <section class="chart-section">
-                <div class="chart-header">
-                    <h2>🎲 Hand Results Distribution</h2>
-                    <p class="chart-description">Breakdown of wins, losses, and folds</p>
-                </div>
-                <div class="chart-container-wrapper">
-                    <canvas id="resultsChart"></canvas>
-                </div>
-            </section>
-
-            <!-- Aggression Over Time -->
-            <section class="chart-section">
-                <div class="chart-header">
-                    <h2>⚡ Aggression Factor Trend</h2>
-                    <p class="chart-description">
-                        Measures how often you bet/raise vs call. Higher = more aggressive (good!)
-                    </p>
-                </div>
-                <div class="chart-container-wrapper">
-                    <canvas id="aggressionChart"></canvas>
-                </div>
-            </section>
-
-            <!-- Session Performance -->
-            <section class="chart-section">
-                <div class="chart-header">
-                    <h2>📅 Daily Performance</h2>
-                    <p class="chart-description">Win rate by day - spot your best and worst sessions</p>
-                </div>
-                <div class="chart-container-wrapper">
-                    <canvas id="dailyChart"></canvas>
                 </div>
             </section>
         </div>

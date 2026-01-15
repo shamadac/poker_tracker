@@ -1,7 +1,7 @@
-/* Minimalist Graphs Page - Clean & User-Friendly Design */
+/* Minimalist Graphs Page - Clean & Professional Design */
 
 .graphs-container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1.5rem;
 }
@@ -25,7 +25,7 @@
 .graphs-header h1 {
     color: var(--gray-900);
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
     letter-spacing: -0.025em;
 }
@@ -40,7 +40,7 @@
 .filter-section {
     background: white;
     border-radius: var(--radius);
-    padding: 2rem;
+    padding: 1.5rem 2rem;
     margin-bottom: 2rem;
     box-shadow: var(--shadow);
     border: 1px solid var(--gray-200);
@@ -48,16 +48,16 @@
 
 .filter-section h2 {
     color: var(--gray-900);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
 }
 
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1rem;
 }
 
 .filter-group {
@@ -69,16 +69,16 @@
 .filter-group label {
     font-weight: 500;
     color: var(--gray-600);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .filter-select {
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
     border: 1px solid var(--gray-300);
     border-radius: var(--radius-sm);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     background: white;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -97,13 +97,58 @@
 }
 
 .filter-info {
-    padding: 1rem 1.25rem;
-    background: #eff6ff;
-    border-left: 4px solid var(--primary);
+    padding: 0.75rem 1rem;
+    background: var(--gray-50);
     border-radius: var(--radius-sm);
-    color: var(--primary-dark);
+    color: var(--gray-700);
     font-weight: 500;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+/* Metrics Summary */
+.metrics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.75rem 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.metric-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.metric-hint {
+    font-size: 0.75rem;
+    color: var(--gray-500);
 }
 
 /* Chart Sections */
@@ -114,39 +159,40 @@
     margin-bottom: 2rem;
     box-shadow: var(--shadow);
     border: 1px solid var(--gray-200);
-    transition: all 0.2s ease;
-}
-
-.chart-section:hover {
-    box-shadow: var(--shadow-md);
 }
 
 .chart-header {
     margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--gray-200);
 }
 
 .chart-header h2 {
     color: var(--gray-900);
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
+    margin-bottom: 0.375rem;
+    font-size: 1.25rem;
     font-weight: 600;
 }
 
 .chart-description {
     color: var(--gray-600);
-    font-size: 0.9375rem;
-    line-height: 1.6;
+    font-size: 0.875rem;
+    line-height: 1.5;
     margin: 0;
 }
 
 .chart-container-wrapper {
     position: relative;
-    height: 400px;
-    margin-top: 1.5rem;
+    height: 350px;
+    margin-top: 1rem;
+}
+
+.chart-container-wrapper.chart-small {
+    height: 300px;
 }
 
 .chart-container-wrapper canvas {
-    max-height: 400px;
+    max-height: 100%;
 }
 
 /* Loading Screen */
@@ -162,7 +208,7 @@
 .loading-screen p {
     margin-top: 1.5rem;
     color: var(--gray-600);
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 500;
 }
 
@@ -192,11 +238,15 @@
     }
     
     .filter-section {
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
     }
     
     .filter-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .metrics-summary {
+        grid-template-columns: repeat(2, 1fr);
     }
     
     .chart-section {
@@ -204,10 +254,10 @@
     }
     
     .chart-container-wrapper {
-        height: 300px;
+        height: 280px;
     }
     
-    .chart-container-wrapper canvas {
-        max-height: 300px;
+    .chart-container-wrapper.chart-small {
+        height: 250px;
     }
 }

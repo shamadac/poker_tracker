@@ -1,4 +1,4 @@
-// Graphs Page JavaScript
+// Graphs Page JavaScript - Professional & Beginner-Friendly
 let allHands = [];
 let filteredHands = [];
 let charts = {};
@@ -19,13 +19,11 @@ async function loadGraphs() {
             // Populate stakes filter
             populateStakesFilter();
             
-            // Create all charts
+            // Update metrics and create charts
+            updateMetrics();
             createWinRateChart();
-            createVPIPPFRChart();
-            createPositionChart();
             createResultsChart();
-            createAggressionChart();
-            createDailyChart();
+            createPositionChart();
             
             // Show graphs
             loadingScreen.style.display = 'none';
@@ -33,8 +31,7 @@ async function loadGraphs() {
         } else {
             loadingScreen.innerHTML = `
                 <div class="error-message">
-                    <h3>❌ Error Loading Data</h3>
-                    <p>${data.error}</p>
+                    <h3>No Data Available</h3>
                     <p>Please scan for hands first on the main page.</p>
                     <a href="/" class="btn btn-primary">Go to Main Page</a>
                 </div>
@@ -43,7 +40,7 @@ async function loadGraphs() {
     } catch (error) {
         loadingScreen.innerHTML = `
             <div class="error-message">
-                <h3>❌ Error</h3>
+                <h3>Error Loading Data</h3>
                 <p>${error.message}</p>
                 <a href="/" class="btn btn-primary">Go to Main Page</a>
             </div>
@@ -69,6 +66,44 @@ function populateStakesFilter() {
     });
 }
 
+// Update key metrics
+function updateMetrics() {
+    const totalHands = filteredHands.length;
+    const wins = filteredHands.filter(h => h.won).length;
+    const winRate = totalHands > 0 ? ((wins / totalHands) * 100).toFixed(1) : 0;
+    
+    // Calculate VPIP (hands where player put money in voluntarily)
+    const vpipHands = filteredHands.filter(h => h.actions > 0).length;
+    const vpip = totalHands > 0 ? ((vpipHands / totalHands) * 100).toFixed(1) : 0;
+    
+    // Find best position
+    const positions = {};
+    filteredHands.forEach(hand => {
+        const pos = hand.position || 'Unknown';
+        if (!positions[pos]) {
+            positions[pos] = { total: 0, wins: 0 };
+        }
+        positions[pos].total++;
+        if (hand.won) positions[pos].wins++;
+    });
+    
+    let bestPosition = '-';
+    let bestWinRate = 0;
+    Object.keys(positions).forEach(pos => {
+        const rate = positions[pos].wins / positions[pos].total;
+        if (rate > bestWinRate && positions[pos].total >= 3) {
+            bestWinRate = rate;
+            bestPosition = pos;
+        }
+    });
+    
+    // Update DOM
+    document.getElementById('metric-winrate').textContent = `${winRate}%`;
+    document.getElementById('metric-hands').textContent = totalHands;
+    document.getElementById('metric-vpip').textContent = `${vpip}%`;
+    document.getElementById('metric-position').textContent = bestPosition;
+}
+
 // Apply filters
 function applyFilters() {
     const gameType = document.getElementById('filter-game-type').value;
@@ -89,7 +124,6 @@ function applyFilters() {
             const now = new Date();
             const daysDiff = (now - handDate) / (1000 * 60 * 60 * 24);
             
-            if (timeFilter === 'today' && daysDiff > 1) return false;
             if (timeFilter === 'week' && daysDiff > 7) return false;
             if (timeFilter === 'month' && daysDiff > 30) return false;
         }
@@ -101,11 +135,11 @@ function applyFilters() {
     document.getElementById('filter-info').textContent = 
         `Showing ${filteredHands.length} of ${allHands.length} hands`;
     
-    // Update all charts
+    // Update all charts and metrics
     updateAllCharts();
 }
 
-// Create Win Rate Over Time Chart
+// Create Win Rate Chart
 function createWinRateChart() {
     const ctx = document.getElementById('winRateChart');
     
@@ -118,11 +152,11 @@ function createWinRateChart() {
         total++;
         if (hand.won) wins++;
         
-        // Sample every 5 hands to keep chart readable
-        if (index % 5 === 0 || index === filteredHands.length - 1) {
+        // Add data point every 3 hands or at the end
+        if (total % 3 === 0 || index === filteredHands.length - 1) {
             data.push({
                 x: total,
-                y: (wins / total * 100).toFixed(1)
+                y: parseFloat((wins / total * 100).toFixed(1))
             });
         }
     });
@@ -131,12 +165,15 @@ function createWinRateChart() {
         type: 'line',
         data: {
             datasets: [{
-                label: 'Win Rate %',
+                label: 'Win Rate',
                 data: data,
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                tension: 0.4,
-                fill: true
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 3,
+                pointHoverRadius: 5
             }]
         },
         options: {
@@ -144,11 +181,17 @@ function createWinRateChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top'
+                    display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
                     callbacks: {
+                        title: function(context) {
+                            return `Hand ${context[0].parsed.x}`;
+                        },
                         label: function(context) {
                             return `Win Rate: ${context.parsed.y}%`;
                         }
@@ -160,169 +203,25 @@ function createWinRateChart() {
                     type: 'linear',
                     title: {
                         display: true,
-                        text: 'Hands Played'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Win Rate %'
-                    },
-                    min: 0,
-                    max: 100
-                }
-            }
-        }
-    });
-}
-
-// Create VPIP & PFR Trend Chart
-function createVPIPPFRChart() {
-    const ctx = document.getElementById('vpipPfrChart');
-    
-    // Calculate rolling VPIP/PFR (every 10 hands)
-    const vpipData = [];
-    const pfrData = [];
-    const windowSize = 10;
-    
-    for (let i = windowSize; i <= filteredHands.length; i += 5) {
-        const window = filteredHands.slice(Math.max(0, i - windowSize), i);
-        
-        // Simple VPIP calculation (hands with actions)
-        const vpip = (window.filter(h => h.actions > 0).length / window.length * 100).toFixed(1);
-        
-        // Estimate PFR (this is simplified)
-        const pfr = (window.filter(h => h.actions > 1).length / window.length * 100).toFixed(1);
-        
-        vpipData.push({ x: i, y: vpip });
-        pfrData.push({ x: i, y: pfr });
-    }
-    
-    charts.vpipPfr = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: [
-                {
-                    label: 'VPIP (How often you play)',
-                    data: vpipData,
-                    borderColor: '#2196F3',
-                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                    tension: 0.4
-                },
-                {
-                    label: 'PFR (How often you raise)',
-                    data: pfrData,
-                    borderColor: '#FF9800',
-                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                    tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: 'Hands Played'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Percentage %'
-                    },
-                    min: 0,
-                    max: 100
-                }
-            }
-        }
-    });
-}
-
-// Create Position Performance Chart
-function createPositionChart() {
-    const ctx = document.getElementById('positionChart');
-    
-    // Group by position
-    const positions = {};
-    filteredHands.forEach(hand => {
-        const pos = hand.position || 'Unknown';
-        if (!positions[pos]) {
-            positions[pos] = { total: 0, wins: 0 };
-        }
-        positions[pos].total++;
-        if (hand.won) positions[pos].wins++;
-    });
-    
-    const labels = Object.keys(positions);
-    const winRates = labels.map(pos => 
-        (positions[pos].wins / positions[pos].total * 100).toFixed(1)
-    );
-    const handCounts = labels.map(pos => positions[pos].total);
-    
-    charts.position = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Win Rate %',
-                    data: winRates,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Hands Played',
-                    data: handCounts,
-                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 2,
-                    yAxisID: 'y1'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    title: {
-                        display: true,
-                        text: 'Win Rate %'
-                    },
-                    min: 0,
-                    max: 100
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    title: {
-                        display: true,
-                        text: 'Hands Played'
+                        text: 'Hands Played',
+                        font: { size: 12, weight: '600' }
                     },
                     grid: {
-                        drawOnChartArea: false
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Win Rate (%)',
+                        font: { size: 12, weight: '600' }
+                    },
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
                     }
                 }
             }
@@ -330,7 +229,7 @@ function createPositionChart() {
     });
 }
 
-// Create Results Distribution Chart
+// Create Results Chart
 function createResultsChart() {
     const ctx = document.getElementById('resultsChart');
     
@@ -345,16 +244,11 @@ function createResultsChart() {
             datasets: [{
                 data: [wins, losses, folds],
                 backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',
-                    'rgba(220, 53, 69, 0.8)',
-                    'rgba(108, 117, 125, 0.8)'
+                    '#10b981',
+                    '#ef4444',
+                    '#9ca3af'
                 ],
-                borderColor: [
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(220, 53, 69, 1)',
-                    'rgba(108, 117, 125, 1)'
-                ],
-                borderWidth: 2
+                borderWidth: 0
             }]
         },
         options: {
@@ -362,13 +256,23 @@ function createResultsChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
                     callbacks: {
                         label: function(context) {
                             const total = wins + losses + folds;
-                            const percentage = (context.parsed / total * 100).toFixed(1);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
                             return `${context.label}: ${context.parsed} (${percentage}%)`;
                         }
                     }
@@ -378,33 +282,45 @@ function createResultsChart() {
     });
 }
 
-// Create Aggression Chart
-function createAggressionChart() {
-    const ctx = document.getElementById('aggressionChart');
+// Create Position Chart
+function createPositionChart() {
+    const ctx = document.getElementById('positionChart');
     
-    // Calculate rolling aggression
-    const data = [];
-    const windowSize = 10;
+    // Group by position
+    const positions = {};
+    filteredHands.forEach(hand => {
+        const pos = hand.position || 'Unknown';
+        if (!positions[pos]) {
+            positions[pos] = { total: 0, wins: 0 };
+        }
+        positions[pos].total++;
+        if (hand.won) positions[pos].wins++;
+    });
     
-    for (let i = windowSize; i <= filteredHands.length; i += 5) {
-        const window = filteredHands.slice(Math.max(0, i - windowSize), i);
-        
-        // Simplified aggression: more actions = more aggressive
-        const avgActions = window.reduce((sum, h) => sum + h.actions, 0) / window.length;
-        
-        data.push({ x: i, y: avgActions.toFixed(2) });
-    }
+    // Sort positions by standard poker order
+    const positionOrder = ['SB', 'BB', 'UTG', 'MP', 'CO', 'BTN', 'Unknown'];
+    const labels = Object.keys(positions).sort((a, b) => {
+        const aIndex = positionOrder.indexOf(a);
+        const bIndex = positionOrder.indexOf(b);
+        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
     
-    charts.aggression = new Chart(ctx, {
-        type: 'line',
+    const winRates = labels.map(pos => 
+        parseFloat((positions[pos].wins / positions[pos].total * 100).toFixed(1))
+    );
+    
+    charts.position = new Chart(ctx, {
+        type: 'bar',
         data: {
+            labels: labels,
             datasets: [{
-                label: 'Aggression Level',
-                data: data,
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                tension: 0.4,
-                fill: true
+                label: 'Win Rate',
+                data: winRates,
+                backgroundColor: winRates.map(rate => 
+                    rate >= 50 ? '#10b981' : '#2563eb'
+                ),
+                borderRadius: 6,
+                borderSkipped: false
             }]
         },
         options: {
@@ -412,83 +328,47 @@ function createAggressionChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top'
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            const pos = context.label;
+                            const hands = positions[pos].total;
+                            return [
+                                `Win Rate: ${context.parsed.y}%`,
+                                `Hands: ${hands}`
+                            ];
+                        }
+                    }
                 }
             },
             scales: {
                 x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: 'Hands Played'
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '600' }
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Avg Actions per Hand'
-                    },
-                    min: 0
-                }
-            }
-        }
-    });
-}
-
-// Create Daily Performance Chart
-function createDailyChart() {
-    const ctx = document.getElementById('dailyChart');
-    
-    // Group by date
-    const dailyData = {};
-    filteredHands.forEach(hand => {
-        const date = hand.date.split(' ')[0]; // Get just the date part
-        if (!dailyData[date]) {
-            dailyData[date] = { total: 0, wins: 0 };
-        }
-        dailyData[date].total++;
-        if (hand.won) dailyData[date].wins++;
-    });
-    
-    const dates = Object.keys(dailyData).sort();
-    const winRates = dates.map(date => 
-        (dailyData[date].wins / dailyData[date].total * 100).toFixed(1)
-    );
-    
-    charts.daily = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: dates,
-            datasets: [{
-                label: 'Daily Win Rate %',
-                data: winRates,
-                backgroundColor: winRates.map(rate => 
-                    rate >= 50 ? 'rgba(40, 167, 69, 0.6)' : 'rgba(220, 53, 69, 0.6)'
-                ),
-                borderColor: winRates.map(rate => 
-                    rate >= 50 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'
-                ),
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Win Rate %'
+                        text: 'Win Rate (%)',
+                        font: { size: 12, weight: '600' }
                     },
                     min: 0,
-                    max: 100
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
                 }
             }
         }
@@ -501,13 +381,13 @@ function updateAllCharts() {
     Object.values(charts).forEach(chart => chart.destroy());
     charts = {};
     
+    // Update metrics
+    updateMetrics();
+    
     // Recreate all charts with filtered data
     createWinRateChart();
-    createVPIPPFRChart();
-    createPositionChart();
     createResultsChart();
-    createAggressionChart();
-    createDailyChart();
+    createPositionChart();
 }
 
 // Filter event listeners

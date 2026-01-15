@@ -354,15 +354,14 @@ if (analyzeSummaryBtn) {
         analyzeSummaryBtn.disabled = true;
         analyzeSummaryBtn.textContent = '📊 Analyzing...';
         results.className = 'results info show';
-        results.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing all hands... This may take a minute...</div>';
+        results.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing all hands and generating summary... This may take a minute...</div>';
         summaryContainer.innerHTML = '';
         analysesContainer.innerHTML = '';
         
         try {
-            const response = await fetch('/api/analyze', {
+            const response = await fetch('/api/analyze/summary', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ limit: 100 }) // Analyze more hands for summary
+                headers: { 'Content-Type': 'application/json' }
             });
             
             const data = await response.json();
@@ -371,19 +370,28 @@ if (analyzeSummaryBtn) {
                 results.className = 'results success show';
                 results.innerHTML = `
                     <strong>✓ Analysis Complete</strong><br>
-                    Analyzed ${data.analyzed} of ${data.total_hands} total hands
+                    Analyzed all ${data.total_hands} hands
                 `;
                 
-                // Display summary
+                // Display summary with stats
                 const summaryCard = document.createElement('div');
                 summaryCard.className = 'analysis-card';
+                const stats = data.stats;
                 summaryCard.innerHTML = `
                     <div class="analysis-header">
-                        <h3>📊 Overall Summary</h3>
+                        <h3>📊 Overall Performance Summary</h3>
                     </div>
                     <div class="analysis-content">
-                        <p><strong>Total Hands Analyzed:</strong> ${data.analyzed}</p>
-                        <p>Your AI coach has reviewed your recent play. Check individual hand analyses below for detailed feedback.</p>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <h4>📈 Your Statistics</h4>
+                            <p><strong>Total Hands:</strong> ${stats.total_hands}</p>
+                            <p><strong>Win Rate:</strong> ${stats.win_rate.win_percentage}% (${stats.win_rate.wins} wins, ${stats.win_rate.losses} losses, ${stats.win_rate.folds} folds)</p>
+                            <p><strong>VPIP:</strong> ${stats.vpip}% <small>(how often you play hands)</small></p>
+                            <p><strong>PFR:</strong> ${stats.pfr}% <small>(how often you raise pre-flop)</small></p>
+                            <p><strong>Aggression:</strong> ${stats.aggression} <small>(bet/raise vs call ratio)</small></p>
+                        </div>
+                        <h4>🤖 AI Coach Feedback</h4>
+                        ${data.ai_summary}
                     </div>
                 `;
                 summaryContainer.appendChild(summaryCard);

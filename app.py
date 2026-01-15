@@ -5,6 +5,7 @@ from flask_cors import CORS
 from hand_parser import HandParser
 from ai_provider import AIProvider
 from file_watcher import FileWatcher
+from playstyle_analyzer import PlaystyleAnalyzer
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +19,7 @@ config = load_config()
 parser = HandParser(config['player_username'])
 ai_provider = AIProvider(config)
 file_watcher = FileWatcher(config)
+playstyle_analyzer = PlaystyleAnalyzer(config['player_username'])
 
 
 @app.route('/')
@@ -157,6 +159,72 @@ def analyze():
             'total_hands': len(all_hands),
             'analyzed': len(analyses),
             'analyses': analyses
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/analyze/summary', methods=['POST'])
+def analyze_summary():
+    """Analyze all hands and provide summary with playstyle analysis."""
+    try:
+        files = file_watcher.scan_for_files()
+        all_hands = []
+        
+        for file_path in files:
+            parsed = parser.parse_file(file_path)
+            all_hands.extend(parsed)
+        
+        if not all_hands:
+            return jsonify({'success': False, 'error': 'No hands found'})
+        
+        # Get playstyle statistics
+        stats = playstyle_analyzer.analyze_playstyle(all_hands)
+        
+        # Generate AI summary based on stats
+        summary_prompt = f"""You are a friendly poker coach. Analyze this player's overall performance and provide beginner-friendly advice.
+
+Player Statistics:
+- Total Hands: {stats.get('total_hands', 0)}
+- VPIP (Voluntarily Put In Pot): {stats.get('vpip', 0)}%
+- PFR (Pre-Flop Raise): {stats.get('pfr', 0)}%
+- Aggression Factor: {stats.get('aggression', 0)}
+- Win Rate: {stats.get('win_rate', {}).get('win_percentage', 0)}%
+- Wins: {stats.get('win_rate', {}).get('wins', 0)}
+- Losses: {stats.get('win_rate', {}).get('losses', 0)}
+- Folds: {stats.get('win_rate', {}).get('folds', 0)}
+
+Common Mistakes:
+{chr(10).join('- ' + m for m in stats.get('common_mistakes', [])) if stats.get('common_mistakes') else '- None identified'}
+
+Strengths:
+{chr(10).join('- ' + s for s in stats.get('strengths', [])) if stats.get('strengths') else '- Building skills'}
+
+Provide a friendly, encouraging summary with:
+1. Overall assessment of their play
+2. Top 3 things they're doing well
+3. Top 3 areas to improve
+4. One specific actionable tip for their next session
+
+Keep it simple and motivating!"""
+
+        summary_hand = {
+            'hand_id': 'SUMMARY',
+            'game_type': 'Overall Analysis',
+            'stakes': '',
+            'player_cards': '',
+            'result': f'{stats.get("total_hands", 0)} hands analyzed',
+            'actions': [],
+            'raw_text': summary_prompt
+        }
+        
+        ai_summary = ai_provider.analyze_hand(summary_hand)
+        
+        return jsonify({
+            'success': True,
+            'total_hands': len(all_hands),
+            'stats': stats,
+            'ai_summary': ai_summary
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

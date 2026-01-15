@@ -27,6 +27,9 @@ async function loadGraphs() {
             createProfitChart();
             createHandStrengthChart();
             createAggressionChart();
+            createSessionChart();
+            createBankrollChart();
+            createStartingHandsChart();
             
             // Show graphs
             loadingScreen.style.display = 'none';
@@ -680,6 +683,353 @@ function createAggressionChart() {
     });
 }
 
+// Create Session Performance Chart
+function createSessionChart() {
+    const ctx = document.getElementById('sessionChart');
+    
+    // Group hands by date (session)
+    const sessions = {};
+    filteredHands.forEach(hand => {
+        const date = hand.date ? hand.date.split('T')[0] : 'Unknown';
+        if (!sessions[date]) {
+            sessions[date] = { wins: 0, total: 0, profit: 0 };
+        }
+        sessions[date].total++;
+        if (hand.won) sessions[date].wins++;
+        
+        // Calculate profit
+        if (hand.result.toLowerCase().includes('won')) {
+            const match = hand.result.match(/[\d.]+/);
+            sessions[date].profit += match ? parseFloat(match[0]) : 1;
+        } else if (hand.result.toLowerCase().includes('lost')) {
+            const match = hand.result.match(/[\d.]+/);
+            sessions[date].profit -= match ? parseFloat(match[0]) : 0.5;
+        }
+    });
+    
+    const dates = Object.keys(sessions).sort();
+    const winRates = dates.map(date => 
+        parseFloat((sessions[date].wins / sessions[date].total * 100).toFixed(1))
+    );
+    const profits = dates.map(date => parseFloat(sessions[date].profit.toFixed(2)));
+    
+    charts.session = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates.map(d => {
+                const date = new Date(d);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }),
+            datasets: [
+                {
+                    label: 'Win Rate (%)',
+                    data: winRates,
+                    backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Profit',
+                    data: profits,
+                    type: 'line',
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12, weight: '500' },
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '600' }
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Win Rate (%)',
+                        font: { size: 12, weight: '600' }
+                    },
+                    min: 0,
+                    max: 100
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Profit',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Bankroll Growth Chart
+function createBankrollChart() {
+    const ctx = document.getElementById('bankrollChart');
+    
+    // Calculate bankroll over time
+    const data = [];
+    let bankroll = 100; // Starting bankroll
+    
+    filteredHands.forEach((hand, index) => {
+        // Calculate profit/loss
+        if (hand.result.toLowerCase().includes('won')) {
+            const match = hand.result.match(/[\d.]+/);
+            bankroll += match ? parseFloat(match[0]) : 1;
+        } else if (hand.result.toLowerCase().includes('lost')) {
+            const match = hand.result.match(/[\d.]+/);
+            bankroll -= match ? parseFloat(match[0]) : 0.5;
+        }
+        
+        data.push({
+            x: index + 1,
+            y: parseFloat(bankroll.toFixed(2))
+        });
+    });
+    
+    const startingBankroll = 100;
+    const currentBankroll = data.length > 0 ? data[data.length - 1].y : startingBankroll;
+    const profitLoss = currentBankroll - startingBankroll;
+    const isProfit = profitLoss >= 0;
+    
+    charts.bankroll = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Bankroll',
+                data: data,
+                borderColor: isProfit ? '#10b981' : '#ef4444',
+                backgroundColor: function(context) {
+                    const chart = context.chart;
+                    const {ctx, chartArea} = chart;
+                    if (!chartArea) return null;
+                    
+                    const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                    if (isProfit) {
+                        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.05)');
+                        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.3)');
+                    } else {
+                        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.05)');
+                        gradient.addColorStop(1, 'rgba(239, 68, 68, 0.3)');
+                    }
+                    return gradient;
+                },
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 6,
+                pointBackgroundColor: isProfit ? '#10b981' : '#ef4444'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        title: function(context) {
+                            return `Hand ${context[0].parsed.x}`;
+                        },
+                        label: function(context) {
+                            return `Bankroll: $${context.parsed.y.toFixed(2)}`;
+                        },
+                        afterLabel: function(context) {
+                            const change = context.parsed.y - startingBankroll;
+                            const sign = change >= 0 ? '+' : '';
+                            return `Change: ${sign}$${change.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Hands Played',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Bankroll ($)',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toFixed(0);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Starting Hands Chart
+function createStartingHandsChart() {
+    const ctx = document.getElementById('startingHandsChart');
+    
+    // Count starting hand categories
+    const handCategories = {
+        'Pocket Pairs': 0,
+        'Suited Connectors': 0,
+        'Broadway (High Cards)': 0,
+        'Suited Aces': 0,
+        'Offsuit High': 0,
+        'Weak Hands': 0
+    };
+    
+    filteredHands.forEach(hand => {
+        if (!hand.hole_cards || hand.hole_cards === 'unknown') {
+            handCategories['Weak Hands']++;
+            return;
+        }
+        
+        const cards = hand.hole_cards.toUpperCase();
+        
+        // Pocket pairs
+        if (/([AKQJT98765432])\1/.test(cards.replace(/[shdc]/gi, ''))) {
+            handCategories['Pocket Pairs']++;
+        }
+        // Suited Aces
+        else if (cards.includes('A') && cards.includes('s')) {
+            handCategories['Suited Aces']++;
+        }
+        // Suited connectors
+        else if (cards.includes('s')) {
+            handCategories['Suited Connectors']++;
+        }
+        // Broadway (high cards)
+        else if (/[AKQJT].*[AKQJT]/.test(cards)) {
+            handCategories['Broadway (High Cards)']++;
+        }
+        // Offsuit high
+        else if (/[AKQJ]/.test(cards)) {
+            handCategories['Offsuit High']++;
+        }
+        else {
+            handCategories['Weak Hands']++;
+        }
+    });
+    
+    const labels = Object.keys(handCategories);
+    const data = Object.values(handCategories);
+    
+    charts.startingHands = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.7)',   // Pocket Pairs - green
+                    'rgba(139, 92, 246, 0.7)',   // Suited Connectors - purple
+                    'rgba(37, 99, 235, 0.7)',    // Broadway - blue
+                    'rgba(245, 158, 11, 0.7)',   // Suited Aces - amber
+                    'rgba(59, 130, 246, 0.7)',   // Offsuit High - light blue
+                    'rgba(156, 163, 175, 0.7)'   // Weak - gray
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        font: { size: 11, weight: '500' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            const total = data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed.r / total) * 100).toFixed(1);
+                            return `${context.label}: ${context.parsed.r} hands (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Update all charts
 function updateAllCharts() {
     // Destroy existing charts
@@ -696,6 +1046,9 @@ function updateAllCharts() {
     createProfitChart();
     createHandStrengthChart();
     createAggressionChart();
+    createSessionChart();
+    createBankrollChart();
+    createStartingHandsChart();
 }
 
 // Filter event listeners

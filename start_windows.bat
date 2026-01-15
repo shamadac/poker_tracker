@@ -21,4 +21,7 @@ echo.
 echo Press Ctrl+C to stop the server
 echo.
 
+REM Activate virtual environment
+call .venv\Scripts\activate.bat
+
 python app.py

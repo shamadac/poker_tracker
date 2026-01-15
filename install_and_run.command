@@ -102,8 +102,16 @@ fi
 echo ""
 echo "📦 Installing Python dependencies..."
 
+# Create virtual environment
+echo "Creating virtual environment..."
+python3 -m venv .venv
+
+# Activate and install
+source .venv/bin/activate
+pip install --upgrade pip
+
 # Install pip packages
-if pip3 install -r requirements.txt > /dev/null 2>&1; then
+if pip install -r requirements.txt > /dev/null 2>&1; then
     echo "✓ Dependencies installed"
 else
     echo "⚠️  Some dependencies may have failed to install"
@@ -127,13 +135,16 @@ echo ""
 echo "🚀 Starting Poker Analyzer..."
 echo ""
 echo "The app will open in your browser at:"
-echo "http://localhost:5000"
+echo "http://localhost:5001"
 echo ""
 echo "To stop the app, close this window or press Ctrl+C"
 echo ""
 
+# Activate virtual environment
+source .venv/bin/activate
+
 # Open browser after a short delay
-(sleep 3 && open "http://localhost:5000") &
+(sleep 3 && open "http://localhost:5001") &
 
 # Start the Flask app
 python3 app.py

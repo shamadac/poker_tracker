@@ -63,6 +63,21 @@ echo.
 echo [INFO] Installing Python dependencies...
 pip install -r requirements.txt
 
+echo.
+echo [INFO] Creating virtual environment...
+python -m venv .venv
+
+if errorlevel 1 (
+    echo [ERROR] Failed to create virtual environment
+    pause
+    exit /b 1
+)
+
+echo [INFO] Installing dependencies in virtual environment...
+call .venv\Scripts\activate.bat
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
 if errorlevel 1 (
     echo [ERROR] Failed to install dependencies
     pause

@@ -24,6 +24,9 @@ async function loadGraphs() {
             createWinRateChart();
             createResultsChart();
             createPositionChart();
+            createProfitChart();
+            createHandStrengthChart();
+            createAggressionChart();
             
             // Show graphs
             loadingScreen.style.display = 'none';
@@ -375,6 +378,308 @@ function createPositionChart() {
     });
 }
 
+// Create Profit/Loss Chart
+function createProfitChart() {
+    const ctx = document.getElementById('profitChart');
+    
+    // Calculate cumulative profit
+    const data = [];
+    let cumulativeProfit = 0;
+    
+    filteredHands.forEach((hand, index) => {
+        // Estimate profit based on result
+        let profit = 0;
+        if (hand.result.toLowerCase().includes('won')) {
+            // Extract amount from result if possible
+            const match = hand.result.match(/[\d.]+/);
+            profit = match ? parseFloat(match[0]) : 1;
+        } else if (hand.result.toLowerCase().includes('lost')) {
+            const match = hand.result.match(/[\d.]+/);
+            profit = match ? -parseFloat(match[0]) : -0.5;
+        }
+        
+        cumulativeProfit += profit;
+        
+        // Add data point every hand
+        data.push({
+            x: index + 1,
+            y: parseFloat(cumulativeProfit.toFixed(2))
+        });
+    });
+    
+    charts.profit = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Cumulative Profit',
+                data: data,
+                borderColor: '#2563eb',
+                backgroundColor: function(context) {
+                    const chart = context.chart;
+                    const {ctx, chartArea} = chart;
+                    if (!chartArea) return null;
+                    
+                    const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.05)');
+                    gradient.addColorStop(1, 'rgba(37, 99, 235, 0.2)');
+                    return gradient;
+                },
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 6,
+                pointBackgroundColor: function(context) {
+                    return context.parsed.y >= 0 ? '#10b981' : '#ef4444';
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        title: function(context) {
+                            return `Hand ${context[0].parsed.x}`;
+                        },
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            const sign = value >= 0 ? '+' : '';
+                            return `Profit: ${sign}${value.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Hands Played',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Cumulative Profit',
+                        font: { size: 12, weight: '600' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value >= 0 ? '+' + value : value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Hand Strength Chart
+function createHandStrengthChart() {
+    const ctx = document.getElementById('handStrengthChart');
+    
+    // Categorize hands by strength
+    const categories = {
+        'Premium (AA-QQ, AK)': 0,
+        'Strong (JJ-99, AQ-AJ)': 0,
+        'Medium (88-22, KQ-KJ)': 0,
+        'Speculative (Suited, Connectors)': 0,
+        'Weak (Others)': 0
+    };
+    
+    filteredHands.forEach(hand => {
+        if (!hand.hole_cards || hand.hole_cards === 'unknown') {
+            categories['Weak (Others)']++;
+            return;
+        }
+        
+        const cards = hand.hole_cards.toUpperCase();
+        
+        // Premium hands
+        if (cards.includes('AA') || cards.includes('KK') || cards.includes('QQ') || 
+            (cards.includes('A') && cards.includes('K'))) {
+            categories['Premium (AA-QQ, AK)']++;
+        }
+        // Strong hands
+        else if (cards.includes('JJ') || cards.includes('TT') || cards.includes('99') ||
+                 (cards.includes('A') && (cards.includes('Q') || cards.includes('J')))) {
+            categories['Strong (JJ-99, AQ-AJ)']++;
+        }
+        // Medium pairs and broadway
+        else if (/[2-8][2-8]/.test(cards) || 
+                 (cards.includes('K') && (cards.includes('Q') || cards.includes('J')))) {
+            categories['Medium (88-22, KQ-KJ)']++;
+        }
+        // Suited or connectors
+        else if (cards.includes('s') || /[0-9][0-9]/.test(cards)) {
+            categories['Speculative (Suited, Connectors)']++;
+        }
+        else {
+            categories['Weak (Others)']++;
+        }
+    });
+    
+    const labels = Object.keys(categories);
+    const data = Object.values(categories);
+    
+    charts.handStrength = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#10b981', // Premium - green
+                    '#2563eb', // Strong - blue
+                    '#f59e0b', // Medium - amber
+                    '#8b5cf6', // Speculative - purple
+                    '#9ca3af'  // Weak - gray
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 12,
+                        font: { size: 11, weight: '500' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            const total = data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${context.label}: ${context.parsed} hands (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Aggression Chart
+function createAggressionChart() {
+    const ctx = document.getElementById('aggressionChart');
+    
+    // Count aggressive vs passive actions
+    const actions = {
+        'Aggressive (Bet/Raise)': 0,
+        'Passive (Call/Check)': 0,
+        'Fold': 0
+    };
+    
+    filteredHands.forEach(hand => {
+        const result = hand.result.toLowerCase();
+        
+        if (result.includes('bet') || result.includes('raise') || result.includes('all-in')) {
+            actions['Aggressive (Bet/Raise)']++;
+        } else if (result.includes('call') || result.includes('check')) {
+            actions['Passive (Call/Check)']++;
+        } else if (result.includes('fold')) {
+            actions['Fold']++;
+        } else {
+            // Default categorization based on whether they won
+            if (hand.won) {
+                actions['Aggressive (Bet/Raise)']++;
+            } else {
+                actions['Passive (Call/Check)']++;
+            }
+        }
+    });
+    
+    const labels = Object.keys(actions);
+    const data = Object.values(actions);
+    
+    charts.aggression = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Actions',
+                data: data,
+                backgroundColor: [
+                    '#ef4444', // Aggressive - red
+                    '#2563eb', // Passive - blue
+                    '#9ca3af'  // Fold - gray
+                ],
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            const total = data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                            return `${context.parsed.y} hands (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: { size: 11, weight: '600' }
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Number of Hands',
+                        font: { size: 12, weight: '600' }
+                    },
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Update all charts
 function updateAllCharts() {
     // Destroy existing charts
@@ -388,6 +693,9 @@ function updateAllCharts() {
     createWinRateChart();
     createResultsChart();
     createPositionChart();
+    createProfitChart();
+    createHandStrengthChart();
+    createAggressionChart();
 }
 
 // Filter event listeners

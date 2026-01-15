@@ -102,32 +102,8 @@ async function checkAIStatus() {
     }
 }
 
-// Provider selection
-document.querySelectorAll('input[name="ai-provider"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        toggleProviderSettings(e.target.value);
-    });
-});
-
-function toggleProviderSettings(provider) {
-    const ollamaSettings = document.getElementById('ollama-settings');
-    const geminiSettings = document.getElementById('gemini-settings');
-    
-    if (provider === 'ollama') {
-        ollamaSettings.style.display = 'block';
-        geminiSettings.style.display = 'none';
-    } else {
-        ollamaSettings.style.display = 'none';
-        geminiSettings.style.display = 'block';
-    }
-}
-
-// Save settings
-document.getElementById('save-settings-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('save-settings-btn');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    
+// Auto-save settings function
+async function autoSaveSettings() {
     const provider = document.querySelector('input[name="ai-provider"]:checked').value;
     const settings = {
         ai_provider: provider,
@@ -152,15 +128,54 @@ document.getElementById('save-settings-btn').addEventListener('click', async () 
         
         if (response.ok) {
             await loadStatus();
-            alert('Settings saved successfully!');
         }
     } catch (error) {
-        alert('Error saving settings: ' + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save Settings';
+        console.error('Error auto-saving settings:', error);
     }
+}
+
+// Provider selection with auto-save
+document.querySelectorAll('input[name="ai-provider"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        toggleProviderSettings(e.target.value);
+        autoSaveSettings();
+    });
 });
+
+// Model selection with auto-save
+document.getElementById('ollama-model').addEventListener('change', autoSaveSettings);
+document.getElementById('gemini-model').addEventListener('change', autoSaveSettings);
+
+// API key with auto-save on blur
+document.getElementById('gemini-api-key').addEventListener('blur', autoSaveSettings);
+
+function toggleProviderSettings(provider) {
+    const ollamaSettings = document.getElementById('ollama-settings');
+    const geminiSettings = document.getElementById('gemini-settings');
+    
+    if (provider === 'ollama') {
+        ollamaSettings.style.display = 'block';
+        geminiSettings.style.display = 'none';
+    } else {
+        ollamaSettings.style.display = 'none';
+        geminiSettings.style.display = 'block';
+    }
+}
+
+// Save settings button (kept for manual save if needed)
+const saveBtn = document.getElementById('save-settings-btn');
+if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        
+        await autoSaveSettings();
+        
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Settings';
+        alert('Settings saved successfully!');
+    });
+}
 
 // Setup Ollama
 document.getElementById('setup-ollama-btn').addEventListener('click', async () => {
@@ -249,7 +264,13 @@ document.getElementById('scan-btn').addEventListener('click', async () => {
                     `Hand #${h.hand_id} (${h.cards}) - ${h.result}`
                 ).join('<br>') : ''}
             `;
-            document.getElementById('analyze-btn').disabled = false;
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const analyzeSummaryBtn = document.getElementById('analyze-summary-btn');
+            const analyzeDetailedBtn = document.getElementById('analyze-detailed-btn');
+            
+            if (analyzeBtn) analyzeBtn.disabled = false;
+            if (analyzeSummaryBtn) analyzeSummaryBtn.disabled = false;
+            if (analyzeDetailedBtn) analyzeDetailedBtn.disabled = false;
         } else {
             results.className = 'results error show';
             results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;

@@ -373,48 +373,11 @@ if (analyzeSummaryBtn) {
                     Analyzed all ${data.total_hands} hands
                 `;
                 
-                // Display summary with stats
-                const summaryCard = document.createElement('div');
-                summaryCard.className = 'analysis-card summary-card';
-                const stats = data.stats;
-                const formattedSummary = formatAnalysisText(data.ai_summary);
+                // Save to localStorage
+                saveAnalysisToStorage(data, 'summary');
                 
-                summaryCard.innerHTML = `
-                    <div class="analysis-header">
-                        <h3>📊 Overall Performance Summary</h3>
-                        <div class="hand-info">
-                            <span class="hand-info-item">🎴 ${stats.total_hands} hands analyzed</span>
-                            <span class="hand-info-item">🏆 ${stats.win_rate.win_percentage}% win rate</span>
-                        </div>
-                    </div>
-                    <div class="analysis-content">
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-label">Win Rate</div>
-                                <div class="stat-value">${stats.win_rate.win_percentage}%</div>
-                                <div class="stat-hint">${stats.win_rate.wins}W / ${stats.win_rate.losses}L / ${stats.win_rate.folds}F</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">VPIP</div>
-                                <div class="stat-value">${stats.vpip}%</div>
-                                <div class="stat-hint">How often you play</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">PFR</div>
-                                <div class="stat-value">${stats.pfr}%</div>
-                                <div class="stat-hint">Pre-flop raises</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Aggression</div>
-                                <div class="stat-value">${stats.aggression}</div>
-                                <div class="stat-hint">Bet/raise ratio</div>
-                            </div>
-                        </div>
-                        <h2>🤖 AI Coach Feedback</h2>
-                        ${formattedSummary}
-                    </div>
-                `;
-                summaryContainer.appendChild(summaryCard);
+                // Display summary with stats
+                displaySummaryAnalysis(data);
             } else {
                 results.className = 'results error show';
                 results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;
@@ -460,26 +423,11 @@ if (analyzeDetailedBtn) {
                     Analyzed ${data.analyzed} of ${data.total_hands} total hands
                 `;
                 
+                // Save to localStorage
+                saveAnalysisToStorage(data, 'detailed');
+                
                 // Display detailed analyses with beautiful formatting
-                data.analyses.forEach(analysis => {
-                    const card = document.createElement('div');
-                    card.className = 'analysis-card';
-                    
-                    // Format the analysis text with proper HTML
-                    const formattedAnalysis = formatAnalysisText(analysis.analysis);
-                    
-                    card.innerHTML = `
-                        <div class="analysis-header">
-                            <h3>🎴 Hand #${analysis.hand_id}</h3>
-                            <div class="hand-info">
-                                <span class="hand-info-item">🃏 ${analysis.cards}</span>
-                                <span class="hand-info-item">📊 ${analysis.result}</span>
-                            </div>
-                        </div>
-                        <div class="analysis-content">${formattedAnalysis}</div>
-                    `;
-                    container.appendChild(card);
-                });
+                displayDetailedAnalysis(data);
             } else {
                 results.className = 'results error show';
                 results.innerHTML = `<strong>✗ Error:</strong> ${data.error}`;
@@ -496,6 +444,143 @@ if (analyzeDetailedBtn) {
 
 // Load status on page load
 loadStatus();
+
+// Restore previous analysis from localStorage
+window.addEventListener('DOMContentLoaded', () => {
+    restorePreviousAnalysis();
+});
+
+// Save analysis to localStorage
+function saveAnalysisToStorage(data, type) {
+    const analysisData = {
+        timestamp: new Date().toISOString(),
+        type: type, // 'summary' or 'detailed'
+        data: data
+    };
+    localStorage.setItem('lastAnalysis', JSON.stringify(analysisData));
+}
+
+// Restore previous analysis
+function restorePreviousAnalysis() {
+    const saved = localStorage.getItem('lastAnalysis');
+    if (!saved) return;
+    
+    try {
+        const analysisData = JSON.parse(saved);
+        const age = Date.now() - new Date(analysisData.timestamp).getTime();
+        const hoursSinceAnalysis = age / (1000 * 60 * 60);
+        
+        // Only restore if less than 24 hours old
+        if (hoursSinceAnalysis > 24) {
+            localStorage.removeItem('lastAnalysis');
+            return;
+        }
+        
+        // Show restore notification
+        const results = document.getElementById('analyze-results');
+        const timeAgo = hoursSinceAnalysis < 1 ? 
+            `${Math.round(hoursSinceAnalysis * 60)} minutes ago` : 
+            `${Math.round(hoursSinceAnalysis)} hours ago`;
+        
+        results.className = 'results info show';
+        results.innerHTML = `
+            <strong>📋 Previous Analysis Available</strong><br>
+            Last analyzed ${timeAgo}. Showing previous results below.<br>
+            <button onclick="clearPreviousAnalysis()" class="btn btn-secondary" style="margin-top: 0.5rem;">Clear & Run New Analysis</button>
+        `;
+        
+        // Restore the analysis display
+        if (analysisData.type === 'summary') {
+            displaySummaryAnalysis(analysisData.data);
+        } else if (analysisData.type === 'detailed') {
+            displayDetailedAnalysis(analysisData.data);
+        }
+    } catch (e) {
+        console.error('Error restoring analysis:', e);
+        localStorage.removeItem('lastAnalysis');
+    }
+}
+
+// Clear previous analysis
+function clearPreviousAnalysis() {
+    localStorage.removeItem('lastAnalysis');
+    document.getElementById('analyze-results').className = 'results';
+    document.getElementById('analyze-results').innerHTML = '';
+    document.getElementById('summary-container').innerHTML = '';
+    document.getElementById('analyses-container').innerHTML = '';
+}
+
+// Display summary analysis
+function displaySummaryAnalysis(data) {
+    const summaryContainer = document.getElementById('summary-container');
+    summaryContainer.innerHTML = '';
+    
+    const summaryCard = document.createElement('div');
+    summaryCard.className = 'analysis-card summary-card';
+    const stats = data.stats;
+    const formattedSummary = formatAnalysisText(data.ai_summary);
+    
+    summaryCard.innerHTML = `
+        <div class="analysis-header">
+            <h3>📊 Overall Performance Summary</h3>
+            <div class="hand-info">
+                <span class="hand-info-item">🎴 ${stats.total_hands} hands analyzed</span>
+                <span class="hand-info-item">🏆 ${stats.win_rate.win_percentage}% win rate</span>
+            </div>
+        </div>
+        <div class="analysis-content">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Win Rate</div>
+                    <div class="stat-value">${stats.win_rate.win_percentage}%</div>
+                    <div class="stat-hint">${stats.win_rate.wins}W / ${stats.win_rate.losses}L / ${stats.win_rate.folds}F</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">VPIP</div>
+                    <div class="stat-value">${stats.vpip}%</div>
+                    <div class="stat-hint">How often you play</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">PFR</div>
+                    <div class="stat-value">${stats.pfr}%</div>
+                    <div class="stat-hint">Pre-flop raises</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Aggression</div>
+                    <div class="stat-value">${stats.aggression}</div>
+                    <div class="stat-hint">Bet/raise ratio</div>
+                </div>
+            </div>
+            <h2>🤖 AI Coach Feedback</h2>
+            ${formattedSummary}
+        </div>
+    `;
+    summaryContainer.appendChild(summaryCard);
+}
+
+// Display detailed analysis
+function displayDetailedAnalysis(data) {
+    const container = document.getElementById('analyses-container');
+    container.innerHTML = '';
+    
+    data.analyses.forEach(analysis => {
+        const card = document.createElement('div');
+        card.className = 'analysis-card';
+        const formattedAnalysis = formatAnalysisText(analysis.analysis);
+        
+        card.innerHTML = `
+            <div class="analysis-header">
+                <h3>🎴 Hand #${analysis.hand_id}</h3>
+                <div class="hand-info">
+                    <span class="hand-info-item">🃏 ${analysis.cards}</span>
+                    <span class="hand-info-item">📊 ${analysis.result}</span>
+                </div>
+            </div>
+            <div class="analysis-content">${formattedAnalysis}</div>
+        `;
+        container.appendChild(card);
+    });
+}
 
 
 // Format AI analysis text with beautiful HTML

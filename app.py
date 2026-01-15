@@ -197,29 +197,53 @@ Common Mistakes Detected:
 Strengths Identified:
 {chr(10).join('- ' + s for s in stats.get('strengths', [])) if stats.get('strengths') else '- Building skills'}
 
-Write a BEGINNER-FRIENDLY analysis with these sections:
+YOU MUST write a comprehensive BEGINNER-FRIENDLY analysis with ALL of these sections. DO NOT skip any section:
 
 ## 🎮 YOUR PLAYING STYLE
-Describe their style in simple terms. Are they tight or loose? Aggressive or passive? What does this mean for a beginner?
+Write 2-3 paragraphs describing their style. Are they tight or loose? Aggressive or passive? What does this mean? Give them a nickname for their style (like "The Cautious Caller" or "The Aggressive Raiser").
 
-## ✅ WHAT YOU'RE DOING WELL (Top 3-5 Strengths)
-List their strengths. Use simple language and explain WHY each is good.
+## ✅ WHAT YOU'RE DOING WELL (List 5 Strengths)
+List EXACTLY 5 things they're doing right. For each one:
+- State what they're doing well
+- Explain WHY it's good
+- Give a specific example or stat
+Use numbered list format (1. 2. 3. 4. 5.)
 
-## ❌ MISTAKES TO FIX (Top 3-5 Problems)
-List mistakes they're making. Explain WHAT the mistake is, WHY it's bad, and HOW it costs them money.
+## ❌ MISTAKES TO FIX (List 5 Problems)
+List EXACTLY 5 mistakes they're making. For each one:
+- State WHAT the mistake is
+- Explain WHY it's bad and how it costs money
+- Give specific advice on HOW to fix it
+Use numbered list format (1. 2. 3. 4. 5.)
 
-## 💪 HOW TO IMPROVE (Top 3-5 Action Items)
-Give specific things to practice. Make each one actionable and explain the concept if needed.
-For example, if mentioning "position", briefly explain what position means in poker.
+## 💪 HOW TO IMPROVE (List 5 Action Items)
+Give EXACTLY 5 specific things to practice. For each one:
+- Make it actionable and specific
+- Explain the concept if needed (like "position" or "pot odds")
+- Tell them exactly what to do next session
+Use numbered list format (1. 2. 3. 4. 5.)
 
-## 📚 POKER CONCEPTS TO LEARN
-Explain 1-2 important poker concepts this player needs to understand (like position, pot odds, hand selection, etc.). 
-Keep explanations simple and practical.
+## 📚 POKER CONCEPTS TO LEARN (Explain 3 Concepts)
+Explain EXACTLY 3 important poker concepts this player needs to understand. Choose from:
+- Position (early vs late position advantage)
+- Pot Odds (when to call based on pot size)
+- Hand Selection (which hands to play)
+- Aggression (why betting is better than calling)
+- Reading Opponents (spotting patterns)
+- Bankroll Management (protecting your money)
 
-## 🎯 QUICK TIPS FOR NEXT SESSION
-Give 2-3 simple tips they can use immediately in their next game.
+For each concept:
+- Explain what it is in simple terms
+- Why it matters for THIS player specifically
+- How to apply it in their next game
 
-Remember: This player is a BEGINNER. Avoid jargon. When you must use poker terms, explain them simply."""
+## 🎯 QUICK TIPS FOR NEXT SESSION (List 3 Tips)
+Give EXACTLY 3 simple, actionable tips they can use immediately. Make each one:
+- One sentence long
+- Easy to remember
+- Immediately applicable
+
+Remember: This player is a BEGINNER. Avoid jargon. When you must use poker terms, explain them simply. BE COMPREHENSIVE - this should be a LONG, detailed analysis with lots of specific advice."""
 
         summary_hand = {
             'hand_id': 'SUMMARY',

@@ -1,6 +1,6 @@
 {
-  "player_username": "Z420909",
-  "ai_provider": "ollama",
+  "player_username": "YOUR_POKERSTARS_USERNAME",
+  "ai_provider": "gemini",
   "ollama_url": "http://localhost:11434",
   "ollama_model": "llama3.1:8b",
   "gemini_api_key": "AIzaSyCPvwyjcPnk4TH_gZecLJ0nxqJ4dMYXdlY",

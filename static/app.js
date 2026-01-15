@@ -19,6 +19,12 @@ async function loadStatus() {
         document.getElementById('ollama-model').value = currentConfig.ollama_model;
         document.getElementById('gemini-model').value = currentConfig.gemini_model;
         
+        // Show Gemini key status
+        if (currentConfig.has_gemini_key) {
+            document.getElementById('gemini-key-status').style.display = 'block';
+            document.getElementById('gemini-api-key').placeholder = 'API key already configured (leave blank to keep)';
+        }
+        
         // Show/hide settings
         toggleProviderSettings(currentConfig.ai_provider);
         
@@ -99,9 +105,10 @@ document.getElementById('save-settings-btn').addEventListener('click', async () 
         gemini_model: document.getElementById('gemini-model').value
     };
     
+    // Only update API key if user entered a new one
     if (provider === 'gemini') {
         const apiKey = document.getElementById('gemini-api-key').value;
-        if (apiKey) {
+        if (apiKey && apiKey.trim() !== '') {
             settings.gemini_api_key = apiKey;
         }
     }

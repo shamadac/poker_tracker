@@ -68,5 +68,5 @@ Thumbs.db
 *.swp
 *~
 
-# Config with sensitive data (if any)
-# config.json (uncomment if it has passwords)
+# Config with sensitive data
+config.json

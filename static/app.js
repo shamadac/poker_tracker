@@ -2,6 +2,36 @@
 let handsFound = 0;
 let currentConfig = {};
 
+// Theme Toggle
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        updateThemeIcon(true);
+    }
+}
+
+function updateThemeIcon(isDark) {
+    const icon = document.querySelector('.theme-icon');
+    if (icon) {
+        icon.textContent = isDark ? '☀️' : '🌙';
+    }
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        });
+    }
+});
+
 // Load initial config and status
 async function loadStatus() {
     try {

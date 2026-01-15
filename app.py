@@ -26,6 +26,18 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/dashboard')
+def dashboard():
+    """Serve the statistics dashboard page."""
+    return render_template('dashboard.html')
+
+
+@app.route('/graphs')
+def graphs():
+    """Serve the graphs and charts page."""
+    return render_template('graphs.html')
+
+
 @app.route('/api/config', methods=['GET'])
 def get_config():
     """Get current configuration."""

@@ -181,32 +181,45 @@ def analyze_summary():
         # Get playstyle statistics
         stats = playstyle_analyzer.analyze_playstyle(all_hands)
         
-        # Generate AI summary based on stats
-        summary_prompt = f"""You are a friendly poker coach. Analyze this player's overall performance and provide beginner-friendly advice.
+        # Generate AI summary based on stats with detailed beginner-friendly structure
+        summary_prompt = f"""You are a friendly poker coach helping a BEGINNER player improve their game. Use simple language and explain concepts clearly.
 
-Player Statistics:
-- Total Hands: {stats.get('total_hands', 0)}
-- VPIP (Voluntarily Put In Pot): {stats.get('vpip', 0)}%
-- PFR (Pre-Flop Raise): {stats.get('pfr', 0)}%
-- Aggression Factor: {stats.get('aggression', 0)}
+PLAYER STATISTICS (from {stats.get('total_hands', 0)} hands):
+- VPIP: {stats.get('vpip', 0)}% (how often they play hands)
+- PFR: {stats.get('pfr', 0)}% (how often they raise before the flop)
+- Aggression: {stats.get('aggression', 0)} (how aggressive vs passive)
 - Win Rate: {stats.get('win_rate', {}).get('win_percentage', 0)}%
-- Wins: {stats.get('win_rate', {}).get('wins', 0)}
-- Losses: {stats.get('win_rate', {}).get('losses', 0)}
-- Folds: {stats.get('win_rate', {}).get('folds', 0)}
+- Results: {stats.get('win_rate', {}).get('wins', 0)} wins, {stats.get('win_rate', {}).get('losses', 0)} losses, {stats.get('win_rate', {}).get('folds', 0)} folds
 
-Common Mistakes:
+Common Mistakes Detected:
 {chr(10).join('- ' + m for m in stats.get('common_mistakes', [])) if stats.get('common_mistakes') else '- None identified'}
 
-Strengths:
+Strengths Identified:
 {chr(10).join('- ' + s for s in stats.get('strengths', [])) if stats.get('strengths') else '- Building skills'}
 
-Provide a friendly, encouraging summary with:
-1. Overall assessment of their play
-2. Top 3 things they're doing well
-3. Top 3 areas to improve
-4. One specific actionable tip for their next session
+Write a BEGINNER-FRIENDLY analysis with these sections:
 
-Keep it simple and motivating!"""
+## 🎮 YOUR PLAYING STYLE
+Describe their style in simple terms. Are they tight or loose? Aggressive or passive? What does this mean for a beginner?
+
+## ✅ WHAT YOU'RE DOING WELL (Top 3-5 Strengths)
+List their strengths. Use simple language and explain WHY each is good.
+
+## ❌ MISTAKES TO FIX (Top 3-5 Problems)
+List mistakes they're making. Explain WHAT the mistake is, WHY it's bad, and HOW it costs them money.
+
+## 💪 HOW TO IMPROVE (Top 3-5 Action Items)
+Give specific things to practice. Make each one actionable and explain the concept if needed.
+For example, if mentioning "position", briefly explain what position means in poker.
+
+## 📚 POKER CONCEPTS TO LEARN
+Explain 1-2 important poker concepts this player needs to understand (like position, pot odds, hand selection, etc.). 
+Keep explanations simple and practical.
+
+## 🎯 QUICK TIPS FOR NEXT SESSION
+Give 2-3 simple tips they can use immediately in their next game.
+
+Remember: This player is a BEGINNER. Avoid jargon. When you must use poker terms, explain them simply."""
 
         summary_hand = {
             'hand_id': 'SUMMARY',

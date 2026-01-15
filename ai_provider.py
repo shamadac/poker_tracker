@@ -241,26 +241,43 @@ class AIProvider:
     
     def _build_prompt(self, hand_data: Dict) -> str:
         """Build analysis prompt from hand data."""
-        prompt = f"""You are an expert poker coach analyzing a hand. Provide strategic advice.
+        # Check if this is a summary analysis
+        if hand_data.get('hand_id') == 'SUMMARY':
+            return hand_data.get('raw_text', '')
+        
+        # Individual hand analysis with beginner-friendly structure
+        prompt = f"""You are a friendly poker coach helping a BEGINNER player improve. Use simple language and explain concepts clearly.
 
-Hand ID: {hand_data['hand_id']}
-Game: {hand_data['game_type']}
-Stakes: {hand_data['stakes']}
-Player Cards: {hand_data['player_cards']}
-Result: {hand_data['result']}
+HAND DETAILS:
+- Hand ID: {hand_data['hand_id']}
+- Game: {hand_data['game_type']}
+- Stakes: {hand_data['stakes']}
+- Your Cards: {hand_data['player_cards']}
+- Result: {hand_data['result']}
 
-Player Actions:
+WHAT HAPPENED:
 {chr(10).join(hand_data['actions']) if hand_data['actions'] else 'No actions recorded'}
 
-Full Hand History:
+FULL HAND:
 {hand_data['raw_text'][:1000]}
 
-Analyze this hand and provide:
-1. What the player did well
-2. Mistakes or missed opportunities
-3. Specific advice for improvement
-4. Key takeaway
+Provide a BEGINNER-FRIENDLY analysis with these sections:
 
-Keep your analysis concise and actionable."""
+## 🎯 QUICK SUMMARY
+One sentence: What was the key decision in this hand?
+
+## ✅ WHAT YOU DID WELL
+List 2-3 good decisions. Explain WHY each was smart.
+
+## ❌ MISTAKES TO AVOID
+List any mistakes. Explain WHAT went wrong, WHY it's bad, and HOW to fix it.
+
+## 💡 KEY LESSON
+What's the ONE thing to remember from this hand? Keep it simple and actionable.
+
+## 📚 CONCEPT TO LEARN (if relevant)
+If this hand teaches an important poker concept (like position, pot odds, hand selection), explain it simply.
+
+Remember: Use simple language. Avoid jargon. When you must use poker terms, explain them."""
         
         return prompt

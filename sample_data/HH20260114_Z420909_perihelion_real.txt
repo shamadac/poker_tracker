@@ -1,0 +1,41 @@
+PokerStars Hand #259309793379:  Hold'em No Limit ($0.02/$0.05 CAD) - 2026/01/14 12:23:34 ET
+Table 'Perihelion II' 6-max Seat #4 is the button
+Seat 1: SoloE3 ($4.75 in chips)
+Seat 3: Z420909 ($2 in chips)
+Seat 4: TAKINURFLOW ($3.30 in chips)
+Seat 5: zayd88 ($6.92 in chips)
+Seat 6: phlopit ($8.09 in chips)
+zayd88: posts small blind $0.02
+phlopit: posts big blind $0.05
+Z420909: posts big blind $0.05
+*** HOLE CARDS ***
+Dealt to Z420909 [Ad 3h]
+SoloE3: calls $0.05
+Z420909: checks
+TAKINURFLOW: calls $0.05
+zayd88: raises $0.20 to $0.25
+phlopit: folds
+SoloE3: folds
+Z420909: calls $0.20
+TAKINURFLOW: folds
+*** FLOP *** [Ac Ts Qd]
+zayd88: bets $0.20
+Z420909: raises $0.20 to $0.40
+zayd88: calls $0.20
+*** TURN *** [Ac Ts Qd] [Qh]
+zayd88: checks
+Z420909: bets $1.35 and is all-in
+zayd88: calls $1.35
+*** RIVER *** [Ac Ts Qd Qh] [3d]
+*** SHOW DOWN ***
+zayd88: shows [As Js] (two pair, Aces and Queens)
+Z420909: shows [Ad 3h] (two pair, Aces and Queens - lower kicker)
+zayd88 collected $3.92 from pot
+*** SUMMARY ***
+Total pot $4.15 | Rake $0.23
+Board [Ac Ts Qd Qh 3d]
+Seat 1: SoloE3 folded before Flop
+Seat 3: Z420909 showed [Ad 3h] and lost with two pair, Aces and Queens
+Seat 4: TAKINURFLOW (button) folded before Flop
+Seat 5: zayd88 (small blind) showed [As Js] and won ($3.92) with two pair, Aces and Queens
+Seat 6: phlopit (big blind) folded before Flop

@@ -1,0 +1,149 @@
+PokerStars Hand #259280289978:  Hold'em No Limit (100/200) - 2026/01/12 4:48:42 ET
+Table 'Eurykleia IV' 6-max (Play Money) Seat #1 is the button
+Seat 2: alexcop35 (20000 in chips) is sitting out
+Seat 1: Got2BReal (8894 in chips)
+Seat 3: Z420909 (8400 in chips)
+Seat 4: Jdelapaz89 (5031 in chips)
+Seat 5: NagyJancsi0726 (20000 in chips)
+Seat 6: jjoshe (49205 in chips)
+Z420909: posts small blind 100
+Jdelapaz89: posts big blind 200
+NagyJancsi0726: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Qh Ah]
+NagyJancsi0726: checks
+jjoshe: calls 200
+Got2BReal: folds
+Z420909: calls 100
+Jdelapaz89: checks
+*** FLOP *** [Qs Qd 6h]
+Got2BReal leaves the table
+Z420909: bets 378
+Jdelapaz89: folds
+ctu1234 joins the table at seat #1
+NagyJancsi0726: calls 378
+jjoshe: folds
+*** TURN *** [Qs Qd 6h] [4h]
+Z420909: bets 735
+NagyJancsi0726: calls 735
+*** RIVER *** [Qs Qd 6h 4h] [3s]
+Z420909: bets 2860
+NagyJancsi0726: folds
+Uncalled bet (2860) returned to Z420909
+Z420909 collected 2860 from pot
+Z420909: doesn't show hand
+*** SUMMARY ***
+Total pot 3026 | Rake 166
+Board [Qs Qd 6h 4h 3s]
+Seat 2: alexcop35
+Seat 1: Got2BReal (button) folded before Flop (didn't bet)
+Seat 3: Z420909 (small blind) collected (2860)
+Seat 4: Jdelapaz89 (big blind) folded on the Flop
+Seat 5: NagyJancsi0726 folded on the River
+Seat 6: jjoshe folded on the Flop
+
+
+PokerStars Hand #259280312856:  Hold'em No Limit (100/200) - 2026/01/12 4:53:41 ET
+Table 'Eurykleia IV' 6-max (Play Money) Seat #4 is the button
+Seat 1: ctu1234 (12540 in chips)
+Seat 2: alexcop35 (18200 in chips)
+Seat 3: Z420909 (9247 in chips)
+Seat 4: Jdelapaz89 (5744 in chips)
+Seat 5: NagyJancsi0726 (18032 in chips)
+Seat 6: jjoshe (45014 in chips)
+NagyJancsi0726: posts small blind 100
+jjoshe: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Jd Ah]
+ctu1234: calls 200
+alexcop35: folds
+Z420909: calls 200
+Jdelapaz89: calls 200
+NagyJancsi0726: calls 100
+jjoshe: checks
+*** FLOP *** [7d 6s 5d]
+NagyJancsi0726: checks
+jjoshe: bets 400
+ctu1234: calls 400
+Z420909: calls 400
+Jdelapaz89: calls 400
+NagyJancsi0726: calls 400
+*** TURN *** [7d 6s 5d] [Jc]
+NagyJancsi0726: bets 2835
+jjoshe: calls 2835
+ctu1234: folds
+Z420909: calls 2835
+Jdelapaz89: folds
+*** RIVER *** [7d 6s 5d Jc] [Qd]
+NagyJancsi0726: checks
+jjoshe: bets 13600
+Z420909: calls 5812 and is all-in
+NagyJancsi0726: folds
+Uncalled bet (7788) returned to jjoshe
+*** SHOW DOWN ***
+jjoshe: shows [8s 5s] (a pair of Fives)
+Z420909: shows [Jd Ah] (a pair of Jacks)
+Z420909 collected 21857 from pot
+*** SUMMARY ***
+Total pot 23129 | Rake 1272
+Board [7d 6s 5d Jc Qd]
+Seat 1: ctu1234 folded on the Turn
+Seat 2: alexcop35 folded before Flop (didn't bet)
+Seat 3: Z420909 showed [Jd Ah] and won (21857) with a pair of Jacks
+Seat 4: Jdelapaz89 (button) folded on the Turn
+Seat 5: NagyJancsi0726 (small blind) folded on the River
+Seat 6: jjoshe (big blind) showed [8s 5s] and lost with a pair of Fives
+
+
+PokerStars Hand #259280342619:  Hold'em No Limit (100/200) - 2026/01/12 5:01:10 ET
+Table 'Eurykleia IV' 6-max (Play Money) Seat #3 is the button
+Seat 1: volvogreen (33058 in chips)
+Seat 2: alexcop35 (17700 in chips)
+Seat 3: Z420909 (21157 in chips)
+Seat 4: Jdelapaz89 (3170 in chips)
+Seat 5: NagyJancsi0726 (11442 in chips)
+Seat 6: Sergio9869 (2056 in chips)
+Jdelapaz89: posts small blind 100
+NagyJancsi0726: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Kc Qd]
+Sergio9869: calls 200
+volvogreen: calls 200
+alexcop35: calls 200
+Z420909: calls 200
+Jdelapaz89: calls 100
+NagyJancsi0726: checks
+*** FLOP *** [Qc 2d Kd]
+Jdelapaz89: checks
+NagyJancsi0726: checks
+Sergio9869: bets 1856 and is all-in
+volvogreen: folds
+alexcop35: calls 1856
+Z420909: raises 1856 to 3712
+Jdelapaz89: folds
+NagyJancsi0726: folds
+alexcop35: calls 1856
+*** TURN *** [Qc 2d Kd] [6d]
+alexcop35: checks
+Z420909: bets 9904
+alexcop35: calls 9904
+*** RIVER *** [Qc 2d Kd 6d] [9c]
+alexcop35: checks
+Z420909: bets 7341 and is all-in
+alexcop35: calls 3884 and is all-in
+Uncalled bet (3457) returned to Z420909
+*** SHOW DOWN ***
+Z420909: shows [Kc Qd] (two pair, Kings and Queens)
+alexcop35: shows [8h Kh] (a pair of Kings)
+Z420909 collected 29567 from side pot
+Sergio9869: shows [8c Ad] (high card Ace)
+Z420909 collected 6396 from main pot
+*** SUMMARY ***
+Total pot 38056 Main pot 6396. Side pot 29567. | Rake 2093
+Board [Qc 2d Kd 6d 9c]
+Seat 1: volvogreen folded on the Flop
+Seat 2: alexcop35 showed [8h Kh] and lost with a pair of Kings
+Seat 3: Z420909 (button) showed [Kc Qd] and won (35963) with two pair, Kings and Queens
+Seat 4: Jdelapaz89 (small blind) folded on the Flop
+Seat 5: NagyJancsi0726 (big blind) folded on the Flop
+Seat 6: Sergio9869 showed [8c Ad] and lost with high card Ace

@@ -1,0 +1,208 @@
+PokerStars Hand #259288517873:  Hold'em No Limit (100/200) - 2026/01/12 17:28:02 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #4 is the button
+Seat 1: WellWatcher (6878 in chips) is sitting out
+Seat 2: Z420909 (8000 in chips)
+Seat 3: wyysonny (20000 in chips)
+Seat 4: skaro1961 (126395 in chips)
+Seat 5: clarisse44160 (8943 in chips)
+clarisse44160: posts small blind 100
+Z420909: posts big blind 200
+wyysonny: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [3d 5d]
+wyysonny: checks
+skaro1961: calls 200
+clarisse44160: calls 100
+Z420909: checks
+*** FLOP *** [7h 7s 3h]
+clarisse44160: bets 600
+Z420909: raises 600 to 1200
+wyysonny: folds
+skaro1961: raises 124995 to 126195 and is all-in
+clarisse44160: calls 8143 and is all-in
+1winky joins the table at seat #6
+1winky is disconnected
+Z420909: folds
+Uncalled bet (117452) returned to skaro1961
+*** TURN *** [7h 7s 3h] [Kd]
+*** RIVER *** [7h 7s 3h Kd] [5h]
+*** SHOW DOWN ***
+clarisse44160: shows [9h 7c] (three of a kind, Sevens)
+skaro1961: shows [Ah 4h] (a flush, Ace high)
+skaro1961 collected 18414 from pot
+WellWatcher leaves the table
+*** SUMMARY ***
+Total pot 19486 | Rake 1072
+Board [7h 7s 3h Kd 5h]
+Seat 1: WellWatcher
+Seat 2: Z420909 (big blind) folded on the Flop
+Seat 3: wyysonny folded on the Flop (didn't bet)
+Seat 4: skaro1961 (button) showed [Ah 4h] and won (18414) with a flush, Ace high
+Seat 5: clarisse44160 (small blind) showed [9h 7c] and lost with three of a kind, Sevens
+
+
+PokerStars Hand #259288549862:  Hold'em No Limit (100/200) - 2026/01/12 17:30:01 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #1 is the button
+Seat 3: wyysonny (0 in chips) is sitting out
+Seat 1: kandal639503 (14800 in chips)
+Seat 2: Z420909 (8000 in chips)
+Seat 4: skaro1961 (161601 in chips)
+Seat 5: rpenaloza (20000 in chips)
+Z420909: posts small blind 100
+skaro1961: posts big blind 200
+rpenaloza: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [6d Ac]
+l3ttn joins the table at seat #6
+rpenaloza: checks
+l3ttn is disconnected
+kandal639503: folds
+Z420909: calls 100
+skaro1961: raises 161401 to 161601 and is all-in
+rpenaloza: folds
+Z420909: calls 7800 and is all-in
+Uncalled bet (153601) returned to skaro1961
+*** FLOP *** [8d Jc 6s]
+*** TURN *** [8d Jc 6s] [Ad]
+*** RIVER *** [8d Jc 6s Ad] [Js]
+*** SHOW DOWN ***
+Z420909: shows [6d Ac] (two pair, Aces and Jacks)
+skaro1961: shows [Qc Ah] (two pair, Aces and Jacks - Queen kicker)
+skaro1961 collected 15309 from pot
+*** SUMMARY ***
+Total pot 16200 | Rake 891
+Board [8d Jc 6s Ad Js]
+Seat 3: wyysonny
+Seat 1: kandal639503 (button) folded before Flop (didn't bet)
+Seat 2: Z420909 (small blind) showed [6d Ac] and lost with two pair, Aces and Jacks
+Seat 4: skaro1961 (big blind) showed [Qc Ah] and won (15309) with two pair, Aces and Jacks
+Seat 5: rpenaloza folded before Flop (didn't bet)
+
+
+PokerStars Hand #259288642321:  Hold'em No Limit (100/200) - 2026/01/12 17:35:49 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #1 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34207 in chips)
+Seat 2: Z420909 (7300 in chips)
+Seat 3: wyysonny (20000 in chips)
+Seat 5: rpenaloza (20940 in chips)
+Seat 6: l3ttn (9495 in chips)
+Z420909: posts small blind 100
+wyysonny: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [4d Qh]
+rpenaloza: calls 200
+l3ttn: calls 200
+kandal639503: calls 200
+Z420909: calls 100
+wyysonny: checks
+*** FLOP *** [Td 2s 2c]
+Z420909: checks
+wyysonny: checks
+rpenaloza: bets 200
+l3ttn: calls 200
+kandal639503: folds
+Z420909: calls 200
+wyysonny: folds
+*** TURN *** [Td 2s 2c] [Qc]
+Z420909: bets 756
+rpenaloza: calls 756
+l3ttn: calls 756
+*** RIVER *** [Td 2s 2c Qc] [7h]
+Z420909: bets 1827
+rpenaloza: folds
+l3ttn: calls 1827
+*** SHOW DOWN ***
+Z420909: shows [4d Qh] (two pair, Queens and Deuces)
+l3ttn: mucks hand
+Z420909 collected 7108 from pot
+*** SUMMARY ***
+Total pot 7522 | Rake 414
+Board [Td 2s 2c Qc 7h]
+Seat 4: skaro1961
+Seat 1: kandal639503 (button) folded on the Flop
+Seat 2: Z420909 (small blind) showed [4d Qh] and won (7108) with two pair, Queens and Deuces
+Seat 3: wyysonny (big blind) folded on the Flop
+Seat 5: rpenaloza folded on the River
+Seat 6: l3ttn mucked [Kd Jd]
+
+
+PokerStars Hand #259288700821:  Hold'em No Limit (100/200) - 2026/01/12 17:39:30 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #1 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34257 in chips)
+Seat 2: Z420909 (12810 in chips)
+Seat 3: wyysonny (22191 in chips)
+Seat 5: rpenaloza (17784 in chips)
+Seat 6: l3ttn (5012 in chips)
+Z420909: posts small blind 100
+wyysonny: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Kh Tc]
+rpenaloza: calls 200
+l3ttn: calls 200
+kandal639503: folds
+Z420909: calls 100
+wyysonny: checks
+*** FLOP *** [3c 3d As]
+Z420909: bets 378
+wyysonny: folds
+rpenaloza: folds
+l3ttn: calls 378
+*** TURN *** [3c 3d As] [Kd]
+Z420909: bets 4000
+l3ttn: calls 4000
+*** RIVER *** [3c 3d As Kd] [Ts]
+Z420909: bets 8232 and is all-in
+l3ttn: calls 434 and is all-in
+Uncalled bet (7798) returned to Z420909
+*** SHOW DOWN ***
+Z420909: shows [Kh Tc] (two pair, Kings and Tens)
+l3ttn: shows [Js Ac] (two pair, Aces and Threes)
+l3ttn collected 9851 from pot
+*** SUMMARY ***
+Total pot 10424 | Rake 573
+Board [3c 3d As Kd Ts]
+Seat 4: skaro1961
+Seat 1: kandal639503 (button) folded before Flop (didn't bet)
+Seat 2: Z420909 (small blind) showed [Kh Tc] and lost with two pair, Kings and Tens
+Seat 3: wyysonny (big blind) folded on the Flop
+Seat 5: rpenaloza folded on the Flop
+Seat 6: l3ttn showed [Js Ac] and won (9851) with two pair, Aces and Threes
+
+
+PokerStars Hand #259288714935:  Hold'em No Limit (100/200) - 2026/01/12 17:40:25 ET
+Table 'Burgundia III' 6-max (Play Money) Seat #2 is the button
+Seat 4: skaro1961 (153910 in chips) is sitting out
+Seat 1: kandal639503 (34257 in chips)
+Seat 2: Z420909 (7798 in chips)
+Seat 3: wyysonny (21991 in chips)
+Seat 5: rpenaloza (17584 in chips)
+Seat 6: l3ttn (9851 in chips)
+wyysonny: posts small blind 100
+rpenaloza: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [Qc Kc]
+l3ttn: folds
+kandal639503: raises 200 to 400
+Z420909: raises 7398 to 7798 and is all-in
+wyysonny: folds
+rpenaloza: folds
+kandal639503: calls 7398
+*** FLOP *** [7h 8h Ts]
+*** TURN *** [7h 8h Ts] [Td]
+*** RIVER *** [7h 8h Ts Td] [Kd]
+*** SHOW DOWN ***
+kandal639503: shows [4h 5h] (a pair of Tens)
+Z420909: shows [Qc Kc] (two pair, Kings and Tens)
+Z420909 collected 15022 from pot
+skaro1961 leaves the table
+*** SUMMARY ***
+Total pot 15896 | Rake 874
+Board [7h 8h Ts Td Kd]
+Seat 4: skaro1961
+Seat 1: kandal639503 showed [4h 5h] and lost with a pair of Tens
+Seat 2: Z420909 (button) showed [Qc Kc] and won (15022) with two pair, Kings and Tens
+Seat 3: wyysonny (small blind) folded before Flop
+Seat 5: rpenaloza (big blind) folded before Flop
+Seat 6: l3ttn folded before Flop (didn't bet)

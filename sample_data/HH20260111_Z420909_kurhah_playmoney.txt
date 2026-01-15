@@ -1,0 +1,71 @@
+PokerStars Hand #259277557424:  Hold'em No Limit (100/200) - 2026/01/11 20:44:09 ET
+Table 'Kurhah IV' 9-max (Play Money) Seat #8 is the button
+Seat 1: garraza (19400 in chips)
+Seat 2: love2play99 (19000 in chips)
+Seat 3: beppe84550 (10000 in chips)
+Seat 4: jbcelaya (23704 in chips)
+Seat 5: dom gigio (39979 in chips)
+Seat 6: Z420909 (28981 in chips)
+Seat 7: ACE$_CHARLE$ (8800 in chips)
+Seat 8: ciaran_lavery (19500 in chips)
+Seat 9: 101vet57 (35762 in chips)
+101vet57: posts small blind 100
+garraza: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Z420909 [As 2s]
+love2play99: calls 200
+beppe84550: calls 200
+jbcelaya: calls 200
+dom gigio: calls 200
+Z420909: calls 200
+ACE$_CHARLE$: calls 200
+ciaran_lavery: calls 200
+101vet57: calls 100
+garraza: checks
+*** FLOP *** [Qh 5s 7c]
+101vet57: checks
+garraza: checks
+love2play99: checks
+beppe84550: checks
+jbcelaya: checks
+dom gigio: checks
+Z420909: checks
+ACE$_CHARLE$: checks
+ciaran_lavery: checks
+*** TURN *** [Qh 5s 7c] [4h]
+101vet57: checks
+garraza: checks
+love2play99: checks
+beppe84550: checks
+jbcelaya: checks
+dom gigio: checks
+Z420909: checks
+ACE$_CHARLE$: checks
+ciaran_lavery: checks
+*** RIVER *** [Qh 5s 7c 4h] [8c]
+101vet57: bets 1701
+garraza: folds
+love2play99: folds
+beppe84550: folds
+jbcelaya: folds
+dom gigio: folds
+Z420909 has timed out
+Z420909: folds
+ACE$_CHARLE$: folds
+ciaran_lavery: calls 1701
+*** SHOW DOWN ***
+101vet57: shows [6d 5d] (a straight, Four to Eight)
+ciaran_lavery: mucks hand
+101vet57 collected 4916 from pot
+*** SUMMARY ***
+Total pot 5202 | Rake 286
+Board [Qh 5s 7c 4h 8c]
+Seat 1: garraza (big blind) folded on the River
+Seat 2: love2play99 folded on the River
+Seat 3: beppe84550 folded on the River
+Seat 4: jbcelaya folded on the River
+Seat 5: dom gigio folded on the River
+Seat 6: Z420909 folded on the River
+Seat 7: ACE$_CHARLE$ folded on the River
+Seat 8: ciaran_lavery (button) mucked [9h 8s]
+Seat 9: 101vet57 (small blind) showed [6d 5d] and won (4916) with a straight, Four to Eight

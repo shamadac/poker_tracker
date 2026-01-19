@@ -1,0 +1,168 @@
+"""
+FastAPI application entry point for Professional Poker Analyzer.
+"""
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+import logging
+
+from app.api.v1.endpoints.auth import router as auth_router
+from app.core.config import settings
+from app.middleware.security import (
+    RateLimitMiddleware,
+    CSRFProtectionMiddleware, 
+    SecurityHeadersMiddleware,
+    SecurityEventLogger
+)
+
+# Setup basic logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager for startup and shutdown events."""
+    # Startup
+    logger.info("Starting Professional Poker Analyzer API")
+    yield
+    # Shutdown
+    logger.info("Shutting down Professional Poker Analyzer API")
+
+
+def create_application() -> FastAPI:
+    """
+    Create and configure FastAPI application.
+    
+    Returns:
+        FastAPI: Configured FastAPI application
+    """
+    application = FastAPI(
+        title=settings.PROJECT_NAME,
+        version=settings.VERSION,
+        description=settings.DESCRIPTION,
+        openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        docs_url=f"{settings.API_V1_STR}/docs",
+        redoc_url=f"{settings.API_V1_STR}/redoc",
+        lifespan=lifespan,
+        # Custom OpenAPI configuration
+        openapi_tags=[
+            {
+                "name": "authentication",
+                "description": "User authentication and authorization operations"
+            },
+            {
+                "name": "hand-history", 
+                "description": "Poker hand history management and parsing"
+            },
+            {
+                "name": "statistics",
+                "description": "Poker statistics calculation and analysis"
+            },
+            {
+                "name": "ai-analysis",
+                "description": "AI-powered poker hand and session analysis"
+            },
+            {
+                "name": "user-management",
+                "description": "User profile and preferences management"
+            },
+            {
+                "name": "monitoring",
+                "description": "System monitoring and health check operations"
+            }
+        ]
+    )
+    
+    # Include API router with versioning
+    application.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"])
+    
+    return application
+
+
+app = create_application()
+
+# Add security middleware (order matters - add in reverse order of execution)
+if settings.SECURITY_HEADERS_ENABLED:
+    app.add_middleware(SecurityHeadersMiddleware)
+
+# Add CSRF protection middleware
+app.add_middleware(CSRFProtectionMiddleware)
+
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware, redis_url=settings.REDIS_URL)
+
+# Add CORS middleware
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """
+    Global exception handler for unhandled exceptions.
+    """
+    # Log security events for certain types of exceptions
+    if isinstance(exc, (ValueError, KeyError, AttributeError)):
+        SecurityEventLogger.log_suspicious_activity(
+            request, 
+            "unexpected_exception",
+            {"exception_type": type(exc).__name__, "exception_message": str(exc)}
+        )
+    
+    logger.error(
+        "Unhandled exception",
+        error=str(exc),
+        error_type=type(exc).__name__,
+        path=request.url.path,
+        method=request.method
+    )
+    
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal server error",
+            "type": "internal_error"
+        }
+    )
+
+
+@app.get("/")
+async def root():
+    """Root endpoint for health check."""
+    return {
+        "message": "Professional Poker Analyzer API",
+        "version": settings.VERSION,
+        "status": "healthy",
+        "api_docs": f"{settings.API_V1_STR}/docs"
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {
+        "status": "healthy", 
+        "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+        log_level=settings.LOG_LEVEL.lower(),
+    )

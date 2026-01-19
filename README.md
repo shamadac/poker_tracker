@@ -1,170 +1,239 @@
-# Poker Skill Development App
+# Professional Poker Analyzer
 
-An AI-powered poker hand analyzer with beautiful visualizations and comprehensive playstyle evaluation. Uses Ollama for local AI analysis of PokerStars hand histories.
+A modern, enterprise-grade poker analysis platform built with Next.js, FastAPI, PostgreSQL, and Redis. Provides comprehensive poker hand analysis, statistics tracking, and AI-powered coaching through Gemini and Groq providers.
 
-## ✨ Features
+## 🚀 Quick Start
 
-- 🌐 **Beautiful Web Interface** - Clean, modern UI with card graphics
-- 🎴 **Visual Hand Replayer** - See cards, bets, and action with nice graphics
-- 📊 **Comprehensive Stats** - VPIP, PFR, aggression factor, win rate
-- 🤖 **AI Coach** - Personalized recommendations from Ollama
-- 🔍 **Auto-Detection** - Finds PokerStars files automatically on MacOS
-- 📈 **Playstyle Analysis** - Detailed evaluation of strengths and weaknesses
-- 🎯 **Actionable Advice** - Specific improvement plan tailored to your game
+### Prerequisites
 
-## 🚀 Quick Start (MacOS)
+- Docker Desktop
+- Docker Compose
+- Git
 
-### One-Click Installation
+### Development Setup
 
-1. Download this repository (Download ZIP from GitHub)
-2. Extract the ZIP file
-3. Double-click `install_and_run.command`
-4. Follow the prompts
-5. Your browser will open automatically!
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd professional-poker-analyzer
+   ```
 
-That's it! The installer handles everything:
-- Checks for Python 3
-- Installs/checks Ollama
-- Downloads the AI model (llama2)
-- Installs all dependencies
-- Starts the web server
-- Opens your browser
+2. **Run setup script**
+   ```bash
+   # Linux/macOS
+   ./scripts/dev-setup.sh
+   
+   # Windows
+   scripts\dev-setup.bat
+   ```
 
-### Manual Installation
+3. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/api/v1/docs
 
-If you prefer manual setup:
+## 🏗️ Architecture
 
-```bash
-# 1. Install Ollama
-# Download from: https://ollama.ai/download
-
-# 2. Pull AI model
-ollama pull llama2
-
-# 3. Install Python dependencies
-pip3 install -r requirements.txt
-
-# 4. Start the app
-python3 app.py
-
-# 5. Open browser
-# Go to: http://localhost:5000
+### Monorepo Structure
+```
+├── frontend/          # Next.js 14 + TypeScript frontend
+├── backend/           # FastAPI + Python backend
+├── database/          # PostgreSQL initialization scripts
+├── scripts/           # Development and deployment scripts
+├── shared/            # Shared types and utilities
+└── docker-compose.yml # Container orchestration
 ```
 
-## 🎮 How to Use
+### Technology Stack
 
-### Setup PokerStars (One Time)
-1. Open PokerStars
-2. Go to: **Settings → Playing History → Hand History**
-3. Check "**Save My Hand History**"
-4. Click **Apply**
+**Frontend:**
+- Next.js 14 with App Router
+- TypeScript
+- Tailwind CSS + Shadcn/ui
+- React Query for state management
+- Recharts for data visualization
 
-### Analyze Your Game
-1. Play some poker on PokerStars
-2. Open the Poker Analyzer in your browser
-3. Click "**Scan for Hand Histories**" - automatically finds your files
-4. Click "**Analyze Hands & Generate Report**"
-5. Get comprehensive insights:
-   - Overall playstyle statistics
-   - Strengths and weaknesses
-   - Hand-by-hand AI analysis
-   - Visual hand replayer
-   - Specific improvement recommendations
+**Backend:**
+- FastAPI with async/await
+- SQLAlchemy 2.0 + Alembic
+- Pydantic for validation
+- Structured logging with structlog
+- Redis for caching
 
-## 📊 What You'll Learn
+**Infrastructure:**
+- PostgreSQL 15 database
+- Redis 7 cache
+- Docker containers
+- Docker Compose orchestration
 
-### Statistics Tracked
-- **VPIP** - How often you voluntarily put money in the pot
-- **PFR** - How often you raise pre-flop
-- **Aggression Factor** - Ratio of aggressive to passive actions
-- **Win Rate** - Your winning percentage
-- **Position Analysis** - Performance by position
+## 🛠️ Development
 
-### AI Analysis Includes
-- Overall assessment of your playstyle
-- Key strengths to leverage
-- Critical weaknesses to fix
-- Top 3 immediate improvements
-- Long-term development plan
-- Hand-by-hand strategic advice
+### Starting Development Environment
 
-### Visual Features
-- Playing cards with suits and ranks
-- Community cards by street (flop, turn, river)
-- Betting action timeline
-- Pot size tracking
-- Showdown results
-- Player stacks and positions
+```bash
+# Start all services
+./scripts/dev-start.sh
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Stop services
+./scripts/dev-stop.sh
+```
+
+### Database Management
+
+```bash
+# Run migrations
+./scripts/migrate.sh
+
+# Access PostgreSQL
+docker-compose exec postgres psql -U postgres -d poker_analyzer
+
+# Access Redis
+docker-compose exec redis redis-cli
+```
+
+### Environment Configuration
+
+Copy `.env.example` to `.env` and update the values:
+
+```env
+# Database
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/poker_analyzer
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
+# Security
+SECRET_KEY=your-super-secret-key-here
+
+# API
+BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+```
+
+## 📊 Features
+
+### Core Features
+- **Multi-Platform Support**: PokerStars and GGPoker hand history parsing
+- **AI Analysis**: Gemini and Groq integration with user-provided API keys
+- **Advanced Statistics**: Comprehensive poker metrics and visualizations
+- **Real-time Monitoring**: Automatic hand history file detection
+- **Responsive Design**: Works on desktop, tablet, and mobile
+
+### Security Features
+- OAuth 2.0 with PKCE authentication
+- JWT token management
+- AES-256 encryption for sensitive data
+- Rate limiting and CSRF protection
+- Role-based access control
+
+### Performance Features
+- Redis caching for statistics and analysis
+- Database query optimization
+- Asynchronous processing
+- Connection pooling
+- Performance monitoring
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# Backend tests
+docker-compose exec backend pytest
+
+# Frontend tests
+docker-compose exec frontend npm test
+
+# Property-based tests
+docker-compose exec backend pytest -m property
+```
+
+### Test Coverage
+- Unit tests for core functionality
+- Property-based tests for universal properties
+- Integration tests for API endpoints
+- End-to-end tests for critical user journeys
+
+## 📝 API Documentation
+
+The API documentation is automatically generated and available at:
+- Development: http://localhost:8000/api/v1/docs
+- Interactive docs: http://localhost:8000/api/v1/redoc
+
+### Key Endpoints
+- `GET /health` - Health check
+- `POST /api/v1/auth/login` - User authentication
+- `POST /api/v1/hands/upload` - Upload hand histories
+- `GET /api/v1/stats/user/{user_id}` - Get user statistics
+- `POST /api/v1/analysis/hand` - Analyze single hand
 
 ## 🔧 Configuration
 
-Edit `config.json` to customize:
+### Environment Variables
 
-```json
-{
-  "player_username": "Z420909",
-  "ollama_model": "llama2",
-  "ollama_url": "http://localhost:11434"
-}
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | Required |
+| `REDIS_URL` | Redis connection string | Required |
+| `SECRET_KEY` | JWT signing key | Required |
+| `DEBUG` | Enable debug mode | `false` |
+| `LOG_LEVEL` | Logging level | `INFO` |
 
-You can use different Ollama models:
-- `llama2` (default, good balance)
-- `mistral` (faster, lighter)
-- `llama3` (more advanced)
+### AI Provider Configuration
+Users configure their own API keys through the web interface:
+- Gemini API key for deep analysis
+- Groq API key for fast analysis
 
-## 📁 File Structure
+## 🚀 Deployment
 
-```
-poker-analyzer/
-├── install_and_run.command  # One-click installer (MacOS)
-├── app.py                    # Flask web server
-├── hand_parser.py            # PokerStars format parser
-├── ollama_analyzer.py        # AI analysis engine
-├── playstyle_analyzer.py     # Statistics calculator
-├── file_watcher.py           # Auto-detect hand histories
-├── config.json               # Configuration
-├── requirements.txt          # Python dependencies
-├── templates/
-│   └── index.html           # Web interface
-└── static/
-    ├── style.css            # Main styles
-    ├── cards.css            # Card graphics
-    ├── app.js               # UI logic
-    └── cards.js             # Card rendering
-```
+### Production Deployment
 
-## 🔒 Privacy
+1. **Update environment variables**
+   ```bash
+   cp .env.example .env.production
+   # Update with production values
+   ```
 
-- All analysis happens **locally** on your Mac
-- No data is sent to external servers
-- Your hand histories stay private
-- Ollama runs completely offline
+2. **Build and deploy**
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+   ```
 
-## 🐛 Troubleshooting
+3. **Run migrations**
+   ```bash
+   docker-compose exec backend alembic upgrade head
+   ```
 
-**"Ollama not connected"**
-- Make sure Ollama is running: `ollama serve`
-- Or open the Ollama app
+### Health Checks
+- Backend: `GET /health`
+- Database: PostgreSQL health check
+- Cache: Redis ping
 
-**"No hands found"**
-- Play some hands on PokerStars first
-- Verify hand history saving is enabled in PokerStars
-- Check: `~/Library/Application Support/PokerStars/HandHistory/`
+## 📚 Documentation
 
-**Analysis is slow**
-- First analysis takes longer (model loading)
-- Subsequent analyses are faster
-- Consider using a lighter model like `mistral`
-
-**Port 5000 already in use**
-- Another app is using port 5000
-- Edit `app.py` and change the port number
+- [API Documentation](http://localhost:8000/api/v1/docs)
+- [Architecture Guide](docs/architecture.md)
+- [Development Guide](docs/development.md)
+- [Deployment Guide](docs/deployment.md)
 
 ## 🤝 Contributing
 
-Feel free to submit issues and enhancement requests!
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
 
 ## 📄 License
 
-MIT License - feel free to use and modify!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the API docs at `/api/v1/docs`

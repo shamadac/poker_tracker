@@ -1,0 +1,61 @@
+version: '3.8'
+
+# Development override for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # Development PostgreSQL with additional tools
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: poker_analyzer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/dev-data:/docker-entrypoint-initdb.d/dev-data
+
+  # Development Redis with persistence disabled for faster startup
+  redis:
+    command: redis-server --save "" --appendonly no --maxmemory 128mb
+
+  # Backend with hot reload and development tools
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/poker_analyzer
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=development-secret-key-do-not-use-in-production
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend:/app
+      - ./shared:/app/shared
+      - backend_cache:/app/.cache
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+
+  # Frontend with hot reload
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_next:/app/.next
+    command: npm run dev
+
+volumes:
+  postgres_dev_data:
+  backend_cache:
+  frontend_node_modules:
+  frontend_next:

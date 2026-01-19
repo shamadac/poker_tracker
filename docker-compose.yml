@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: poker_analyzer_postgres
+    environment:
+      POSTGRES_DB: poker_analyzer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - poker_analyzer_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d poker_analyzer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: poker_analyzer_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - poker_analyzer_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: poker_analyzer_backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/poker_analyzer
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=development-secret-key-change-in-production
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://frontend:3000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./shared:/app/shared
+    networks:
+      - poker_analyzer_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: poker_analyzer_frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - poker_analyzer_network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  poker_analyzer_network:
+    driver: bridge

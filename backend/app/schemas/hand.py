@@ -4,7 +4,7 @@ Hand history-related Pydantic schemas.
 from typing import Dict, Any, List, Optional
 from decimal import Decimal
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from .common import UUIDMixin, TimestampMixin, PaginationParams, DateRangeFilter, PlatformFilter, GameTypeFilter, PositionFilter
 
 
@@ -20,14 +20,16 @@ class DetailedAction(BaseModel):
     is_all_in: bool = Field(False, description="Whether action was all-in")
     stack_after: Decimal = Field(..., ge=0, description="Stack size after action")
     
-    @validator('action')
+    @field_validator('action')
+    @classmethod
     def validate_action(cls, v):
         allowed_actions = ['fold', 'check', 'call', 'bet', 'raise', 'all-in']
         if v not in allowed_actions:
             raise ValueError(f'Action must be one of: {", ".join(allowed_actions)}')
         return v
     
-    @validator('street')
+    @field_validator('street')
+    @classmethod
     def validate_street(cls, v):
         allowed_streets = ['preflop', 'flop', 'turn', 'river']
         if v not in allowed_streets:
@@ -42,7 +44,8 @@ class HandResult(BaseModel):
     showdown: bool = Field(False, description="Whether hand went to showdown")
     winning_hand: Optional[str] = Field(None, description="Winning hand description")
     
-    @validator('result')
+    @field_validator('result')
+    @classmethod
     def validate_result(cls, v):
         allowed_results = ['won', 'lost', 'folded', 'split']
         if v not in allowed_results:
@@ -94,14 +97,16 @@ class HandBase(BaseModel):
     game_format: Optional[str] = Field(None, pattern="^(tournament|cash|sng)$", description="Game format")
     stakes: Optional[str] = Field(None, description="Stakes level")
     
-    @validator('platform')
+    @field_validator('platform')
+    @classmethod
     def validate_platform(cls, v):
         allowed_platforms = ['pokerstars', 'ggpoker']
         if v not in allowed_platforms:
             raise ValueError(f'Platform must be one of: {", ".join(allowed_platforms)}')
         return v
     
-    @validator('game_format')
+    @field_validator('game_format')
+    @classmethod
     def validate_game_format(cls, v):
         if v is not None:
             allowed_formats = ['tournament', 'cash', 'sng']
@@ -170,8 +175,7 @@ class HandResponse(HandBase, UUIDMixin, TimestampMixin):
     is_play_money: bool = Field(False, description="Whether play money game")
     analysis_count: int = Field(0, description="Number of analyses for this hand")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class HandListResponse(BaseModel):
@@ -204,20 +208,21 @@ class HandFilters(PaginationParams, DateRangeFilter, PlatformFilter, GameTypeFil
     tournament_only: Optional[bool] = Field(None, description="Tournament hands only")
     cash_only: Optional[bool] = Field(None, description="Cash game hands only")
     
-    @validator('max_pot_size')
-    def validate_pot_size_range(cls, v, values):
-        if v and 'min_pot_size' in values and values['min_pot_size']:
-            if v < values['min_pot_size']:
+    @model_validator(mode='after')
+    def validate_pot_size_range(self):
+        if self.max_pot_size and self.min_pot_size:
+            if self.max_pot_size < self.min_pot_size:
                 raise ValueError('Maximum pot size must be greater than minimum pot size')
-        return v
+        return self
 
 
 class HandBatchDeleteRequest(BaseModel):
     """Schema for batch hand deletion."""
-    hand_ids: List[str] = Field(..., min_items=1, max_items=1000, description="List of hand IDs to delete")
+    hand_ids: List[str] = Field(..., min_length=1, max_length=1000, description="List of hand IDs to delete")
     confirm_deletion: bool = Field(..., description="Confirmation of deletion intent")
     
-    @validator('confirm_deletion')
+    @field_validator('confirm_deletion')
+    @classmethod
     def validate_confirmation(cls, v):
         if not v:
             raise ValueError('Deletion must be explicitly confirmed')

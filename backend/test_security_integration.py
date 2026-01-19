@@ -51,7 +51,7 @@ def test_security_middleware_integration():
             print("  ✓ All middleware classes can be instantiated")
         except Exception as e:
             print(f"  ✗ Middleware instantiation failed: {e}")
-            return False
+            assert False
         
         # Check SecurityEventLogger functionality
         try:
@@ -63,21 +63,21 @@ def test_security_middleware_integration():
                     print(f"  ✓ SecurityEventLogger.{method} available")
                 else:
                     print(f"  ✗ SecurityEventLogger.{method} missing")
-                    return False
+                    assert False
         except Exception as e:
             print(f"  ✗ SecurityEventLogger test failed: {e}")
-            return False
+            assert False
         
         if found_middleware >= 2:  # At least 2 out of 3 middleware should be found
             print("  ✓ Security middleware integration working")
-            return True
+            assert True
         else:
             print("  ⚠ Some middleware may not be properly registered")
-            return True  # Still consider it working if classes are functional
+            assert True  # Still consider it working if classes are functional
         
     except Exception as e:
         print(f"  ✗ Security middleware integration test failed: {e}")
-        return False
+        assert False
 
 
 def test_encryption_manager_complete():
@@ -94,7 +94,7 @@ def test_encryption_manager_complete():
         
         if decrypted != test_data:
             print("  ✗ AES-256 encryption failed")
-            return False
+            assert False
         
         # Test API key encryption with both methods
         api_keys = {
@@ -108,7 +108,7 @@ def test_encryption_manager_complete():
         
         if decrypted_aes256 != api_keys:
             print("  ✗ API key encryption with AES-256 failed")
-            return False
+            assert False
         
         # Test legacy Fernet method
         encrypted_fernet = EncryptionManager.encrypt_api_keys(api_keys, use_aes256=False)
@@ -116,7 +116,7 @@ def test_encryption_manager_complete():
         
         if decrypted_fernet != api_keys:
             print("  ✗ API key encryption with Fernet failed")
-            return False
+            assert False
         
         # Test cross-compatibility (decrypt AES-256 with fallback)
         try:
@@ -128,11 +128,11 @@ def test_encryption_manager_complete():
         # Test secure comparison
         if not EncryptionManager.secure_compare("test", "test"):
             print("  ✗ Secure comparison failed")
-            return False
+            assert False
         
         if EncryptionManager.secure_compare("test", "different"):
             print("  ✗ Secure comparison failed (should be False)")
-            return False
+            assert False
         
         # Test data hashing
         hash1, salt1 = EncryptionManager.hash_sensitive_data("test_data")
@@ -140,18 +140,18 @@ def test_encryption_manager_complete():
         
         if hash1 != hash2:
             print("  ✗ Data hashing with same salt failed")
-            return False
+            assert False
         
         if not EncryptionManager.verify_hashed_data("test_data", hash1, salt1):
             print("  ✗ Data hash verification failed")
-            return False
+            assert False
         
         print("  ✓ Complete EncryptionManager functionality working")
-        return True
+        assert True
         
     except Exception as e:
         print(f"  ✗ EncryptionManager test failed: {e}")
-        return False
+        assert False
 
 
 def test_security_configuration():
@@ -177,7 +177,7 @@ def test_security_configuration():
                 print(f"  ✓ {setting}: {value}")
             else:
                 print(f"  ✗ Missing setting: {setting}")
-                return False
+                assert False
         
         # Validate security settings
         if len(settings.SECRET_KEY) < 32:
@@ -187,11 +187,11 @@ def test_security_configuration():
             print("  ⚠ AUTH rate limit might be too high for security")
         
         print("  ✓ Security configuration is properly set")
-        return True
+        assert True
         
     except Exception as e:
         print(f"  ✗ Security configuration test failed: {e}")
-        return False
+        assert False
 
 
 def test_token_manager_complete():
@@ -210,21 +210,21 @@ def test_token_manager_complete():
         payload = TokenManager.verify_token(access_token, "access")
         if payload.get("sub") != "test-user":
             print("  ✗ Access token verification failed")
-            return False
+            assert False
         
         # Test refresh token creation and verification
         refresh_token = TokenManager.create_refresh_token(token_data)
         refresh_payload = TokenManager.verify_token(refresh_token, "refresh")
         if refresh_payload.get("sub") != "test-user":
             print("  ✗ Refresh token verification failed")
-            return False
+            assert False
         
         # Test password reset token
         reset_token = TokenManager.create_password_reset_token("test@example.com")
         reset_email = TokenManager.verify_password_reset_token(reset_token)
         if reset_email != "test@example.com":
             print("  ✗ Password reset token failed")
-            return False
+            assert False
         
         # Test token expiration handling
         try:
@@ -234,16 +234,16 @@ def test_token_manager_complete():
             )
             TokenManager.verify_token(expired_token, "access")
             print("  ✗ Expired token was accepted")
-            return False
+            assert False
         except:
             print("  ✓ Expired token properly rejected")
         
         print("  ✓ Complete TokenManager functionality working")
-        return True
+        assert True
         
     except Exception as e:
         print(f"  ✗ TokenManager test failed: {e}")
-        return False
+        assert False
 
 
 def test_pkce_complete():
@@ -267,24 +267,24 @@ def test_pkce_complete():
             # Verify each challenge
             if not PKCEChallenge.verify_code_challenge(verifier, challenge):
                 print(f"  ✗ PKCE verification failed for iteration {i}")
-                return False
+                assert False
         
         # Test cross-verification (should fail)
         if PKCEChallenge.verify_code_challenge(verifiers[0], challenges[1]):
             print("  ✗ PKCE cross-verification should have failed")
-            return False
+            assert False
         
         # Test invalid verifier
         if PKCEChallenge.verify_code_challenge("invalid", challenges[0]):
             print("  ✗ Invalid verifier should have failed")
-            return False
+            assert False
         
         print("  ✓ Complete PKCE implementation working")
-        return True
+        assert True
         
     except Exception as e:
         print(f"  ✗ PKCE test failed: {e}")
-        return False
+        assert False
 
 
 def main():

@@ -4,7 +4,7 @@ Analysis-related Pydantic schemas.
 from typing import Dict, Any, List, Optional
 from decimal import Decimal
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from .common import UUIDMixin, TimestampMixin
 
 
@@ -13,7 +13,8 @@ class AnalysisBase(BaseModel):
     ai_provider: str = Field(..., pattern="^(gemini|groq)$", description="AI provider used")
     prompt_version: Optional[str] = Field(None, description="Prompt template version")
     
-    @validator('ai_provider')
+    @field_validator('ai_provider')
+    @classmethod
     def validate_ai_provider(cls, v):
         allowed_providers = ['gemini', 'groq']
         if v not in allowed_providers:
@@ -42,8 +43,7 @@ class AnalysisResponse(AnalysisBase, UUIDMixin, TimestampMixin):
     confidence_score: Optional[Decimal] = Field(None, description="AI confidence score")
     analysis_metadata: Optional[Dict[str, Any]] = Field(None, description="Additional analysis data")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class HandAnalysisRequest(BaseModel):
@@ -54,21 +54,24 @@ class HandAnalysisRequest(BaseModel):
     include_coaching: bool = Field(True, description="Include coaching recommendations")
     focus_areas: Optional[List[str]] = Field(None, description="Specific areas to focus analysis on")
     
-    @validator('ai_provider')
+    @field_validator('ai_provider')
+    @classmethod
     def validate_ai_provider(cls, v):
         allowed_providers = ['gemini', 'groq']
         if v not in allowed_providers:
             raise ValueError(f'AI provider must be one of: {", ".join(allowed_providers)}')
         return v
     
-    @validator('analysis_depth')
+    @field_validator('analysis_depth')
+    @classmethod
     def validate_analysis_depth(cls, v):
         allowed_depths = ['basic', 'standard', 'advanced']
         if v not in allowed_depths:
             raise ValueError(f'Analysis depth must be one of: {", ".join(allowed_depths)}')
         return v
     
-    @validator('focus_areas')
+    @field_validator('focus_areas')
+    @classmethod
     def validate_focus_areas(cls, v):
         if v is not None:
             allowed_areas = [
@@ -83,20 +86,22 @@ class HandAnalysisRequest(BaseModel):
 
 class SessionAnalysisRequest(BaseModel):
     """Schema for session analysis request."""
-    hand_ids: List[str] = Field(..., min_items=1, max_items=1000, description="Hand IDs to analyze")
+    hand_ids: List[str] = Field(..., min_length=1, max_length=1000, description="Hand IDs to analyze")
     ai_provider: str = Field(..., pattern="^(gemini|groq)$", description="AI provider to use")
     analysis_type: str = Field("summary", pattern="^(summary|detailed|coaching)$", description="Analysis type")
     include_trends: bool = Field(True, description="Include trend analysis")
     focus_on_leaks: bool = Field(True, description="Focus on identifying leaks")
     
-    @validator('ai_provider')
+    @field_validator('ai_provider')
+    @classmethod
     def validate_ai_provider(cls, v):
         allowed_providers = ['gemini', 'groq']
         if v not in allowed_providers:
             raise ValueError(f'AI provider must be one of: {", ".join(allowed_providers)}')
         return v
     
-    @validator('analysis_type')
+    @field_validator('analysis_type')
+    @classmethod
     def validate_analysis_type(cls, v):
         allowed_types = ['summary', 'detailed', 'coaching']
         if v not in allowed_types:
@@ -123,7 +128,8 @@ class AnalysisStatusResponse(BaseModel):
     error_message: Optional[str] = Field(None, description="Error message if failed")
     result_available: bool = Field(False, description="Whether result is available")
     
-    @validator('status')
+    @field_validator('status')
+    @classmethod
     def validate_status(cls, v):
         allowed_statuses = ['pending', 'processing', 'completed', 'failed', 'cancelled']
         if v not in allowed_statuses:
@@ -170,9 +176,10 @@ class SessionAnalysisResponse(BaseModel):
 class AnalysisComparisonRequest(BaseModel):
     """Schema for comparing analyses from different providers."""
     hand_id: str = Field(..., description="Hand ID to compare analyses for")
-    providers: List[str] = Field(..., min_items=2, max_items=2, description="Providers to compare")
+    providers: List[str] = Field(..., min_length=2, max_length=2, description="Providers to compare")
     
-    @validator('providers')
+    @field_validator('providers')
+    @classmethod
     def validate_providers(cls, v):
         allowed_providers = ['gemini', 'groq']
         for provider in v:

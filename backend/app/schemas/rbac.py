@@ -3,7 +3,7 @@ RBAC-related Pydantic schemas.
 """
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class PermissionBase(BaseModel):
@@ -25,8 +25,7 @@ class Permission(PermissionBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleBase(BaseModel):
@@ -60,8 +59,7 @@ class Role(RoleBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserRoleBase(BaseModel):
@@ -82,8 +80,7 @@ class UserRole(UserRoleBase):
     assigned_by: Optional[str] = Field(None, description="ID of user who assigned this role")
     assigned_at: datetime = Field(..., description="Assignment timestamp")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserWithRoles(BaseModel):
@@ -95,8 +92,7 @@ class UserWithRoles(BaseModel):
     roles: List[Role] = Field(default_factory=list, description="User roles")
     created_at: datetime = Field(..., description="Account creation date")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AccessCheckRequest(BaseModel):

@@ -261,7 +261,7 @@ class BackgroundFileProcessor:
                 # Calculate processing rate if available
                 processing_rate = None
                 if task.started_at and task.hands_processed > 0:
-                    elapsed = (datetime.utcnow() - task.started_at).total_seconds()
+                    elapsed = (datetime.now(timezone.utc) - task.started_at).total_seconds()
                     if elapsed > 0:
                         processing_rate = task.hands_processed / elapsed
                 
@@ -301,7 +301,7 @@ class BackgroundFileProcessor:
                     FileProcessingTask.id == task_id
                 ).values(
                     status="cancelled",
-                    completed_at=datetime.utcnow(),
+                    completed_at=datetime.now(timezone.utc),
                     current_step="Cancelled by user"
                 )
                 
@@ -591,7 +591,7 @@ class BackgroundFileProcessor:
                 }
                 
                 if status == "processing":
-                    update_data['started_at'] = datetime.utcnow()
+                    update_data['started_at'] = datetime.now(timezone.utc)
                 
                 stmt = update(FileProcessingTask).where(
                     FileProcessingTask.id == task_id
@@ -659,7 +659,7 @@ class BackgroundFileProcessor:
                     FileProcessingTask.id == task_id
                 ).values(
                     status="completed",
-                    completed_at=datetime.utcnow(),
+                    completed_at=datetime.now(timezone.utc),
                     processing_time_seconds=processing_time,
                     hands_per_second=hands_per_second,
                     result_summary={
@@ -686,7 +686,7 @@ class BackgroundFileProcessor:
                     FileProcessingTask.id == task_id
                 ).values(
                     status="failed",
-                    completed_at=datetime.utcnow(),
+                    completed_at=datetime.now(timezone.utc),
                     processing_time_seconds=processing_time,
                     error_message=result.error_message,
                     error_details=result.error_details

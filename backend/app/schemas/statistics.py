@@ -4,7 +4,7 @@ Statistics-related Pydantic schemas.
 from typing import Dict, Any, List, Optional
 from decimal import Decimal
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from .common import DateRangeFilter, PlatformFilter, GameTypeFilter, PositionFilter
 
 
@@ -124,7 +124,8 @@ class TrendData(BaseModel):
     trend_strength: Decimal = Field(..., ge=0, le=1, description="Strength of trend (0-1)")
     statistical_significance: bool = Field(..., description="Whether trend is statistically significant")
     
-    @validator('trend_direction')
+    @field_validator('trend_direction')
+    @classmethod
     def validate_trend_direction(cls, v):
         allowed_directions = ['up', 'down', 'stable']
         if v not in allowed_directions:
@@ -174,14 +175,16 @@ class StatisticsExportRequest(BaseModel):
         description="Sections to include in export"
     )
     
-    @validator('format')
+    @field_validator('format')
+    @classmethod
     def validate_format(cls, v):
         allowed_formats = ['csv', 'pdf', 'json']
         if v not in allowed_formats:
             raise ValueError(f'Format must be one of: {", ".join(allowed_formats)}')
         return v
     
-    @validator('sections')
+    @field_validator('sections')
+    @classmethod
     def validate_sections(cls, v):
         allowed_sections = ['basic', 'advanced', 'positional', 'tournament', 'trends', 'sessions']
         for section in v:

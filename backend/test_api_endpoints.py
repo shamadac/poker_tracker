@@ -39,12 +39,12 @@ def test_pkce_challenge_endpoint():
             
     except requests.exceptions.ConnectionError:
         print("⚠ Server not running - start with: uvicorn app.main:app --reload")
-        return False
+        assert False
     except Exception as e:
         print(f"❌ PKCE challenge test failed: {e}")
-        return False
+        assert False
     
-    return True
+    assert True
 
 
 def test_oauth_authorize_endpoint():
@@ -71,16 +71,16 @@ def test_oauth_authorize_endpoint():
         else:
             print(f"❌ OAuth authorization endpoint failed: {response.status_code}")
             print(f"Response: {response.text}")
-            return False
+            assert False
             
     except requests.exceptions.ConnectionError:
         print("⚠ Server not running - start with: uvicorn app.main:app --reload")
-        return False
+        assert False
     except Exception as e:
         print(f"❌ OAuth authorization test failed: {e}")
-        return False
+        assert False
     
-    return True
+    assert True
 
 
 def test_registration_endpoint():
@@ -109,16 +109,16 @@ def test_registration_endpoint():
         else:
             print(f"❌ Registration endpoint failed: {response.status_code}")
             print(f"Response: {response.text}")
-            return False
+            assert False
             
     except requests.exceptions.ConnectionError:
         print("⚠ Server not running - start with: uvicorn app.main:app --reload")
-        return False
+        assert False
     except Exception as e:
         print(f"❌ Registration test failed: {e}")
-        return False
+        assert False
     
-    return True
+    assert True
 
 
 def main():

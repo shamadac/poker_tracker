@@ -2,7 +2,7 @@
 Common Pydantic schemas used across multiple endpoints.
 """
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime
 
 
@@ -59,7 +59,8 @@ class ExportRequest(BaseModel):
     filters: Optional[Dict[str, Any]] = Field(None, description="Filters to apply to exported data")
     include_raw_data: bool = Field(False, description="Whether to include raw data in export")
     
-    @validator('format')
+    @field_validator('format')
+    @classmethod
     def validate_format(cls, v):
         allowed_formats = ['csv', 'pdf', 'json']
         if v not in allowed_formats:
@@ -72,19 +73,20 @@ class DateRangeFilter(BaseModel):
     start_date: Optional[datetime] = Field(None, description="Start date for filtering")
     end_date: Optional[datetime] = Field(None, description="End date for filtering")
     
-    @validator('end_date')
-    def validate_date_range(cls, v, values):
-        if v and 'start_date' in values and values['start_date']:
-            if v < values['start_date']:
+    @model_validator(mode='after')
+    def validate_date_range(self):
+        if self.end_date and self.start_date:
+            if self.end_date < self.start_date:
                 raise ValueError('End date must be after start date')
-        return v
+        return self
 
 
 class PlatformFilter(BaseModel):
     """Platform-specific filter."""
     platform: Optional[str] = Field(None, pattern="^(pokerstars|ggpoker)$", description="Poker platform")
     
-    @validator('platform')
+    @field_validator('platform')
+    @classmethod
     def validate_platform(cls, v):
         if v is not None:
             allowed_platforms = ['pokerstars', 'ggpoker']
@@ -99,7 +101,8 @@ class GameTypeFilter(BaseModel):
     game_format: Optional[str] = Field(None, pattern="^(tournament|cash|sng)$", description="Game format")
     stakes: Optional[str] = Field(None, description="Stakes level")
     
-    @validator('game_format')
+    @field_validator('game_format')
+    @classmethod
     def validate_game_format(cls, v):
         if v is not None:
             allowed_formats = ['tournament', 'cash', 'sng']
@@ -112,7 +115,8 @@ class PositionFilter(BaseModel):
     """Position-based filter."""
     position: Optional[str] = Field(None, pattern="^(UTG|MP|CO|BTN|SB|BB)$", description="Table position")
     
-    @validator('position')
+    @field_validator('position')
+    @classmethod
     def validate_position(cls, v):
         if v is not None:
             allowed_positions = ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB']

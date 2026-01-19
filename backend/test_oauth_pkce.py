@@ -47,13 +47,13 @@ class MockRedis:
         return None
     
     async def setex(self, key, time, value):
-        return True
+        assert True
     
     async def incr(self, key):
         return 1
     
     async def ping(self):
-        return True
+        assert True
 
 
 # Override the dependency and patch Redis

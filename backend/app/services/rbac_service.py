@@ -17,7 +17,7 @@ class RBACService:
     """Service for managing roles, permissions, and access control."""
     
     @staticmethod
-    async def get_role_by_name(db: AsyncSession, role_name: str) -> Optional[Role]:
+    async def get_role_by_name(db: AsyncSession, role_name: str, timezone) -> Optional[Role]:
         """Get role by name."""
         result = await db.execute(
             select(Role)
@@ -150,7 +150,7 @@ class RBACService:
                     UserRole.user_id == user_id,
                     or_(
                         UserRole.expires_at.is_(None),
-                        UserRole.expires_at > datetime.utcnow()
+                        UserRole.expires_at > datetime.now(timezone.utc)
                     )
                 )
             )
@@ -169,7 +169,7 @@ class RBACService:
                     UserRole.user_id == user_id,
                     or_(
                         UserRole.expires_at.is_(None),
-                        UserRole.expires_at > datetime.utcnow()
+                        UserRole.expires_at > datetime.now(timezone.utc)
                     )
                 )
             )
@@ -203,7 +203,7 @@ class RBACService:
                     Permission.name == permission_name,
                     or_(
                         UserRole.expires_at.is_(None),
-                        UserRole.expires_at > datetime.utcnow()
+                        UserRole.expires_at > datetime.now(timezone.utc)
                     )
                 )
             )
@@ -239,7 +239,7 @@ class RBACService:
                     Permission.action == action,
                     or_(
                         UserRole.expires_at.is_(None),
-                        UserRole.expires_at > datetime.utcnow()
+                        UserRole.expires_at > datetime.now(timezone.utc)
                     )
                 )
             )
@@ -353,7 +353,7 @@ class RBACService:
             select(UserRole).where(
                 and_(
                     UserRole.expires_at.is_not(None),
-                    UserRole.expires_at <= datetime.utcnow()
+                    UserRole.expires_at <= datetime.now(timezone.utc)
                 )
             )
         )

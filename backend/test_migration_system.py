@@ -14,6 +14,10 @@ sys.path.insert(0, str(backend_dir))
 def run_command(command: list[str]) -> tuple[bool, str]:
     """Run a command and return success status and output."""
     try:
+        # Use the same Python executable that's running the test
+        if command[0] == 'python':
+            command[0] = sys.executable
+        
         result = subprocess.run(
             command, 
             capture_output=True, 
@@ -23,9 +27,9 @@ def run_command(command: list[str]) -> tuple[bool, str]:
         )
         return result.returncode == 0, result.stdout + result.stderr
     except subprocess.TimeoutExpired:
-        return False, "Command timed out"
+        assert False, "Command timed out"
     except Exception as e:
-        return False, str(e)
+        assert False, str(e)
 
 
 def test_migration_commands():
@@ -41,7 +45,7 @@ def test_migration_commands():
         {
             'name': 'Head Revisions',
             'command': ['python', 'migrate.py', 'heads'],
-            'expected_in_output': ['001', 'head']
+            'expected_in_output': ['003', 'head']
         },
         {
             'name': 'Alembic History',
@@ -74,7 +78,7 @@ def test_migration_commands():
         else:
             print(f"    ✅ {test['name']} passed")
     
-    return all_passed
+    assert all_passed, "Some migration commands failed"
 
 
 def test_migration_file_generation():
@@ -99,10 +103,10 @@ def test_migration_file_generation():
                 file.unlink()
                 print(f"    🧹 Cleaned up test file: {file.name}")
         
-        return True
+        assert True
     else:
         print(f"    ❌ Empty migration creation failed: {output}")
-        return False
+        assert False
 
 
 def test_model_consistency():
@@ -117,17 +121,21 @@ def test_model_consistency():
         from app.models.analysis import AnalysisResult
         from app.models.statistics import StatisticsCache
         from app.models.monitoring import FileMonitoring
+        from app.models.rbac import Role, Permission, UserRole
+        from app.models.file_processing import FileProcessingTask
         
         # Get table names from models
         model_tables = set(Base.metadata.tables.keys())
         expected_tables = {
             'users', 'poker_hands', 'analysis_results', 
-            'statistics_cache', 'file_monitoring'
+            'statistics_cache', 'file_monitoring',
+            'roles', 'permissions', 'role_permissions', 'user_roles',
+            'file_processing_tasks'
         }
         
         if model_tables == expected_tables:
             print("    ✅ Model tables match expected schema")
-            return True
+            assert True
         else:
             missing = expected_tables - model_tables
             extra = model_tables - expected_tables
@@ -135,11 +143,11 @@ def test_model_consistency():
                 print(f"    ❌ Missing tables: {missing}")
             if extra:
                 print(f"    ❌ Extra tables: {extra}")
-            return False
+            assert False
             
     except Exception as e:
         print(f"    ❌ Model import failed: {e}")
-        return False
+        assert False
 
 
 def test_configuration():
@@ -161,16 +169,16 @@ def test_configuration():
         
         if missing_settings:
             print(f"    ❌ Missing settings: {missing_settings}")
-            return False
+            assert False
         
         print("    ✅ Configuration loaded successfully")
         print(f"    Database URL: {settings.DATABASE_URL}")
         print(f"    Environment: {settings.ENVIRONMENT}")
-        return True
+        assert True
         
     except Exception as e:
         print(f"    ❌ Configuration loading failed: {e}")
-        return False
+        assert False
 
 
 def main():

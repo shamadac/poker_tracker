@@ -2,7 +2,7 @@
 Authentication-related Pydantic schemas.
 """
 from typing import Optional
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator, ConfigDict
 
 
 class PKCEAuthRequest(BaseModel):
@@ -53,7 +53,8 @@ class LoginRequest(BaseModel):
     username: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password_strength(cls, v):
         """Validate password meets minimum security requirements."""
         if len(v) < 8:
@@ -84,13 +85,8 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, description="User password")
     confirm_password: str = Field(..., description="Password confirmation")
     
-    @validator('confirm_password')
-    def passwords_match(cls, v, values):
-        if 'password' in values and v != values['password']:
-            raise ValueError('Passwords do not match')
-        return v
-    
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password_strength(cls, v):
         """Validate password meets minimum security requirements."""
         if len(v) < 8:
@@ -108,6 +104,12 @@ class RegisterRequest(BaseModel):
             )
         
         return v
+    
+    @model_validator(mode='after')
+    def passwords_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError('Passwords do not match')
+        return self
 
 
 class PasswordResetRequest(BaseModel):
@@ -121,13 +123,8 @@ class PasswordResetConfirm(BaseModel):
     new_password: str = Field(..., min_length=8, description="New password")
     confirm_password: str = Field(..., description="Password confirmation")
     
-    @validator('confirm_password')
-    def passwords_match(cls, v, values):
-        if 'new_password' in values and v != values['new_password']:
-            raise ValueError('Passwords do not match')
-        return v
-    
-    @validator('new_password')
+    @field_validator('new_password')
+    @classmethod
     def validate_password_strength(cls, v):
         """Validate password meets minimum security requirements."""
         if len(v) < 8:
@@ -145,6 +142,12 @@ class PasswordResetConfirm(BaseModel):
             )
         
         return v
+    
+    @model_validator(mode='after')
+    def passwords_match(self):
+        if self.new_password != self.confirm_password:
+            raise ValueError('Passwords do not match')
+        return self
 
 
 class UserMeResponse(BaseModel):
@@ -155,5 +158,4 @@ class UserMeResponse(BaseModel):
     preferences: dict = Field(default_factory=dict, description="User preferences")
     has_api_keys: dict = Field(default_factory=dict, description="Which API keys are configured")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

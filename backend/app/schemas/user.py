@@ -2,7 +2,7 @@
 User-related Pydantic schemas.
 """
 from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ConfigDict
 from .common import UUIDMixin, TimestampMixin
 
 
@@ -15,7 +15,8 @@ class UserCreate(UserBase):
     """Schema for creating a new user."""
     password: str = Field(..., min_length=8, description="User password")
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password_strength(cls, v):
         """Validate password meets minimum security requirements."""
         if len(v) < 8:
@@ -40,7 +41,8 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = Field(None, description="Updated email address")
     password: Optional[str] = Field(None, min_length=8, description="Updated password")
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password_strength(cls, v):
         if v is not None:
             if len(v) < 8:
@@ -66,8 +68,7 @@ class UserResponse(UserBase, UUIDMixin, TimestampMixin):
     has_api_keys: Dict[str, bool] = Field(default_factory=dict, description="Which API keys are configured")
     hand_history_paths: Dict[str, str] = Field(default_factory=dict, description="Configured hand history paths")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserPreferencesUpdate(BaseModel):
@@ -78,7 +79,8 @@ class UserPreferencesUpdate(BaseModel):
     ui_preferences: Optional[Dict[str, Any]] = Field(None, description="UI preferences")
     notification_preferences: Optional[Dict[str, Any]] = Field(None, description="Notification preferences")
     
-    @validator('ai_provider')
+    @field_validator('ai_provider')
+    @classmethod
     def validate_ai_provider(cls, v):
         if v is not None:
             allowed_providers = ['gemini', 'groq']
@@ -86,7 +88,8 @@ class UserPreferencesUpdate(BaseModel):
                 raise ValueError(f'AI provider must be one of: {", ".join(allowed_providers)}')
         return v
     
-    @validator('hand_history_paths')
+    @field_validator('hand_history_paths')
+    @classmethod
     def validate_hand_history_paths(cls, v):
         if v is not None:
             allowed_platforms = ['pokerstars', 'ggpoker']
@@ -101,14 +104,16 @@ class APIKeyUpdate(BaseModel):
     provider: str = Field(..., pattern="^(gemini|groq)$", description="AI provider")
     api_key: str = Field(..., min_length=10, description="API key for the provider")
     
-    @validator('provider')
+    @field_validator('provider')
+    @classmethod
     def validate_provider(cls, v):
         allowed_providers = ['gemini', 'groq']
         if v not in allowed_providers:
             raise ValueError(f'Provider must be one of: {", ".join(allowed_providers)}')
         return v
     
-    @validator('api_key')
+    @field_validator('api_key')
+    @classmethod
     def validate_api_key(cls, v):
         if len(v) < 10:
             raise ValueError('API key must be at least 10 characters long')
@@ -125,7 +130,8 @@ class APIKeyValidationRequest(BaseModel):
     provider: str = Field(..., pattern="^(gemini|groq)$", description="AI provider")
     api_key: str = Field(..., description="API key to validate")
     
-    @validator('provider')
+    @field_validator('provider')
+    @classmethod
     def validate_provider(cls, v):
         allowed_providers = ['gemini', 'groq']
         if v not in allowed_providers:
@@ -150,8 +156,7 @@ class UserProfile(BaseModel):
     hand_history_paths: Dict[str, str] = Field(default_factory=dict, description="Configured paths")
     statistics_summary: Optional[Dict[str, Any]] = Field(None, description="Quick statistics summary")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserAccountDeletionRequest(BaseModel):
@@ -159,7 +164,8 @@ class UserAccountDeletionRequest(BaseModel):
     confirm_deletion: bool = Field(..., description="Confirmation that user wants to delete account")
     password: str = Field(..., description="Current password for verification")
     
-    @validator('confirm_deletion')
+    @field_validator('confirm_deletion')
+    @classmethod
     def validate_confirmation(cls, v):
         if not v:
             raise ValueError('Account deletion must be explicitly confirmed')

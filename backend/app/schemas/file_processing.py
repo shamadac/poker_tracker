@@ -109,7 +109,7 @@ class ProcessingStatistics(BaseModel):
 
 class BatchProcessingRequest(BaseModel):
     """Schema for batch processing requests."""
-    file_paths: List[str] = Field(..., min_items=1, description="List of file paths to process")
+    file_paths: List[str] = Field(..., min_length=1, description="List of file paths to process")
     platform: Optional[str] = Field(None, description="Poker platform (auto-detected if not provided)")
     task_name: Optional[str] = Field(None, description="Custom task name")
     processing_options: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional processing options")

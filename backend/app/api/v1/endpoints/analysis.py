@@ -188,5 +188,5 @@ async def submit_analysis_feedback(
     return AnalysisFeedbackResponse(
         message="Feedback submitted successfully",
         analysis_id=request.analysis_id,
-        submitted_at=datetime.utcnow()
+        submitted_at=datetime.now(timezone.utc)
     )

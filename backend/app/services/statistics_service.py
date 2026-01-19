@@ -1,0 +1,1534 @@
+"""
+Statistics calculation service for poker hand analysis.
+"""
+from datetime import datetime, timezone, timedelta
+from decimal import Decimal, ROUND_HALF_UP
+from typing import Dict, List, Optional, Any, Tuple
+from sqlalchemy import select, func, and_, or_, desc
+from sqlalchemy.ext.asyncio import AsyncSession
+import statistics
+
+from app.models.hand import PokerHand
+from app.models.statistics import StatisticsCache
+from app.schemas.statistics import (
+    BasicStatistics,
+    AdvancedStatistics,
+    PositionalStatistics,
+    TournamentStatistics,
+    StatisticsFilters,
+    StatisticsResponse,
+    TrendData,
+    TrendDataPoint,
+    SessionStatistics
+)
+from app.services.cache_service import StatisticsCacheService
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class StatisticsService:
+    """Service for calculating comprehensive poker statistics with Redis caching."""
+    
+    def __init__(self, db: AsyncSession, cache_service: Optional[StatisticsCacheService] = None):
+        self.db = db
+        self.cache_service = cache_service
+    
+    async def calculate_basic_statistics(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> BasicStatistics:
+        """
+        Calculate basic poker statistics (VPIP, PFR, aggression factor, win rate).
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            BasicStatistics object with calculated metrics
+        """
+        # Build base query
+        query = select(PokerHand).where(PokerHand.user_id == user_id)
+        
+        # Apply filters
+        if filters:
+            query = self._apply_filters(query, filters)
+        
+        # Execute query to get hands
+        result = await self.db.execute(query)
+        hands = result.scalars().all()
+        
+        if not hands:
+            return BasicStatistics(
+                total_hands=0,
+                vpip=Decimal('0.0'),
+                pfr=Decimal('0.0'),
+                aggression_factor=Decimal('0.0'),
+                win_rate=Decimal('0.0')
+            )
+        
+        total_hands = len(hands)
+        
+        # Calculate VPIP (Voluntarily Put In Pot)
+        vpip_hands = 0
+        pfr_hands = 0
+        aggressive_actions = 0
+        passive_actions = 0
+        total_winnings = Decimal('0.0')
+        showdown_hands = 0
+        won_showdown = 0
+        steal_opportunities = 0
+        steal_attempts = 0
+        fold_to_steal_opportunities = 0
+        fold_to_steal_count = 0
+        
+        for hand in hands:
+            actions = hand.actions or {}
+            
+            # Calculate VPIP - did player voluntarily put money in pot preflop?
+            if self._is_vpip_hand(actions, hand.position):
+                vpip_hands += 1
+            
+            # Calculate PFR - did player raise preflop?
+            if self._is_pfr_hand(actions):
+                pfr_hands += 1
+            
+            # Calculate aggression factor
+            agg_actions = self._count_aggressive_actions(actions)
+            pass_actions = self._count_passive_actions(actions)
+            aggressive_actions += agg_actions
+            passive_actions += pass_actions
+            
+            # Calculate win rate
+            if hand.result and hand.pot_size:
+                winnings = self._calculate_hand_winnings(hand)
+                total_winnings += winnings
+            
+            # Calculate showdown stats
+            if self._went_to_showdown(actions):
+                showdown_hands += 1
+                if hand.result == 'won':
+                    won_showdown += 1
+            
+            # Calculate steal stats
+            if self._is_steal_opportunity(hand.position, actions):
+                steal_opportunities += 1
+                if self._attempted_steal(actions):
+                    steal_attempts += 1
+            
+            # Calculate fold to steal
+            if self._is_fold_to_steal_opportunity(hand.position, actions):
+                fold_to_steal_opportunities += 1
+                if self._folded_to_steal(actions):
+                    fold_to_steal_count += 1
+        
+        # Calculate percentages
+        vpip = self._calculate_percentage(vpip_hands, total_hands)
+        pfr = self._calculate_percentage(pfr_hands, total_hands)
+        
+        # Calculate aggression factor
+        if passive_actions > 0:
+            aggression_factor = Decimal(str(aggressive_actions)) / Decimal(str(passive_actions))
+        else:
+            aggression_factor = Decimal('0.0') if aggressive_actions == 0 else Decimal('999.0')
+        
+        # Calculate win rate (bb/100 for cash games, ROI% for tournaments)
+        win_rate = self._calculate_win_rate(total_winnings, total_hands, hands)
+        
+        # Calculate optional stats
+        went_to_showdown = self._calculate_percentage(showdown_hands, total_hands) if total_hands > 0 else None
+        won_at_showdown = self._calculate_percentage(won_showdown, showdown_hands) if showdown_hands > 0 else None
+        attempt_to_steal = self._calculate_percentage(steal_attempts, steal_opportunities) if steal_opportunities > 0 else None
+        fold_to_steal = self._calculate_percentage(fold_to_steal_count, fold_to_steal_opportunities) if fold_to_steal_opportunities > 0 else None
+        
+        return BasicStatistics(
+            total_hands=total_hands,
+            vpip=vpip,
+            pfr=pfr,
+            aggression_factor=aggression_factor.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+            win_rate=win_rate,
+            went_to_showdown=went_to_showdown,
+            won_at_showdown=won_at_showdown,
+            attempt_to_steal=attempt_to_steal,
+            fold_to_steal=fold_to_steal
+        )
+    
+    async def calculate_positional_statistics(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> List[PositionalStatistics]:
+        """
+        Calculate position-based statistics.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            List of PositionalStatistics for each position
+        """
+        # Build base query
+        query = select(PokerHand).where(
+            and_(
+                PokerHand.user_id == user_id,
+                PokerHand.position.isnot(None)
+            )
+        )
+        
+        # Apply filters
+        if filters:
+            query = self._apply_filters(query, filters)
+        
+        # Execute query
+        result = await self.db.execute(query)
+        hands = result.scalars().all()
+        
+        # Group hands by position
+        position_hands = {}
+        for hand in hands:
+            position = hand.position
+            if position not in position_hands:
+                position_hands[position] = []
+            position_hands[position].append(hand)
+        
+        # Calculate stats for each position
+        positional_stats = []
+        for position, hands_list in position_hands.items():
+            if len(hands_list) < 5:  # Skip positions with too few hands
+                continue
+            
+            total_hands = len(hands_list)
+            vpip_hands = 0
+            pfr_hands = 0
+            aggressive_actions = 0
+            passive_actions = 0
+            total_winnings = Decimal('0.0')
+            three_bet_opportunities = 0
+            three_bet_count = 0
+            fold_to_three_bet_opportunities = 0
+            fold_to_three_bet_count = 0
+            
+            for hand in hands_list:
+                actions = hand.actions or {}
+                
+                # VPIP calculation
+                if self._is_vpip_hand(actions, position):
+                    vpip_hands += 1
+                
+                # PFR calculation
+                if self._is_pfr_hand(actions):
+                    pfr_hands += 1
+                
+                # Aggression factor
+                agg_actions = self._count_aggressive_actions(actions)
+                pass_actions = self._count_passive_actions(actions)
+                aggressive_actions += agg_actions
+                passive_actions += pass_actions
+                
+                # Win rate
+                if hand.result and hand.pot_size:
+                    winnings = self._calculate_hand_winnings(hand)
+                    total_winnings += winnings
+                
+                # 3-bet stats
+                if self._is_three_bet_opportunity(actions):
+                    three_bet_opportunities += 1
+                    if self._made_three_bet(actions):
+                        three_bet_count += 1
+                
+                if self._is_fold_to_three_bet_opportunity(actions):
+                    fold_to_three_bet_opportunities += 1
+                    if self._folded_to_three_bet(actions):
+                        fold_to_three_bet_count += 1
+            
+            # Calculate percentages
+            vpip = self._calculate_percentage(vpip_hands, total_hands)
+            pfr = self._calculate_percentage(pfr_hands, total_hands)
+            
+            # Aggression factor
+            if passive_actions > 0:
+                aggression_factor = Decimal(str(aggressive_actions)) / Decimal(str(passive_actions))
+            else:
+                aggression_factor = Decimal('0.0') if aggressive_actions == 0 else Decimal('999.0')
+            
+            # Win rate
+            win_rate = self._calculate_win_rate(total_winnings, total_hands, hands_list)
+            
+            # 3-bet stats
+            three_bet_percentage = self._calculate_percentage(three_bet_count, three_bet_opportunities) if three_bet_opportunities > 0 else None
+            fold_to_three_bet = self._calculate_percentage(fold_to_three_bet_count, fold_to_three_bet_opportunities) if fold_to_three_bet_opportunities > 0 else None
+            
+            positional_stats.append(PositionalStatistics(
+                position=position,
+                hands_played=total_hands,
+                vpip=vpip,
+                pfr=pfr,
+                win_rate=win_rate,
+                aggression_factor=aggression_factor.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+                three_bet_percentage=three_bet_percentage,
+                fold_to_three_bet=fold_to_three_bet
+            ))
+        
+        # Sort by standard position order
+        position_order = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'MP+1', 'MP+2', 'CO', 'BTN', 'SB', 'BB']
+        positional_stats.sort(key=lambda x: position_order.index(x.position) if x.position in position_order else 999)
+        
+        return positional_stats
+    
+    def _apply_filters(self, query, filters: StatisticsFilters):
+        """Apply comprehensive filters to the query with support for multiple criteria."""
+        if filters.start_date:
+            query = query.where(PokerHand.date_played >= filters.start_date)
+        
+        if filters.end_date:
+            query = query.where(PokerHand.date_played <= filters.end_date)
+        
+        if filters.platform:
+            query = query.where(PokerHand.platform == filters.platform)
+        
+        if filters.game_type:
+            query = query.where(PokerHand.game_type == filters.game_type)
+        
+        if filters.game_format:
+            query = query.where(PokerHand.game_format == filters.game_format)
+        
+        if filters.position:
+            query = query.where(PokerHand.position == filters.position)
+        
+        if filters.stakes_filter:
+            query = query.where(PokerHand.stakes.in_(filters.stakes_filter))
+        
+        if filters.tournament_only:
+            query = query.where(PokerHand.game_format == 'tournament')
+        
+        if filters.cash_only:
+            query = query.where(PokerHand.game_format == 'cash')
+        
+        if filters.play_money_only:
+            query = query.where(PokerHand.is_play_money == True)
+        
+        if filters.exclude_play_money:
+            query = query.where(PokerHand.is_play_money == False)
+        
+        return query
+    
+    async def calculate_filtered_statistics(
+        self, 
+        user_id: str, 
+        filters: StatisticsFilters
+    ) -> StatisticsResponse:
+        """
+        Calculate comprehensive statistics with dynamic filtering by multiple criteria.
+        Implements Redis caching for improved performance.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Comprehensive filters to apply
+            
+        Returns:
+            StatisticsResponse with all calculated statistics
+        """
+        # Try to get from cache first
+        if self.cache_service:
+            try:
+                cached_stats = await self.cache_service.get_user_statistics(user_id, filters)
+                if cached_stats:
+                    logger.debug(f"Cache hit for user {user_id} statistics")
+                    return StatisticsResponse(**cached_stats)
+            except Exception as e:
+                logger.warning(f"Cache retrieval failed for user {user_id}: {e}")
+        
+        # Calculate all statistics with the same filters
+        logger.debug(f"Calculating fresh statistics for user {user_id}")
+        basic_stats = await self.calculate_basic_statistics(user_id, filters)
+        advanced_stats = await self.calculate_advanced_statistics(user_id, filters)
+        positional_stats = await self.calculate_positional_statistics(user_id, filters)
+        tournament_stats = await self.calculate_tournament_statistics(user_id, filters)
+        
+        # Check minimum hands requirement
+        if filters.min_hands and basic_stats.total_hands < filters.min_hands:
+            raise ValueError(f"Insufficient hands for statistical significance. Found {basic_stats.total_hands}, minimum required: {filters.min_hands}")
+        
+        # Calculate confidence level based on sample size
+        confidence_level = min(Decimal('0.95'), Decimal(str(basic_stats.total_hands)) / Decimal('1000')) if basic_stats.total_hands > 0 else Decimal('0.0')
+        
+        response = StatisticsResponse(
+            basic_stats=basic_stats,
+            advanced_stats=advanced_stats,
+            positional_stats=positional_stats,
+            tournament_stats=tournament_stats,
+            filters_applied=filters,
+            calculation_date=datetime.now(timezone.utc),
+            cache_expires=datetime.now(timezone.utc) + timedelta(hours=1),  # Cache for 1 hour
+            sample_size=basic_stats.total_hands,
+            confidence_level=confidence_level
+        )
+        
+        # Cache the results
+        if self.cache_service:
+            try:
+                await self.cache_service.set_user_statistics(
+                    user_id, 
+                    filters, 
+                    response.dict()
+                )
+                logger.debug(f"Cached statistics for user {user_id}")
+            except Exception as e:
+                logger.warning(f"Cache storage failed for user {user_id}: {e}")
+        
+        return response
+    
+    async def calculate_performance_trends(
+        self, 
+        user_id: str, 
+        period: str = "30d",
+        metrics: List[str] = None
+    ) -> List[TrendData]:
+        """
+        Calculate performance trends over time for specified metrics.
+        Implements Redis caching for improved performance.
+        
+        Args:
+            user_id: User ID to calculate trends for
+            period: Time period for trends (7d, 30d, 90d, 1y)
+            metrics: List of metrics to analyze trends for
+            
+        Returns:
+            List of TrendData objects with trend analysis
+        """
+        if metrics is None:
+            metrics = ["vpip", "pfr", "win_rate", "aggression_factor"]
+        
+        # Try to get from cache first
+        if self.cache_service:
+            try:
+                # Create a simple filters object for caching
+                cache_filters = StatisticsFilters()
+                cached_trends = await self.cache_service.get_trend_data(
+                    user_id, period, cache_filters
+                )
+                if cached_trends:
+                    logger.debug(f"Cache hit for user {user_id} trends")
+                    return [TrendData(**trend) for trend in cached_trends]
+            except Exception as e:
+                logger.warning(f"Trend cache retrieval failed for user {user_id}: {e}")
+        
+        # Calculate date range based on period
+        logger.debug(f"Calculating fresh trends for user {user_id}, period {period}")
+        end_date = datetime.now(timezone.utc)
+        if period == "7d":
+            start_date = end_date - timedelta(days=7)
+            interval_days = 1
+        elif period == "30d":
+            start_date = end_date - timedelta(days=30)
+            interval_days = 3
+        elif period == "90d":
+            start_date = end_date - timedelta(days=90)
+            interval_days = 7
+        elif period == "1y":
+            start_date = end_date - timedelta(days=365)
+            interval_days = 14
+        else:
+            raise ValueError(f"Invalid period: {period}")
+        
+        trend_results = []
+        
+        for metric in metrics:
+            data_points = await self._calculate_metric_trend(
+                user_id, metric, start_date, end_date, interval_days
+            )
+            
+            if len(data_points) < 2:
+                # Not enough data for trend analysis
+                trend_results.append(TrendData(
+                    metric_name=metric,
+                    time_period=period,
+                    data_points=data_points,
+                    trend_direction="stable",
+                    trend_strength=Decimal('0.0'),
+                    statistical_significance=False
+                ))
+                continue
+            
+            # Calculate trend direction and strength
+            values = [float(dp.value) for dp in data_points]
+            trend_direction, trend_strength, is_significant = self._analyze_trend(values)
+            
+            trend_results.append(TrendData(
+                metric_name=metric,
+                time_period=period,
+                data_points=data_points,
+                trend_direction=trend_direction,
+                trend_strength=trend_strength,
+                statistical_significance=is_significant
+            ))
+        
+        # Cache the results
+        if self.cache_service:
+            try:
+                cache_filters = StatisticsFilters()
+                trend_dicts = [trend.dict() for trend in trend_results]
+                await self.cache_service.set_trend_data(
+                    user_id, period, cache_filters, trend_dicts
+                )
+                logger.debug(f"Cached trends for user {user_id}")
+            except Exception as e:
+                logger.warning(f"Trend cache storage failed for user {user_id}: {e}")
+        
+        return trend_results
+    
+    async def _calculate_metric_trend(
+        self, 
+        user_id: str, 
+        metric: str, 
+        start_date: datetime, 
+        end_date: datetime, 
+        interval_days: int
+    ) -> List[TrendDataPoint]:
+        """Calculate trend data points for a specific metric over time intervals."""
+        data_points = []
+        current_date = start_date
+        
+        while current_date < end_date:
+            interval_end = min(current_date + timedelta(days=interval_days), end_date)
+            
+            # Create filters for this time interval
+            filters = StatisticsFilters(
+                start_date=current_date,
+                end_date=interval_end
+            )
+            
+            # Calculate statistics for this interval
+            try:
+                basic_stats = await self.calculate_basic_statistics(user_id, filters)
+                
+                # Extract the requested metric value
+                metric_value = self._extract_metric_value(basic_stats, metric)
+                
+                # Only add data point if we have sufficient hands (minimum 5 for testing)
+                if basic_stats.total_hands >= 5:
+                    confidence = min(Decimal('1.0'), Decimal(str(basic_stats.total_hands)) / Decimal('50'))
+                    
+                    data_points.append(TrendDataPoint(
+                        date=current_date,
+                        value=metric_value,
+                        hands_sample=basic_stats.total_hands,
+                        confidence=confidence
+                    ))
+            
+            except Exception:
+                # Skip intervals with calculation errors
+                pass
+            
+            current_date = interval_end
+        
+        return data_points
+    
+    def _extract_metric_value(self, stats: BasicStatistics, metric: str) -> Decimal:
+        """Extract the value for a specific metric from statistics."""
+        metric_map = {
+            "vpip": stats.vpip,
+            "pfr": stats.pfr,
+            "win_rate": stats.win_rate,
+            "aggression_factor": stats.aggression_factor,
+            "went_to_showdown": stats.went_to_showdown or Decimal('0.0'),
+            "won_at_showdown": stats.won_at_showdown or Decimal('0.0'),
+            "attempt_to_steal": stats.attempt_to_steal or Decimal('0.0'),
+            "fold_to_steal": stats.fold_to_steal or Decimal('0.0')
+        }
+        
+        return metric_map.get(metric, Decimal('0.0'))
+    
+    def _analyze_trend(self, values: List[float]) -> Tuple[str, Decimal, bool]:
+        """
+        Analyze trend direction, strength, and statistical significance.
+        
+        Returns:
+            Tuple of (direction, strength, is_significant)
+        """
+        if len(values) < 2:
+            return "stable", Decimal('0.0'), False
+        
+        # Calculate linear regression slope
+        n = len(values)
+        x_values = list(range(n))
+        
+        # Calculate means
+        x_mean = sum(x_values) / n
+        y_mean = sum(values) / n
+        
+        # Calculate slope
+        numerator = sum((x_values[i] - x_mean) * (values[i] - y_mean) for i in range(n))
+        denominator = sum((x_values[i] - x_mean) ** 2 for i in range(n))
+        
+        if denominator == 0:
+            return "stable", Decimal('0.0'), False
+        
+        slope = numerator / denominator
+        
+        # Calculate correlation coefficient for trend strength
+        y_variance = sum((values[i] - y_mean) ** 2 for i in range(n))
+        if y_variance == 0:
+            correlation = 0
+        else:
+            correlation = abs(numerator) / (denominator ** 0.5 * y_variance ** 0.5)
+        
+        # Determine trend direction
+        if abs(slope) < 0.01:  # Very small slope considered stable
+            direction = "stable"
+        elif slope > 0:
+            direction = "up"
+        else:
+            direction = "down"
+        
+        # Trend strength based on correlation coefficient
+        trend_strength = Decimal(str(min(1.0, abs(correlation))))
+        
+        # Statistical significance (simplified - based on correlation and sample size)
+        is_significant = correlation > 0.3 and n >= 5
+        
+        return direction, trend_strength, is_significant
+    
+    async def calculate_session_statistics(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> List[SessionStatistics]:
+        """
+        Calculate session-based statistics grouped by date.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply
+            
+        Returns:
+            List of SessionStatistics objects
+        """
+        # Build base query
+        query = select(PokerHand).where(PokerHand.user_id == user_id)
+        
+        # Apply filters
+        if filters:
+            query = self._apply_filters(query, filters)
+        
+        # Order by date
+        query = query.order_by(PokerHand.date_played)
+        
+        # Execute query
+        result = await self.db.execute(query)
+        hands = result.scalars().all()
+        
+        if not hands:
+            return []
+        
+        # Group hands by session (same date)
+        sessions = {}
+        for hand in hands:
+            session_date = hand.date_played.date() if hand.date_played else datetime.now().date()
+            
+            if session_date not in sessions:
+                sessions[session_date] = []
+            
+            sessions[session_date].append(hand)
+        
+        # Calculate statistics for each session
+        session_stats = []
+        for session_date, session_hands in sessions.items():
+            if len(session_hands) < 5:  # Skip sessions with too few hands
+                continue
+            
+            # Calculate session duration
+            session_start = min(hand.date_played for hand in session_hands if hand.date_played)
+            session_end = max(hand.date_played for hand in session_hands if hand.date_played)
+            duration_minutes = int((session_end - session_start).total_seconds() / 60) if session_start and session_end else 0
+            
+            # Calculate session statistics
+            total_hands = len(session_hands)
+            vpip_hands = 0
+            pfr_hands = 0
+            aggressive_actions = 0
+            passive_actions = 0
+            total_winnings = Decimal('0.0')
+            biggest_win = Decimal('0.0')
+            biggest_loss = Decimal('0.0')
+            
+            for hand in session_hands:
+                actions = hand.actions or {}
+                
+                # VPIP and PFR
+                if self._is_vpip_hand(actions, hand.position):
+                    vpip_hands += 1
+                
+                if self._is_pfr_hand(actions):
+                    pfr_hands += 1
+                
+                # Aggression factor
+                agg_actions = self._count_aggressive_actions(actions)
+                pass_actions = self._count_passive_actions(actions)
+                aggressive_actions += agg_actions
+                passive_actions += pass_actions
+                
+                # Winnings tracking
+                if hand.result and hand.pot_size:
+                    hand_winnings = self._calculate_hand_winnings(hand)
+                    total_winnings += hand_winnings
+                    
+                    if hand_winnings > biggest_win:
+                        biggest_win = hand_winnings
+                    elif hand_winnings < biggest_loss:
+                        biggest_loss = hand_winnings
+            
+            # Calculate percentages
+            vpip = self._calculate_percentage(vpip_hands, total_hands)
+            pfr = self._calculate_percentage(pfr_hands, total_hands)
+            
+            # Aggression factor
+            if passive_actions > 0:
+                aggression_factor = Decimal(str(aggressive_actions)) / Decimal(str(passive_actions))
+            else:
+                aggression_factor = Decimal('0.0') if aggressive_actions == 0 else Decimal('999.0')
+            
+            # Win rate (simplified)
+            win_rate = total_winnings / Decimal(str(total_hands)) if total_hands > 0 else Decimal('0.0')
+            
+            session_stats.append(SessionStatistics(
+                session_date=datetime.combine(session_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                hands_played=total_hands,
+                duration_minutes=duration_minutes,
+                win_rate=win_rate,
+                vpip=vpip,
+                pfr=pfr,
+                aggression_factor=aggression_factor.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+                biggest_win=biggest_win,
+                biggest_loss=biggest_loss,
+                net_result=total_winnings
+            ))
+        
+        # Sort by date (most recent first)
+        session_stats.sort(key=lambda x: x.session_date, reverse=True)
+        
+        return session_stats
+    
+    def _is_vpip_hand(self, actions: Dict[str, Any], position: str) -> bool:
+        """
+        Determine if this hand counts as VPIP.
+        VPIP = Voluntarily Put In Pot (excludes big blind unless there was a raise)
+        """
+        preflop_actions = actions.get('preflop', [])
+        
+        # If no preflop actions recorded, assume fold
+        if not preflop_actions:
+            return False
+        
+        # Find player's first voluntary action
+        for action in preflop_actions:
+            if action.get('action') in ['call', 'bet', 'raise', 'all-in']:
+                return True
+            elif action.get('action') == 'fold':
+                return False
+        
+        # If we reach here and position is BB, check if there was a raise
+        if position == 'BB':
+            # BB only counts as VPIP if they called a raise or raised themselves
+            for action in preflop_actions:
+                if action.get('action') in ['raise', 'call'] and action.get('amount', 0) > 0:
+                    return True
+        
+        return False
+    
+    def _is_pfr_hand(self, actions: Dict[str, Any]) -> bool:
+        """Determine if this hand counts as PFR (Pre-Flop Raise)."""
+        preflop_actions = actions.get('preflop', [])
+        
+        for action in preflop_actions:
+            if action.get('action') in ['raise', 'bet']:
+                return True
+        
+        return False
+    
+    def _count_aggressive_actions(self, actions: Dict[str, Any]) -> int:
+        """Count aggressive actions (bets and raises) across all streets."""
+        count = 0
+        for street in ['preflop', 'flop', 'turn', 'river']:
+            street_actions = actions.get(street, [])
+            for action in street_actions:
+                if action.get('action') in ['bet', 'raise']:
+                    count += 1
+        return count
+    
+    def _count_passive_actions(self, actions: Dict[str, Any]) -> int:
+        """Count passive actions (calls and checks) across all streets."""
+        count = 0
+        for street in ['preflop', 'flop', 'turn', 'river']:
+            street_actions = actions.get(street, [])
+            for action in street_actions:
+                if action.get('action') in ['call', 'check']:
+                    count += 1
+        return count
+    
+    def _calculate_hand_winnings(self, hand: PokerHand) -> Decimal:
+        """Calculate winnings for a single hand."""
+        if not hand.pot_size:
+            return Decimal('0.0')
+        
+        # This is a simplified calculation
+        # In reality, we'd need to track the exact amount won/lost
+        if hand.result == 'won':
+            return hand.pot_size
+        else:
+            # Estimate loss based on actions (simplified)
+            return Decimal('0.0')  # TODO: Implement proper loss calculation
+    
+    def _calculate_percentage(self, numerator: int, denominator: int) -> Decimal:
+        """Calculate percentage with proper rounding."""
+        if denominator == 0:
+            return Decimal('0.0')
+        
+        percentage = (Decimal(str(numerator)) / Decimal(str(denominator))) * Decimal('100')
+        return percentage.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+    
+    def _calculate_win_rate(self, total_winnings: Decimal, total_hands: int, hands: List[PokerHand]) -> Decimal:
+        """Calculate win rate (bb/100 for cash, ROI% for tournaments)."""
+        if total_hands == 0:
+            return Decimal('0.0')
+        
+        # Determine if this is primarily tournament or cash game data
+        tournament_hands = sum(1 for hand in hands if hand.game_format == 'tournament')
+        cash_hands = total_hands - tournament_hands
+        
+        if tournament_hands > cash_hands:
+            # Tournament ROI calculation (simplified)
+            # TODO: Implement proper tournament ROI calculation
+            return Decimal('0.0')
+        else:
+            # Cash game bb/100 calculation (simplified)
+            # TODO: Implement proper bb/100 calculation with big blind tracking
+            return total_winnings / Decimal(str(total_hands)) * Decimal('100')
+    
+    def _went_to_showdown(self, actions: Dict[str, Any]) -> bool:
+        """Determine if hand went to showdown."""
+        # Check if there are river actions or if hand reached river
+        return 'river' in actions and len(actions.get('river', [])) > 0
+    
+    def _is_steal_opportunity(self, position: str, actions: Dict[str, Any]) -> bool:
+        """Determine if this was a steal opportunity (CO, BTN, SB first to act)."""
+        if position not in ['CO', 'BTN', 'SB']:
+            return False
+        
+        preflop_actions = actions.get('preflop', [])
+        # Check if player was first to act or only faced folds
+        # This is simplified - in reality we'd need to track all players' actions
+        return len(preflop_actions) > 0
+    
+    def _attempted_steal(self, actions: Dict[str, Any]) -> bool:
+        """Determine if player attempted a steal."""
+        preflop_actions = actions.get('preflop', [])
+        for action in preflop_actions:
+            if action.get('action') in ['raise', 'bet']:
+                return True
+        return False
+    
+    def _is_fold_to_steal_opportunity(self, position: str, actions: Dict[str, Any]) -> bool:
+        """Determine if this was a fold to steal opportunity."""
+        return position in ['SB', 'BB'] and len(actions.get('preflop', [])) > 0
+    
+    def _folded_to_steal(self, actions: Dict[str, Any]) -> bool:
+        """Determine if player folded to a steal attempt."""
+        preflop_actions = actions.get('preflop', [])
+        for action in preflop_actions:
+            if action.get('action') == 'fold':
+                return True
+        return False
+    
+    def _is_three_bet_opportunity(self, actions: Dict[str, Any]) -> bool:
+        """Determine if this was a 3-bet opportunity."""
+        preflop_actions = actions.get('preflop', [])
+        # Simplified: check if there was a raise before player's action
+        # TODO: Implement proper 3-bet opportunity detection
+        return len(preflop_actions) > 1
+    
+    def _made_three_bet(self, actions: Dict[str, Any]) -> bool:
+        """Determine if player made a 3-bet."""
+        preflop_actions = actions.get('preflop', [])
+        raise_count = 0
+        for action in preflop_actions:
+            if action.get('action') in ['raise', 'bet']:
+                raise_count += 1
+                if raise_count >= 2:  # Second raise is a 3-bet
+                    return True
+        return False
+    
+    def _is_fold_to_three_bet_opportunity(self, actions: Dict[str, Any]) -> bool:
+        """Determine if this was a fold to 3-bet opportunity."""
+        # TODO: Implement proper fold to 3-bet opportunity detection
+        return False
+    
+    def _folded_to_three_bet(self, actions: Dict[str, Any]) -> bool:
+        """Determine if player folded to a 3-bet."""
+        # TODO: Implement proper fold to 3-bet detection
+        return False
+    
+    async def calculate_advanced_statistics(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> AdvancedStatistics:
+        """
+        Calculate advanced poker statistics including 3-bet %, c-bet %, check-raise %, 
+        and red line/blue line analysis.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            AdvancedStatistics object with calculated metrics
+        """
+        # Build base query
+        query = select(PokerHand).where(PokerHand.user_id == user_id)
+        
+        # Apply filters
+        if filters:
+            query = self._apply_filters(query, filters)
+        
+        # Execute query to get hands
+        result = await self.db.execute(query)
+        hands = result.scalars().all()
+        
+        if not hands:
+            return AdvancedStatistics(
+                three_bet_percentage=Decimal('0.0'),
+                fold_to_three_bet=Decimal('0.0'),
+                four_bet_percentage=Decimal('0.0'),
+                fold_to_four_bet=Decimal('0.0'),
+                cold_call_percentage=Decimal('0.0'),
+                isolation_raise=Decimal('0.0'),
+                c_bet_flop=Decimal('0.0'),
+                c_bet_turn=Decimal('0.0'),
+                c_bet_river=Decimal('0.0'),
+                fold_to_c_bet_flop=Decimal('0.0'),
+                fold_to_c_bet_turn=Decimal('0.0'),
+                fold_to_c_bet_river=Decimal('0.0'),
+                check_raise_flop=Decimal('0.0'),
+                check_raise_turn=Decimal('0.0'),
+                check_raise_river=Decimal('0.0'),
+                red_line_winnings=Decimal('0.0'),
+                blue_line_winnings=Decimal('0.0'),
+                expected_value=Decimal('0.0'),
+                variance=Decimal('0.0'),
+                standard_deviations=Decimal('0.0')
+            )
+        
+        # Initialize counters for advanced statistics
+        three_bet_opportunities = 0
+        three_bet_count = 0
+        fold_to_three_bet_opportunities = 0
+        fold_to_three_bet_count = 0
+        four_bet_opportunities = 0
+        four_bet_count = 0
+        fold_to_four_bet_opportunities = 0
+        fold_to_four_bet_count = 0
+        cold_call_opportunities = 0
+        cold_call_count = 0
+        isolation_opportunities = 0
+        isolation_count = 0
+        
+        # C-bet opportunities and counts
+        c_bet_flop_opportunities = 0
+        c_bet_flop_count = 0
+        c_bet_turn_opportunities = 0
+        c_bet_turn_count = 0
+        c_bet_river_opportunities = 0
+        c_bet_river_count = 0
+        
+        # Fold to c-bet opportunities and counts
+        fold_to_c_bet_flop_opportunities = 0
+        fold_to_c_bet_flop_count = 0
+        fold_to_c_bet_turn_opportunities = 0
+        fold_to_c_bet_turn_count = 0
+        fold_to_c_bet_river_opportunities = 0
+        fold_to_c_bet_river_count = 0
+        
+        # Check-raise opportunities and counts
+        check_raise_flop_opportunities = 0
+        check_raise_flop_count = 0
+        check_raise_turn_opportunities = 0
+        check_raise_turn_count = 0
+        check_raise_river_opportunities = 0
+        check_raise_river_count = 0
+        
+        # Red line/blue line analysis
+        showdown_winnings = Decimal('0.0')
+        non_showdown_winnings = Decimal('0.0')
+        total_invested = Decimal('0.0')
+        
+        # Variance calculation
+        hand_results = []
+        
+        for hand in hands:
+            actions = hand.actions or {}
+            
+            # Calculate hand investment and winnings
+            hand_investment = self._calculate_hand_investment(hand, actions)
+            hand_winnings = self._calculate_detailed_hand_winnings(hand, actions)
+            total_invested += hand_investment
+            
+            # Track individual hand results for variance calculation
+            net_result = hand_winnings - hand_investment
+            hand_results.append(float(net_result))
+            
+            # Red line vs Blue line analysis
+            if self._went_to_showdown(actions):
+                showdown_winnings += hand_winnings
+            else:
+                non_showdown_winnings += hand_winnings
+            
+            # Preflop advanced statistics
+            preflop_actions = actions.get('preflop', [])
+            
+            # 3-bet analysis
+            if self._is_advanced_three_bet_opportunity(preflop_actions):
+                three_bet_opportunities += 1
+                if self._made_advanced_three_bet(preflop_actions):
+                    three_bet_count += 1
+            
+            if self._is_advanced_fold_to_three_bet_opportunity(preflop_actions):
+                fold_to_three_bet_opportunities += 1
+                if self._folded_to_advanced_three_bet(preflop_actions):
+                    fold_to_three_bet_count += 1
+            
+            # 4-bet analysis
+            if self._is_four_bet_opportunity(preflop_actions):
+                four_bet_opportunities += 1
+                if self._made_four_bet(preflop_actions):
+                    four_bet_count += 1
+            
+            if self._is_fold_to_four_bet_opportunity(preflop_actions):
+                fold_to_four_bet_opportunities += 1
+                if self._folded_to_four_bet(preflop_actions):
+                    fold_to_four_bet_count += 1
+            
+            # Cold call analysis
+            if self._is_cold_call_opportunity(preflop_actions):
+                cold_call_opportunities += 1
+                if self._made_cold_call(preflop_actions):
+                    cold_call_count += 1
+            
+            # Isolation raise analysis
+            if self._is_isolation_opportunity(preflop_actions, hand.position):
+                isolation_opportunities += 1
+                if self._made_isolation_raise(preflop_actions):
+                    isolation_count += 1
+            
+            # Postflop advanced statistics
+            was_preflop_aggressor = self._was_preflop_aggressor(preflop_actions)
+            
+            # C-bet analysis
+            flop_actions = actions.get('flop', [])
+            if self._is_c_bet_opportunity(was_preflop_aggressor, flop_actions):
+                c_bet_flop_opportunities += 1
+                if self._made_c_bet(flop_actions):
+                    c_bet_flop_count += 1
+            
+            turn_actions = actions.get('turn', [])
+            if self._is_c_bet_opportunity(was_preflop_aggressor, turn_actions):
+                c_bet_turn_opportunities += 1
+                if self._made_c_bet(turn_actions):
+                    c_bet_turn_count += 1
+            
+            river_actions = actions.get('river', [])
+            if self._is_c_bet_opportunity(was_preflop_aggressor, river_actions):
+                c_bet_river_opportunities += 1
+                if self._made_c_bet(river_actions):
+                    c_bet_river_count += 1
+            
+            # Fold to c-bet analysis
+            if self._is_fold_to_c_bet_opportunity(flop_actions):
+                fold_to_c_bet_flop_opportunities += 1
+                if self._folded_to_c_bet(flop_actions):
+                    fold_to_c_bet_flop_count += 1
+            
+            if self._is_fold_to_c_bet_opportunity(turn_actions):
+                fold_to_c_bet_turn_opportunities += 1
+                if self._folded_to_c_bet(turn_actions):
+                    fold_to_c_bet_turn_count += 1
+            
+            if self._is_fold_to_c_bet_opportunity(river_actions):
+                fold_to_c_bet_river_opportunities += 1
+                if self._folded_to_c_bet(river_actions):
+                    fold_to_c_bet_river_count += 1
+            
+            # Check-raise analysis
+            if self._is_check_raise_opportunity(flop_actions):
+                check_raise_flop_opportunities += 1
+                if self._made_check_raise(flop_actions):
+                    check_raise_flop_count += 1
+            
+            if self._is_check_raise_opportunity(turn_actions):
+                check_raise_turn_opportunities += 1
+                if self._made_check_raise(turn_actions):
+                    check_raise_turn_count += 1
+            
+            if self._is_check_raise_opportunity(river_actions):
+                check_raise_river_opportunities += 1
+                if self._made_check_raise(river_actions):
+                    check_raise_river_count += 1
+        
+        # Calculate percentages
+        three_bet_percentage = self._calculate_percentage(three_bet_count, three_bet_opportunities)
+        fold_to_three_bet = self._calculate_percentage(fold_to_three_bet_count, fold_to_three_bet_opportunities)
+        four_bet_percentage = self._calculate_percentage(four_bet_count, four_bet_opportunities)
+        fold_to_four_bet = self._calculate_percentage(fold_to_four_bet_count, fold_to_four_bet_opportunities)
+        cold_call_percentage = self._calculate_percentage(cold_call_count, cold_call_opportunities)
+        isolation_raise = self._calculate_percentage(isolation_count, isolation_opportunities)
+        
+        c_bet_flop = self._calculate_percentage(c_bet_flop_count, c_bet_flop_opportunities)
+        c_bet_turn = self._calculate_percentage(c_bet_turn_count, c_bet_turn_opportunities)
+        c_bet_river = self._calculate_percentage(c_bet_river_count, c_bet_river_opportunities)
+        
+        fold_to_c_bet_flop = self._calculate_percentage(fold_to_c_bet_flop_count, fold_to_c_bet_flop_opportunities)
+        fold_to_c_bet_turn = self._calculate_percentage(fold_to_c_bet_turn_count, fold_to_c_bet_turn_opportunities)
+        fold_to_c_bet_river = self._calculate_percentage(fold_to_c_bet_river_count, fold_to_c_bet_river_opportunities)
+        
+        check_raise_flop = self._calculate_percentage(check_raise_flop_count, check_raise_flop_opportunities)
+        check_raise_turn = self._calculate_percentage(check_raise_turn_count, check_raise_turn_opportunities)
+        check_raise_river = self._calculate_percentage(check_raise_river_count, check_raise_river_opportunities)
+        
+        # Red line (non-showdown) and blue line (showdown) winnings
+        red_line_winnings = non_showdown_winnings
+        blue_line_winnings = showdown_winnings
+        
+        # Calculate expected value and variance
+        if hand_results:
+            expected_value = Decimal(str(sum(hand_results) / len(hand_results)))
+            
+            # Calculate variance
+            mean_result = sum(hand_results) / len(hand_results)
+            variance_sum = sum((result - mean_result) ** 2 for result in hand_results)
+            variance = Decimal(str(variance_sum / len(hand_results)))
+            
+            # Calculate standard deviations from expected
+            if variance > 0:
+                std_dev = variance.sqrt()
+                if std_dev > 0:
+                    standard_deviations = expected_value / std_dev
+                else:
+                    standard_deviations = Decimal('0.0')
+            else:
+                standard_deviations = Decimal('0.0')
+        else:
+            expected_value = Decimal('0.0')
+            variance = Decimal('0.0')
+            standard_deviations = Decimal('0.0')
+        
+        return AdvancedStatistics(
+            three_bet_percentage=three_bet_percentage,
+            fold_to_three_bet=fold_to_three_bet,
+            four_bet_percentage=four_bet_percentage,
+            fold_to_four_bet=fold_to_four_bet,
+            cold_call_percentage=cold_call_percentage,
+            isolation_raise=isolation_raise,
+            c_bet_flop=c_bet_flop,
+            c_bet_turn=c_bet_turn,
+            c_bet_river=c_bet_river,
+            fold_to_c_bet_flop=fold_to_c_bet_flop,
+            fold_to_c_bet_turn=fold_to_c_bet_turn,
+            fold_to_c_bet_river=fold_to_c_bet_river,
+            check_raise_flop=check_raise_flop,
+            check_raise_turn=check_raise_turn,
+            check_raise_river=check_raise_river,
+            red_line_winnings=red_line_winnings,
+            blue_line_winnings=blue_line_winnings,
+            expected_value=expected_value,
+            variance=variance,
+            standard_deviations=standard_deviations
+        )
+    
+    async def calculate_tournament_statistics(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> Optional[TournamentStatistics]:
+        """
+        Calculate tournament-specific statistics including ROI, cash rate, and ICM metrics.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            TournamentStatistics object with calculated metrics, or None if no tournament data
+        """
+        # Build base query for tournament hands only
+        query = select(PokerHand).where(
+            and_(
+                PokerHand.user_id == user_id,
+                PokerHand.game_format == 'tournament'
+            )
+        )
+        
+        # Apply filters
+        if filters:
+            query = self._apply_filters(query, filters)
+        
+        # Execute query to get tournament hands
+        result = await self.db.execute(query)
+        hands = result.scalars().all()
+        
+        if not hands:
+            return None
+        
+        # Group hands by tournament
+        tournaments = {}
+        for hand in hands:
+            tournament_info = hand.tournament_info or {}
+            tournament_id = tournament_info.get('tournament_id', f"unknown_{hand.date_played}")
+            
+            if tournament_id not in tournaments:
+                tournaments[tournament_id] = {
+                    'hands': [],
+                    'buy_in': Decimal(str(tournament_info.get('buy_in', 0.0))),  # Convert to Decimal
+                    'total_winnings': Decimal('0.0'),
+                    'finished': False,
+                    'finish_position': None,
+                    'total_players': tournament_info.get('total_players', 0),
+                    'is_final_table': False,
+                    'bubble_position': tournament_info.get('bubble_position', 0)
+                }
+            
+            tournaments[tournament_id]['hands'].append(hand)
+            
+            # Update tournament results
+            if hand.result == 'won' and hand.pot_size:
+                tournaments[tournament_id]['total_winnings'] += hand.pot_size
+            
+            # Check if this is a final hand (tournament finish)
+            if tournament_info.get('finish_position'):
+                tournaments[tournament_id]['finished'] = True
+                tournaments[tournament_id]['finish_position'] = tournament_info.get('finish_position')
+                tournaments[tournament_id]['is_final_table'] = tournament_info.get('finish_position', 999) <= 9
+        
+        # Calculate tournament statistics
+        tournaments_played = len(tournaments)
+        tournaments_cashed = 0
+        total_buy_ins = Decimal('0.0')
+        total_winnings = Decimal('0.0')
+        finish_positions = []
+        final_table_appearances = 0
+        bubble_spots = 0
+        
+        for tournament_id, tournament_data in tournaments.items():
+            buy_in = Decimal(str(tournament_data['buy_in']))  # Convert to Decimal
+            winnings = tournament_data['total_winnings']
+            
+            total_buy_ins += buy_in
+            total_winnings += winnings
+            
+            # Check if cashed (winnings > buy_in)
+            if winnings > buy_in:
+                tournaments_cashed += 1
+            
+            # Track finish positions
+            if tournament_data['finish_position']:
+                finish_positions.append(tournament_data['finish_position'])
+            
+            # Final table appearances
+            if tournament_data['is_final_table']:
+                final_table_appearances += 1
+            
+            # Bubble analysis (finished just outside money)
+            bubble_position = tournament_data['bubble_position']
+            finish_position = tournament_data['finish_position']
+            if bubble_position > 0 and finish_position and finish_position == bubble_position + 1:
+                bubble_spots += 1
+        
+        # Calculate metrics
+        cash_percentage = self._calculate_percentage(tournaments_cashed, tournaments_played)
+        
+        # Calculate average finish position
+        if finish_positions:
+            average_finish = Decimal(str(sum(finish_positions) / len(finish_positions)))
+        else:
+            average_finish = Decimal('0.0')
+        
+        # Calculate ROI
+        if total_buy_ins > 0:
+            profit = total_winnings - total_buy_ins
+            roi = (profit / total_buy_ins) * Decimal('100')
+        else:
+            profit = Decimal('0.0')
+            roi = Decimal('0.0')
+        
+        # Calculate bubble factor (simplified)
+        bubble_factor = None
+        if tournaments_played > 0:
+            bubble_factor = Decimal(str(bubble_spots / tournaments_played))
+        
+        # ICM pressure spots (simplified - count hands near bubble)
+        icm_pressure_spots = 0
+        for tournament_data in tournaments.values():
+            for hand in tournament_data['hands']:
+                tournament_info = hand.tournament_info or {}
+                players_left = tournament_info.get('players_remaining', 0)
+                bubble_position = tournament_info.get('bubble_position', 0)
+                
+                # Consider ICM pressure if within 20% of bubble
+                if bubble_position > 0 and players_left > 0:
+                    if players_left <= bubble_position * 1.2:
+                        icm_pressure_spots += 1
+        
+        return TournamentStatistics(
+            tournaments_played=tournaments_played,
+            tournaments_cashed=tournaments_cashed,
+            cash_percentage=cash_percentage,
+            average_finish=average_finish,
+            roi=roi,
+            total_buy_ins=total_buy_ins,
+            total_winnings=total_winnings,
+            profit=profit,
+            bubble_factor=bubble_factor,
+            icm_pressure_spots=icm_pressure_spots,
+            final_table_appearances=final_table_appearances
+        )
+    
+    # Advanced helper methods for detailed statistics calculations
+    
+    def _calculate_hand_investment(self, hand: PokerHand, actions: Dict[str, Any]) -> Decimal:
+        """Calculate total amount invested in a hand."""
+        total_investment = Decimal('0.0')
+        
+        # Add blinds if applicable
+        if hand.position == 'SB' and hand.blinds:
+            total_investment += Decimal(str(hand.blinds.get('small', 0)))
+        elif hand.position == 'BB' and hand.blinds:
+            total_investment += Decimal(str(hand.blinds.get('big', 0)))
+        
+        # Add ante if applicable
+        if hand.blinds and hand.blinds.get('ante'):
+            total_investment += Decimal(str(hand.blinds.get('ante', 0)))
+        
+        # Add voluntary investments from actions
+        for street in ['preflop', 'flop', 'turn', 'river']:
+            street_actions = actions.get(street, [])
+            for action in street_actions:
+                if action.get('action') in ['bet', 'raise', 'call'] and action.get('amount'):
+                    total_investment += Decimal(str(action.get('amount', 0)))
+        
+        return total_investment
+    
+    def _calculate_detailed_hand_winnings(self, hand: PokerHand, actions: Dict[str, Any]) -> Decimal:
+        """Calculate detailed winnings for a hand including side pots."""
+        if not hand.pot_size or hand.result != 'won':
+            return Decimal('0.0')
+        
+        # For now, return the pot size if won
+        # In a more sophisticated implementation, we would calculate
+        # the exact amount won from main pot and side pots
+        return hand.pot_size
+    
+    def _is_advanced_three_bet_opportunity(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a 3-bet opportunity (facing a raise)."""
+        if len(preflop_actions) < 2:
+            return False
+        
+        # Look for a raise before our action
+        for i, action in enumerate(preflop_actions[:-1]):  # Exclude last action (ours)
+            if action.get('action') in ['raise', 'bet']:
+                return True
+        
+        return False
+    
+    def _made_advanced_three_bet(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player made a 3-bet (re-raise)."""
+        raise_count = 0
+        player_raised = False
+        
+        for action in preflop_actions:
+            if action.get('action') in ['raise', 'bet']:
+                raise_count += 1
+                if raise_count >= 2:  # This would be our 3-bet
+                    player_raised = True
+                    break
+        
+        return player_raised and raise_count >= 2
+    
+    def _is_advanced_fold_to_three_bet_opportunity(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a fold to 3-bet opportunity (we raised, then faced a 3-bet)."""
+        if len(preflop_actions) < 3:
+            return False
+        
+        # Check if we raised first, then someone 3-bet
+        our_raise = False
+        three_bet_after = False
+        
+        for i, action in enumerate(preflop_actions):
+            if action.get('action') in ['raise', 'bet'] and not our_raise:
+                our_raise = True
+            elif our_raise and action.get('action') in ['raise'] and i > 0:
+                three_bet_after = True
+                break
+        
+        return our_raise and three_bet_after
+    
+    def _folded_to_advanced_three_bet(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player folded to a 3-bet."""
+        # Look for fold action after we raised and someone 3-bet
+        for action in preflop_actions:
+            if action.get('action') == 'fold':
+                return True
+        return False
+    
+    def _is_four_bet_opportunity(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a 4-bet opportunity."""
+        raise_count = 0
+        for action in preflop_actions[:-1]:  # Exclude our action
+            if action.get('action') in ['raise', 'bet']:
+                raise_count += 1
+        
+        return raise_count >= 2  # Facing a 3-bet
+    
+    def _made_four_bet(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player made a 4-bet."""
+        raise_count = 0
+        for action in preflop_actions:
+            if action.get('action') in ['raise', 'bet']:
+                raise_count += 1
+        
+        return raise_count >= 3  # 4-bet is the third raise
+    
+    def _is_fold_to_four_bet_opportunity(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a fold to 4-bet opportunity."""
+        # Similar logic to 3-bet but looking for 4-bet
+        return self._is_four_bet_opportunity(preflop_actions)
+    
+    def _folded_to_four_bet(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player folded to a 4-bet."""
+        return any(action.get('action') == 'fold' for action in preflop_actions)
+    
+    def _is_cold_call_opportunity(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a cold call opportunity (call a raise without having invested)."""
+        if not preflop_actions:
+            return False
+        
+        # Look for a raise before our action, and we haven't acted yet
+        for action in preflop_actions[:-1]:
+            if action.get('action') in ['raise', 'bet']:
+                return True
+        
+        return False
+    
+    def _made_cold_call(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player made a cold call."""
+        if not preflop_actions:
+            return False
+        
+        last_action = preflop_actions[-1]
+        return last_action.get('action') == 'call'
+    
+    def _is_isolation_opportunity(self, preflop_actions: List[Dict[str, Any]], position: str) -> bool:
+        """Determine if this was an isolation raise opportunity (limpers in front)."""
+        if not preflop_actions or position in ['SB', 'BB']:
+            return False
+        
+        # Look for limpers (calls) before our action
+        for action in preflop_actions[:-1]:
+            if action.get('action') == 'call':
+                return True
+        
+        return False
+    
+    def _made_isolation_raise(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player made an isolation raise."""
+        if not preflop_actions:
+            return False
+        
+        last_action = preflop_actions[-1]
+        return last_action.get('action') in ['raise', 'bet']
+    
+    def _was_preflop_aggressor(self, preflop_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player was the preflop aggressor (last to raise/bet)."""
+        last_aggressive_action = None
+        
+        for action in preflop_actions:
+            if action.get('action') in ['raise', 'bet']:
+                last_aggressive_action = action
+        
+        # Check if our last action was the last aggressive action
+        if preflop_actions and last_aggressive_action:
+            return preflop_actions[-1] == last_aggressive_action
+        
+        return False
+    
+    def _is_c_bet_opportunity(self, was_preflop_aggressor: bool, street_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a continuation bet opportunity."""
+        if not was_preflop_aggressor or not street_actions:
+            return False
+        
+        # Check if we're first to act or everyone checked to us
+        first_action = street_actions[0] if street_actions else None
+        return first_action is not None
+    
+    def _made_c_bet(self, street_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player made a continuation bet."""
+        if not street_actions:
+            return False
+        
+        first_action = street_actions[0]
+        return first_action.get('action') in ['bet', 'raise']
+    
+    def _is_fold_to_c_bet_opportunity(self, street_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a fold to c-bet opportunity."""
+        if len(street_actions) < 2:
+            return False
+        
+        # Check if opponent bet first and we had to act
+        first_action = street_actions[0]
+        return first_action.get('action') in ['bet', 'raise']
+    
+    def _folded_to_c_bet(self, street_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player folded to a c-bet."""
+        if len(street_actions) < 2:
+            return False
+        
+        # Check if we folded after opponent's bet
+        for action in street_actions[1:]:  # Skip first action (opponent's bet)
+            if action.get('action') == 'fold':
+                return True
+        
+        return False
+    
+    def _is_check_raise_opportunity(self, street_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if this was a check-raise opportunity."""
+        if len(street_actions) < 2:
+            return False
+        
+        # Check if we checked first and opponent bet
+        first_action = street_actions[0]
+        if first_action.get('action') != 'check':
+            return False
+        
+        # Look for opponent's bet after our check
+        for action in street_actions[1:]:
+            if action.get('action') in ['bet', 'raise']:
+                return True
+        
+        return False
+    
+    def _made_check_raise(self, street_actions: List[Dict[str, Any]]) -> bool:
+        """Determine if player made a check-raise."""
+        if len(street_actions) < 3:
+            return False
+        
+        # Pattern: check, opponent bet, we raise
+        if (street_actions[0].get('action') == 'check' and 
+            street_actions[1].get('action') in ['bet', 'raise']):
+            
+            for action in street_actions[2:]:
+                if action.get('action') in ['raise']:
+                    return True
+        
+        return False

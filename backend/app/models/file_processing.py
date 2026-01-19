@@ -211,6 +211,6 @@ class FileProcessingTask(Base, UUIDMixin, TimestampMixin):
             self.hands_processed > 0 and 
             progress_percentage > 0):
             
-            elapsed = (datetime.utcnow() - self.started_at).total_seconds()
+            elapsed = (datetime.now(timezone.utc) - self.started_at).total_seconds()
             estimated_total_time = elapsed * (100 / progress_percentage)
             self.estimated_completion = self.started_at + datetime.timedelta(seconds=estimated_total_time)

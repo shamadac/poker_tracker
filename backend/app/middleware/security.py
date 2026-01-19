@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 import redis.asyncio as redis
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.core.config import settings
 
@@ -48,7 +48,7 @@ class SecurityEventLogger:
             "user_agent": user_agent,
             "user_id": user_id,
             "success": success,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path),
             "method": request.method
         }
@@ -70,7 +70,7 @@ class SecurityEventLogger:
             "event_type": "rate_limit_exceeded",
             "client_ip": client_ip,
             "limit_type": limit_type,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path),
             "method": request.method,
             "user_agent": request.headers.get("user-agent", "Unknown")
@@ -86,7 +86,7 @@ class SecurityEventLogger:
         event_data = {
             "event_type": "csrf_violation",
             "client_ip": client_ip,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path),
             "method": request.method,
             "user_agent": request.headers.get("user-agent", "Unknown"),
@@ -108,7 +108,7 @@ class SecurityEventLogger:
             "event_type": "suspicious_activity",
             "activity_type": activity_type,
             "client_ip": client_ip,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path),
             "method": request.method,
             "user_agent": request.headers.get("user-agent", "Unknown")
@@ -135,7 +135,7 @@ class SecurityEventLogger:
             "resource_type": resource_type,
             "resource_id": resource_id,
             "client_ip": client_ip,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path),
             "method": request.method
         }

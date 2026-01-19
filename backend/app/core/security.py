@@ -5,7 +5,7 @@ import secrets
 import hashlib
 import base64
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from jose import JWTError, jwt
 from jose.exceptions import ExpiredSignatureError
@@ -73,13 +73,13 @@ class TokenManager:
         to_encode = data.copy()
         
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         
         to_encode.update({
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(timezone.utc),
             "type": "access"
         })
         
@@ -99,14 +99,14 @@ class TokenManager:
         to_encode = data.copy()
         
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
             # Refresh tokens last 7 days by default
-            expire = datetime.utcnow() + timedelta(days=7)
+            expire = datetime.now(timezone.utc) + timedelta(days=7)
         
         to_encode.update({
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(timezone.utc),
             "type": "refresh"
         })
         
@@ -167,10 +167,10 @@ class TokenManager:
             "type": "password_reset"
         }
         # Password reset tokens expire in 1 hour
-        expire = datetime.utcnow() + timedelta(hours=1)
+        expire = datetime.now(timezone.utc) + timedelta(hours=1)
         to_encode.update({
             "exp": expire,
-            "iat": datetime.utcnow()
+            "iat": datetime.now(timezone.utc)
         })
         
         encoded_jwt = jwt.encode(

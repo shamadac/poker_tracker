@@ -12,7 +12,7 @@ from .base import Base, UUIDMixin, TimestampMixin
 
 
 """
-Role-Based Access Control (RBAC) models.
+Role-Based Access Control (RBAC, timezone) models.
 """
 from typing import List, Optional
 from datetime import datetime
@@ -187,4 +187,4 @@ class UserRole(Base, TimestampMixin):
         """Check if this role assignment has expired."""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at

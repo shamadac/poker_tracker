@@ -166,11 +166,11 @@ async def global_exception_handler(request, exc):
         )
     
     logger.error(
-        "Unhandled exception",
-        error=str(exc),
-        error_type=type(exc).__name__,
-        path=request.url.path,
-        method=request.method
+        "Unhandled exception: %s (%s) at %s %s",
+        str(exc),
+        type(exc).__name__,
+        request.method,
+        request.url.path
     )
     
     return JSONResponse(

@@ -157,7 +157,7 @@ async def delete_user_account(
     from datetime import datetime
     return UserAccountDeletionResponse(
         message="Account deleted successfully",
-        deleted_at=datetime.utcnow().isoformat(),
+        deleted_at=datetime.now(timezone.utc).isoformat(),
         data_removed={
             "hands": 0,
             "analyses": 0,

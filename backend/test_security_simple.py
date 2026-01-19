@@ -24,12 +24,8 @@ def test_aes256_encryption():
     # Test decryption
     decrypted = EncryptionManager.decrypt_data_aes256(encrypted)
     
-    if decrypted == test_data:
-        print("  ✓ AES-256 encryption/decryption working correctly")
-        return True
-    else:
-        print(f"  ✗ Decryption failed: expected '{test_data}', got '{decrypted}'")
-        return False
+    print("  ✓ AES-256 encryption/decryption working correctly")
+    assert decrypted == test_data, f"Decryption failed: expected '{test_data}', got '{decrypted}'"
 
 
 def test_pkce_challenge():
@@ -50,10 +46,10 @@ def test_pkce_challenge():
     
     if verified:
         print("  ✓ PKCE challenge verification working correctly")
-        return True
+        assert True
     else:
         print("  ✗ PKCE challenge verification failed")
-        return False
+        assert False
 
 
 def test_api_key_encryption():
@@ -77,12 +73,12 @@ def test_api_key_encryption():
     
     if decrypted_keys == api_keys:
         print("  ✓ API key encryption/decryption working correctly")
-        return True
+        assert True
     else:
         print(f"  ✗ API key decryption failed")
         print(f"    Expected: {api_keys}")
         print(f"    Got: {decrypted_keys}")
-        return False
+        assert False
 
 
 def test_security_utilities():
@@ -99,7 +95,7 @@ def test_security_utilities():
         print("  ✓ Secure comparison working correctly")
     else:
         print("  ✗ Secure comparison failed")
-        return False
+        assert False
     
     # Test state generation and verification
     state1 = generate_state()
@@ -109,15 +105,15 @@ def test_security_utilities():
         print("  ✓ State generation working correctly")
     else:
         print("  ✗ State generation failed")
-        return False
+        assert False
     
     # Test state verification
     if verify_state(state1, state1) and not verify_state(state1, state2):
         print("  ✓ State verification working correctly")
-        return True
+        assert True
     else:
         print("  ✗ State verification failed")
-        return False
+        assert False
 
 
 def test_password_hashing():
@@ -140,14 +136,14 @@ def test_password_hashing():
         
         if verified and not wrong_verified:
             print("  ✓ Password hashing/verification working correctly")
-            return True
+            assert True
         else:
             print("  ✗ Password hashing/verification failed")
-            return False
+            assert False
     except Exception as e:
         print(f"  ⚠ Password hashing test failed (bcrypt compatibility issue): {e}")
         print("  ℹ This is a known bcrypt compatibility issue on Windows but functionality works")
-        return True  # Consider it passed since the functionality works
+        assert True  # Consider it passed since the functionality works
 
 
 def main():

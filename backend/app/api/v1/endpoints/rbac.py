@@ -340,7 +340,7 @@ async def get_role_statistics(
     from app.models.rbac import UserRole
     from datetime import datetime
     
-    roles = await RBACService.get_all_roles(db)
+    roles = await RBACService.get_all_roles(db, timezone)
     statistics = []
     
     for role in roles:
@@ -354,7 +354,7 @@ async def get_role_statistics(
         active_result = await db.execute(
             select(func.count(UserRole.user_id)).where(
                 UserRole.role_id == role.id,
-                (UserRole.expires_at.is_(None) | (UserRole.expires_at > datetime.utcnow()))
+                (UserRole.expires_at.is_(None) | (UserRole.expires_at > datetime.now(timezone.utc)))
             )
         )
         active_count = active_result.scalar() or 0

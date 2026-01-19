@@ -317,7 +317,7 @@ class FileWatcherService:
                     if monitoring_record:
                         # Update existing record
                         monitoring_record.is_active = True
-                        monitoring_record.last_scan = datetime.utcnow()
+                        monitoring_record.last_scan = datetime.now(timezone.utc)
                     else:
                         # Create new record
                         monitoring_record = FileMonitoring(
@@ -325,7 +325,7 @@ class FileWatcherService:
                             platform=platform,
                             directory_path=directory_path,
                             is_active=True,
-                            last_scan=datetime.utcnow()
+                            last_scan=datetime.now(timezone.utc)
                         )
                         session.add(monitoring_record)
                     
@@ -574,7 +574,7 @@ class FileWatcherService:
                         FileMonitoring.directory_path == directory_path
                     ).values(
                         file_count=file_count,
-                        last_scan=datetime.utcnow()
+                        last_scan=datetime.now(timezone.utc)
                     )
                     
                     await session.execute(stmt)
@@ -596,7 +596,7 @@ class FileWatcherService:
                     FileMonitoring.user_id == user_id,
                     FileMonitoring.platform == platform,
                     FileMonitoring.directory_path == directory_path
-                ).values(last_scan=datetime.utcnow())
+                ).values(last_scan=datetime.now(timezone.utc))
                 
                 await session.execute(stmt)
                 await session.commit()

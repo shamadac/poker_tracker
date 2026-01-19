@@ -7,9 +7,9 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from app.core.monitoring import metrics_collector, performance_monitor, startup_monitoring, shutdown_monitoring
-from app.core.logging import get_logger
+import logging
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 

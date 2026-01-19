@@ -8,8 +8,11 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 import logging
 
-from app.api.v1.endpoints.auth import router as auth_router
+from app.api.v1.api import api_router
 from app.core.config import settings
+from app.core.database import async_session_maker
+from app.services.file_watcher import FileWatcherService
+from app.services.background_processor import BackgroundFileProcessor
 from app.middleware.security import (
     RateLimitMiddleware,
     CSRFProtectionMiddleware, 
@@ -21,15 +24,55 @@ from app.middleware.security import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Global service instances
+file_watcher_service: FileWatcherService = None
+background_processor_service: BackgroundFileProcessor = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events."""
+    global file_watcher_service, background_processor_service
+    
     # Startup
     logger.info("Starting Professional Poker Analyzer API")
+    
+    # Initialize background processor service
+    try:
+        background_processor_service = BackgroundFileProcessor(async_session_maker)
+        await background_processor_service.start_service()
+        logger.info("Background processor service started successfully")
+    except Exception as e:
+        logger.error(f"Failed to start background processor service: {e}")
+    
+    # Initialize file watcher service
+    try:
+        file_watcher_service = FileWatcherService(async_session_maker)
+        await file_watcher_service.start_service()
+        logger.info("File watcher service started successfully")
+    except Exception as e:
+        logger.error(f"Failed to start file watcher service: {e}")
+    
     yield
+    
     # Shutdown
     logger.info("Shutting down Professional Poker Analyzer API")
+    
+    # Stop background processor service
+    if background_processor_service:
+        try:
+            await background_processor_service.stop_service()
+            logger.info("Background processor service stopped successfully")
+        except Exception as e:
+            logger.error(f"Error stopping background processor service: {e}")
+    
+    # Stop file watcher service
+    if file_watcher_service:
+        try:
+            await file_watcher_service.stop_service()
+            logger.info("File watcher service stopped successfully")
+        except Exception as e:
+            logger.error(f"Error stopping file watcher service: {e}")
 
 
 def create_application() -> FastAPI:
@@ -72,12 +115,16 @@ def create_application() -> FastAPI:
             {
                 "name": "monitoring",
                 "description": "System monitoring and health check operations"
+            },
+            {
+                "name": "file-monitoring",
+                "description": "Hand history file monitoring and auto-import"
             }
         ]
     )
     
     # Include API router with versioning
-    application.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"])
+    application.include_router(api_router, prefix=settings.API_V1_STR)
     
     return application
 

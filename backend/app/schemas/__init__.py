@@ -7,6 +7,7 @@ from .user import *
 from .hand import *
 from .analysis import *
 from .statistics import *
+from .file_processing import *
 from .common import *
 
 __all__ = [
@@ -58,6 +59,21 @@ __all__ = [
     "StatisticsSummary",
     "TrendData",
     "ExportRequest",
+    
+    # File processing schemas
+    "FileProcessingTaskBase",
+    "FileProcessingTaskCreate",
+    "FileProcessingTaskUpdate",
+    "FileProcessingTaskResponse",
+    "ProcessingProgressResponse",
+    "ProcessingStatistics",
+    "BatchProcessingRequest",
+    "SingleFileProcessingRequest",
+    "ProcessingTaskCreatedResponse",
+    "ProcessingServiceStatus",
+    "SupportedFormatsResponse",
+    "TaskCancellationResponse",
+    "UserTasksResponse",
     
     # Common schemas
     "PaginationParams",

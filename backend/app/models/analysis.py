@@ -4,8 +4,7 @@ Analysis result model for storing AI-generated poker analysis.
 from decimal import Decimal
 from typing import Dict, Any, List, Optional
 
-from sqlalchemy import String, Text, ForeignKey, DECIMAL, Index
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy import String, Text, ForeignKey, DECIMAL, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, UUIDMixin, TimestampMixin
@@ -43,17 +42,17 @@ class AnalysisResult(Base, UUIDMixin, TimestampMixin):
     )
     
     strengths: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String),
+        JSON,
         comment="Identified strengths in play"
     )
     
     mistakes: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String),
+        JSON,
         comment="Identified mistakes or leaks"
     )
     
     recommendations: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String),
+        JSON,
         comment="Specific recommendations for improvement"
     )
     
@@ -64,7 +63,7 @@ class AnalysisResult(Base, UUIDMixin, TimestampMixin):
     )
     
     analysis_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="Additional analysis data and metrics"
     )
     

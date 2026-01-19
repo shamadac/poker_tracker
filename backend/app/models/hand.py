@@ -7,9 +7,8 @@ from typing import Dict, Any, List, Optional
 
 from sqlalchemy import (
     String, Text, Integer, Boolean, DateTime, 
-    DECIMAL, ForeignKey, UniqueConstraint, Index
+    DECIMAL, ForeignKey, UniqueConstraint, Index, JSON
 )
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, UUIDMixin, TimestampMixin
@@ -59,7 +58,7 @@ class PokerHand(Base, UUIDMixin, TimestampMixin):
     
     # Blind structure
     blinds: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="Blind structure: {small: 0.5, big: 1.0, ante: 0.1}"
     )
     
@@ -77,12 +76,12 @@ class PokerHand(Base, UUIDMixin, TimestampMixin):
     
     # Cards and position
     player_cards: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String),
+        JSON,
         comment="Player's hole cards"
     )
     
     board_cards: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String),
+        JSON,
         comment="Community cards"
     )
     
@@ -104,7 +103,7 @@ class PokerHand(Base, UUIDMixin, TimestampMixin):
     
     # Actions and results
     actions: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="Detailed action sequence for all streets"
     )
     
@@ -131,23 +130,23 @@ class PokerHand(Base, UUIDMixin, TimestampMixin):
     
     # Tournament and cash game specific data
     tournament_info: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="Tournament ID, level, blinds progression, etc."
     )
     
     cash_game_info: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="Cash game table information"
     )
     
     # Player information
     player_stacks: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="All player stack sizes and positions"
     )
     
     timebank_info: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSON,
         comment="Time usage and timebank information"
     )
     

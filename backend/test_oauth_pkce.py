@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from unittest.mock import patch
 
 from app.main import app
 from app.core.config import settings
@@ -14,6 +15,9 @@ from app.api.deps import get_db
 from app.core.security import PKCEChallenge, TokenManager
 from app.services.user_service import UserService
 from app.schemas.auth import RegisterRequest
+
+# Import all models to ensure they're registered with Base.metadata
+from app.models import *
 
 # Test database URL (use in-memory SQLite for testing)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -37,33 +41,59 @@ async def override_get_db():
             await session.close()
 
 
-# Override the dependency
+# Mock Redis to avoid connection issues in tests
+class MockRedis:
+    async def get(self, key):
+        return None
+    
+    async def setex(self, key, time, value):
+        return True
+    
+    async def incr(self, key):
+        return 1
+    
+    async def ping(self):
+        return True
+
+
+# Override the dependency and patch Redis
 app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
 
 @pytest.fixture(scope="function")
-async def setup_database():
+def setup_database():
     """Set up test database."""
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async def _setup():
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    
+    async def _teardown():
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+    
+    # Run setup
+    asyncio.run(_setup())
     yield
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    # Run teardown
+    asyncio.run(_teardown())
 
 
 @pytest.fixture
-async def test_user():
+def test_user(setup_database):
     """Create a test user."""
-    async with TestSessionLocal() as db:
-        user_data = RegisterRequest(
-            email="test@example.com",
-            password="TestPass123!",
-            confirm_password="TestPass123!"
-        )
-        user = await UserService.create_user(db, user_data)
-        return user
+    async def _create_user():
+        async with TestSessionLocal() as db:
+            user_data = RegisterRequest(
+                email="test@example.com",
+                password="TestPass123!",
+                confirm_password="TestPass123!"
+            )
+            user = await UserService.create_user(db, user_data)
+            return user
+    
+    return asyncio.run(_create_user())
 
 
 def test_pkce_challenge_generation():
@@ -130,59 +160,59 @@ def test_oauth_authorize_invalid_client():
     assert "Invalid client_id" in response.json()["detail"]
 
 
-@pytest.mark.asyncio
-async def test_user_registration(setup_database):
+def test_user_registration(setup_database):
     """Test user registration."""
-    response = client.post("/api/v1/auth/register", json={
-        "email": "newuser@example.com",
-        "password": "NewPass123!",
-        "confirm_password": "NewPass123!"
-    })
-    
-    assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "User registered successfully"
-    assert data["data"]["email"] == "newuser@example.com"
+    with patch('redis.asyncio.from_url', return_value=MockRedis()):
+        response = client.post("/api/v1/auth/register", json={
+            "email": "newuser@example.com",
+            "password": "NewPass123!",
+            "confirm_password": "NewPass123!"
+        })
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "User registered successfully"
+        assert data["data"]["email"] == "newuser@example.com"
 
 
-@pytest.mark.asyncio
-async def test_user_login(setup_database, test_user):
+def test_user_login(setup_database, test_user):
     """Test user login."""
-    response = client.post("/api/v1/auth/login", data={
-        "username": "test@example.com",
-        "password": "TestPass123!"
-    })
-    
-    assert response.status_code == 200
-    data = response.json()
-    assert data["token_type"] == "bearer"
-    assert "access_token" in data
-    assert "refresh_token" in data
-    assert data["scope"] == "read write"
+    with patch('redis.asyncio.from_url', return_value=MockRedis()):
+        response = client.post("/api/v1/auth/login", data={
+            "username": "test@example.com",
+            "password": "TestPass123!"
+        })
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["token_type"] == "bearer"
+        assert "access_token" in data
+        assert "refresh_token" in data
+        assert data["scope"] == "read write"
 
 
-@pytest.mark.asyncio
-async def test_token_refresh(setup_database, test_user):
+def test_token_refresh(setup_database, test_user):
     """Test token refresh."""
-    # First login to get tokens
-    login_response = client.post("/api/v1/auth/login", data={
-        "username": "test@example.com",
-        "password": "TestPass123!"
-    })
-    
-    tokens = login_response.json()
-    refresh_token = tokens["refresh_token"]
-    
-    # Use refresh token to get new access token
-    response = client.post("/api/v1/auth/refresh", json={
-        "refresh_token": refresh_token
-    })
-    
-    assert response.status_code == 200
-    data = response.json()
-    assert data["token_type"] == "bearer"
-    assert "access_token" in data
-    assert "refresh_token" in data
+    with patch('redis.asyncio.from_url', return_value=MockRedis()):
+        # First login to get tokens
+        login_response = client.post("/api/v1/auth/login", data={
+            "username": "test@example.com",
+            "password": "TestPass123!"
+        })
+        
+        tokens = login_response.json()
+        refresh_token = tokens["refresh_token"]
+        
+        # Use refresh token to get new access token
+        response = client.post("/api/v1/auth/refresh", json={
+            "refresh_token": refresh_token
+        })
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["token_type"] == "bearer"
+        assert "access_token" in data
+        assert "refresh_token" in data
 
 
 def test_token_verification():

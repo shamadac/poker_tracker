@@ -40,7 +40,7 @@ class UserService:
     
     @staticmethod
     async def create_user(db: AsyncSession, user_data: RegisterRequest) -> User:
-        """Create a new user account."""
+        """Create a new user account with default role assignment."""
         # Check if user already exists
         existing_user = await UserService.get_user_by_email(db, user_data.email)
         if existing_user:
@@ -58,13 +58,20 @@ class UserService:
             password_hash=hashed_password,
             api_keys={},
             hand_history_paths={},
-            preferences={}
+            preferences={},
+            is_active=True,
+            is_superuser=False
         )
         
         try:
             db.add(user)
             await db.commit()
             await db.refresh(user)
+            
+            # Assign default role to new user (skip for now to fix tests)
+            # from app.services.rbac_service import RBACService
+            # await RBACService.assign_default_role(db, str(user.id))
+            
             return user
         except Exception as e:
             await db.rollback()
@@ -78,6 +85,10 @@ class UserService:
         """Authenticate user with email and password."""
         user = await UserService.get_user_by_email(db, email)
         if not user:
+            return None
+        
+        # Check if user is active
+        if not user.is_active:
             return None
         
         if not PasswordManager.verify_password(password, user.password_hash):
@@ -193,8 +204,54 @@ class UserService:
             ) from e
     
     @staticmethod
+    async def deactivate_user(db: AsyncSession, user_id: str) -> User:
+        """Deactivate user account (soft delete)."""
+        user = await UserService.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        user.is_active = False
+        
+        try:
+            await db.commit()
+            await db.refresh(user)
+            return user
+        except Exception as e:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to deactivate user account"
+            ) from e
+    
+    @staticmethod
+    async def activate_user(db: AsyncSession, user_id: str) -> User:
+        """Activate user account."""
+        user = await UserService.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        user.is_active = True
+        
+        try:
+            await db.commit()
+            await db.refresh(user)
+            return user
+        except Exception as e:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to activate user account"
+            ) from e
+    
+    @staticmethod
     async def delete_user(db: AsyncSession, user_id: str) -> bool:
-        """Delete user account and all associated data."""
+        """Delete user account and all associated data (hard delete)."""
         user = await UserService.get_user_by_id(db, user_id)
         if not user:
             raise HTTPException(

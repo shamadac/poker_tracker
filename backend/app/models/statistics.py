@@ -4,8 +4,7 @@ Statistics cache model for storing computed poker statistics.
 from datetime import datetime
 from typing import Dict, Any
 
-from sqlalchemy import String, ForeignKey, DateTime, UniqueConstraint, Index
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import String, ForeignKey, DateTime, UniqueConstraint, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, UUIDMixin, TimestampMixin
@@ -39,7 +38,7 @@ class StatisticsCache(Base, UUIDMixin, TimestampMixin):
     
     # Cached data
     data: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSON,
         nullable=False,
         comment="Cached statistics data"
     )

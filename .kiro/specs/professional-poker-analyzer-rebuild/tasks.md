@@ -13,7 +13,8 @@ This implementation plan transforms the existing Flask prototype into a professi
   - Configure environment management and secrets
   - _Requirements: 10.5, 10.7, 10.8_
 
-- [ ]* 1.1 Write property test for environment configuration
+- [x] 1.1 Write property test for environment configuration
+
   - **Property 32: Environment Configuration Validation**
   - **Validates: Requirements 10.8**
 
@@ -28,7 +29,8 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Create initial migration scripts
     - _Requirements: 4.3, 10.6_
 
-  - [ ]* 2.3 Write property tests for database schema
+  - [x] 2.3 Write property tests for database schema
+
     - **Property 9: Data Storage Consistency**
     - **Validates: Requirements 4.2**
 
@@ -44,7 +46,7 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Add comprehensive input validation
     - _Requirements: 3.4_
 
-  - [ ]* 3.3 Write property test for API validation
+  - [x] 3.3 Write property test for API validation
     - **Property 7: API Request Validation**
     - **Validates: Requirements 3.4**
 

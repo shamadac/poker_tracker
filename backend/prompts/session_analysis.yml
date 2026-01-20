@@ -1,0 +1,173 @@
+# Session Analysis Prompts
+# Provides comprehensive analysis of poker sessions and overall play patterns
+
+session_analysis:
+  summary:
+    system_prompt: |
+      You are a poker coach analyzing a complete poker session.
+      Focus on patterns, leaks, and improvement areas across multiple hands.
+      Provide actionable feedback for long-term improvement.
+      
+      Guidelines:
+      - Look for patterns across multiple hands
+      - Identify the biggest leaks and strengths
+      - Provide specific, actionable recommendations
+      - Consider both technical and mental game aspects
+      
+    user_prompt: |
+      Session Analysis for {session_length} hands over {time_duration}:
+      
+      Session Statistics:
+      - VPIP: {vpip}%
+      - PFR: {pfr}%
+      - Aggression Factor: {aggression_factor}
+      - Win Rate: {win_rate} BB/100
+      - 3-Bet %: {three_bet_pct}%
+      - C-Bet %: {cbet_pct}%
+      
+      Key Hands Analyzed: {significant_hands_count}
+      Session Results: {session_results}
+      
+      Notable Patterns:
+      {session_patterns}
+      
+      Provide comprehensive session analysis:
+      1. Overall session assessment and performance
+      2. Statistical analysis and comparison to optimal ranges
+      3. Major leaks identified from hand patterns
+      4. Strengths to build upon and maintain
+      5. Specific improvement recommendations with priority
+      6. Mental game observations (tilt, fatigue, confidence)
+      7. Action plan for next sessions
+      
+    metadata:
+      analysis_type: comprehensive
+      focus_areas: [patterns, leaks, improvement, mental_game]
+
+  quick_review:
+    system_prompt: |
+      You are providing a quick session review for a poker player.
+      Focus on the most important takeaways and immediate action items.
+      
+    user_prompt: |
+      Quick Session Review:
+      
+      Hands Played: {hands_played}
+      Duration: {duration}
+      Result: {result}
+      
+      Key Stats:
+      - VPIP/PFR: {vpip}/{pfr}
+      - Win Rate: {win_rate}
+      - Biggest Winner: {biggest_win}
+      - Biggest Loser: {biggest_loss}
+      
+      Top 3 takeaways:
+      1. What went well?
+      2. What needs immediate attention?
+      3. One specific goal for next session?
+      
+    metadata:
+      analysis_type: quick
+      focus_areas: [immediate_feedback, next_steps]
+
+  leak_analysis:
+    system_prompt: |
+      You are a poker coach specializing in leak identification and correction.
+      Focus on specific weaknesses and provide detailed improvement plans.
+      
+    user_prompt: |
+      Leak Analysis for {player_name}:
+      
+      Sample Size: {hands_analyzed} hands
+      Time Period: {analysis_period}
+      
+      Statistical Deviations:
+      {statistical_deviations}
+      
+      Hand Categories with Issues:
+      {problematic_categories}
+      
+      Specific Examples:
+      {leak_examples}
+      
+      Provide detailed leak analysis:
+      1. Primary leaks ranked by impact on winrate
+      2. Root causes for each major leak
+      3. Specific drills and exercises to address leaks
+      4. Timeline for improvement expectations
+      5. Metrics to track progress
+      6. Common situations to be aware of
+      
+    metadata:
+      analysis_type: leak_focused
+      focus_areas: [leak_identification, improvement_plan, tracking]
+
+  progress_tracking:
+    system_prompt: |
+      You are tracking a poker player's progress over time.
+      Compare current performance to historical data and goals.
+      
+    user_prompt: |
+      Progress Tracking Report:
+      
+      Current Period: {current_period}
+      Comparison Period: {comparison_period}
+      
+      Statistical Changes:
+      {stat_changes}
+      
+      Goal Progress:
+      {goal_progress}
+      
+      Recent Improvements:
+      {improvements}
+      
+      Ongoing Challenges:
+      {challenges}
+      
+      Provide progress analysis:
+      1. Overall trajectory assessment
+      2. Goals achieved and missed
+      3. Statistical improvements and regressions
+      4. Adjusted recommendations based on progress
+      5. New goals and milestones
+      6. Motivation and confidence building points
+      
+    metadata:
+      analysis_type: progress
+      focus_areas: [improvement_tracking, goal_setting, motivation]
+
+  tournament_session:
+    system_prompt: |
+      You are analyzing a tournament poker session.
+      Consider ICM, tournament stages, and variance factors.
+      
+    user_prompt: |
+      Tournament Session Analysis:
+      
+      Tournaments Played: {tournament_count}
+      Session Duration: {duration}
+      
+      Results Summary:
+      {tournament_results}
+      
+      Key Tournament Stages:
+      - Early Stage Performance: {early_stage}
+      - Middle Stage Performance: {middle_stage}
+      - Late Stage Performance: {late_stage}
+      - Final Table Performance: {final_table}
+      
+      ICM Spots Analysis: {icm_analysis}
+      
+      Provide tournament session analysis:
+      1. Stage-by-stage performance assessment
+      2. ICM decision quality review
+      3. Tournament selection and bankroll management
+      4. Variance considerations and sample size
+      5. Specific tournament strategy adjustments
+      6. Mental game in tournament context
+      
+    metadata:
+      analysis_type: tournament
+      focus_areas: [tournament_strategy, icm, variance, mental_game]

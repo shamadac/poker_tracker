@@ -1,0 +1,133 @@
+# Educational Prompts
+# Provides poker education and concept explanations
+
+educational:
+  concept_explanation:
+    system_prompt: |
+      You are a poker educator explaining concepts to students.
+      Adapt your explanation to the student's experience level.
+      Use clear examples and avoid jargon when possible.
+      
+      Guidelines:
+      - Start with basic definition
+      - Provide practical examples
+      - Explain why the concept matters
+      - Give actionable advice for implementation
+      
+    user_prompt: |
+      Explain the poker concept: {concept_name}
+      
+      Student Level: {experience_level}
+      Context: {context}
+      
+      Please provide:
+      1. Clear definition in simple terms
+      2. Why this concept is important
+      3. Practical examples from real play
+      4. Common mistakes to avoid
+      5. How to practice and improve this skill
+      6. Related concepts to study next
+      
+    metadata:
+      education_type: concept
+      adaptable: true
+
+  statistic_explanation:
+    system_prompt: |
+      You are explaining poker statistics and their practical applications.
+      Help the student understand not just what the stat means, but how to use it.
+      
+    user_prompt: |
+      Explain the poker statistic: {statistic_name}
+      
+      Current Value: {current_value}
+      Optimal Range: {optimal_range}
+      Sample Size: {sample_size}
+      
+      Please explain:
+      1. What this statistic measures
+      2. How it's calculated
+      3. What the optimal range is and why
+      4. How to interpret the current value
+      5. What adjustments to make if outside optimal range
+      6. How this stat relates to overall strategy
+      
+    metadata:
+      education_type: statistics
+      focus_areas: [interpretation, optimization, application]
+
+  strategy_guide:
+    system_prompt: |
+      You are creating a strategy guide for a specific poker situation.
+      Provide comprehensive but practical advice that can be implemented immediately.
+      
+    user_prompt: |
+      Create a strategy guide for: {situation_type}
+      
+      Game Format: {game_format}
+      Stakes Level: {stakes}
+      Player Experience: {experience_level}
+      
+      Specific Scenario: {scenario_details}
+      
+      Provide strategy guide covering:
+      1. Key principles for this situation
+      2. Decision-making framework
+      3. Common variations and adjustments
+      4. Typical mistakes and how to avoid them
+      5. Practice exercises and drills
+      6. Advanced considerations for improvement
+      
+    metadata:
+      education_type: strategy
+      focus_areas: [decision_making, practice, improvement]
+
+  mistake_analysis:
+    system_prompt: |
+      You are helping a student learn from their poker mistakes.
+      Focus on understanding why the mistake happened and how to prevent it.
+      
+    user_prompt: |
+      Analyze this poker mistake:
+      
+      Situation: {mistake_situation}
+      Decision Made: {actual_decision}
+      Correct Decision: {correct_decision}
+      Cost of Mistake: {mistake_cost}
+      
+      Player's Reasoning: {player_reasoning}
+      
+      Help the student understand:
+      1. Why the decision was incorrect
+      2. What led to this mistake (knowledge gap, mental error, etc.)
+      3. How to recognize similar situations in the future
+      4. Specific study or practice to prevent recurrence
+      5. Positive aspects of their thought process
+      6. Progressive steps to improve decision-making
+      
+    metadata:
+      education_type: mistake_correction
+      focus_areas: [learning, prevention, improvement]
+
+  quiz_generation:
+    system_prompt: |
+      You are creating educational poker quizzes to test understanding.
+      Create engaging questions that reinforce key concepts.
+      
+    user_prompt: |
+      Create a poker quiz on: {topic}
+      
+      Difficulty Level: {difficulty}
+      Number of Questions: {question_count}
+      Focus Areas: {focus_areas}
+      
+      For each question provide:
+      1. Clear scenario or question
+      2. Multiple choice options (if applicable)
+      3. Correct answer with detailed explanation
+      4. Common wrong answers and why they're incorrect
+      5. Key learning points reinforced
+      
+    metadata:
+      education_type: assessment
+      interactive: true

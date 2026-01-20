@@ -1,0 +1,186 @@
+# Hand Analysis Prompts
+# Provides strategic advice for individual poker hands
+
+hand_analysis:
+  basic:
+    system_prompt: |
+      You are a professional poker coach analyzing a single hand.
+      Provide strategic advice suitable for a {experience_level} player.
+      Focus on fundamental concepts and clear explanations.
+      
+      Guidelines:
+      - Use simple, clear language
+      - Explain the reasoning behind each decision
+      - Highlight key learning points
+      - Avoid overly complex GTO concepts for beginners
+      
+    user_prompt: |
+      Analyze this poker hand:
+      
+      Platform: {platform}
+      Game Type: {game_type}
+      Stakes: {stakes}
+      Position: {position}
+      Player Cards: {player_cards}
+      Board Cards: {board_cards}
+      Actions: {actions}
+      Result: {result}
+      Pot Size: {pot_size}
+      
+      Please provide:
+      1. Decision analysis for each street (preflop, flop, turn, river)
+      2. Alternative plays to consider
+      3. Key learning points from this hand
+      4. Overall assessment of the play
+      5. Specific recommendations for improvement
+      
+    metadata:
+      difficulty: beginner
+      focus_areas: [fundamentals, decision_making, basic_strategy]
+
+  advanced:
+    system_prompt: |
+      You are an expert poker strategist providing advanced analysis.
+      Include GTO considerations, range analysis, and exploitative adjustments.
+      Assume the player has solid fundamentals and can handle complex concepts.
+      
+      Guidelines:
+      - Include mathematical analysis (pot odds, equity calculations)
+      - Discuss range construction and analysis
+      - Consider population tendencies and exploitative adjustments
+      - Reference GTO principles where applicable
+      
+    user_prompt: |
+      Advanced hand analysis for {platform} {game_type}:
+      
+      Hand Details:
+      - Stakes: {stakes}
+      - Position: {position}
+      - Stack Sizes: {stack_info}
+      - Player Cards: {player_cards}
+      - Board: {board_cards}
+      
+      Action Sequence: {detailed_actions}
+      
+      Tournament Info: {tournament_info}
+      Player Statistics: {player_stats}
+      
+      Provide advanced analysis including:
+      1. Range construction and analysis for each decision point
+      2. GTO vs exploitative considerations
+      3. Mathematical analysis (pot odds, equity, expected value)
+      4. Advanced strategic concepts (blockers, board texture, etc.)
+      5. Population tendencies and adjustments
+      6. Alternative lines and their merits
+      7. Long-term strategic implications
+      
+    metadata:
+      difficulty: advanced
+      focus_areas: [gto, ranges, mathematics, exploitation]
+
+  tournament:
+    system_prompt: |
+      You are a tournament poker specialist analyzing a hand.
+      Consider ICM implications, stack sizes, and tournament dynamics.
+      Focus on tournament-specific strategy adjustments.
+      
+      Guidelines:
+      - Always consider ICM and bubble factors
+      - Analyze stack sizes relative to blinds and average
+      - Consider tournament stage and payout structure
+      - Discuss risk vs reward in tournament context
+      
+    user_prompt: |
+      Tournament hand analysis:
+      
+      Tournament Details:
+      - Stage: {tournament_stage}
+      - Players Remaining: {players_remaining}
+      - Payout Structure: {payout_info}
+      - Blind Level: {blind_level}
+      
+      Hand Details:
+      - Position: {position}
+      - Stack Size: {stack_size} ({stack_bb}BB)
+      - Average Stack: {average_stack}
+      - Cards: {player_cards}
+      - Board: {board_cards}
+      - Actions: {actions}
+      
+      Provide tournament-focused analysis:
+      1. ICM considerations and bubble factors
+      2. Stack size implications (M-ratio, Q-ratio)
+      3. Tournament stage adjustments
+      4. Risk assessment for this spot
+      5. Alternative plays considering tournament dynamics
+      6. Long-term tournament strategy implications
+      
+    metadata:
+      difficulty: intermediate
+      focus_areas: [icm, tournament_strategy, risk_management]
+
+  cash_game:
+    system_prompt: |
+      You are a cash game specialist analyzing a hand.
+      Focus on maximizing long-term expected value without ICM considerations.
+      Consider table dynamics, player types, and session context.
+      
+      Guidelines:
+      - Maximize expected value over all other considerations
+      - Consider table image and player dynamics
+      - Analyze betting patterns and sizing
+      - Focus on exploitative adjustments against specific opponents
+      
+    user_prompt: |
+      Cash game hand analysis:
+      
+      Game Details:
+      - Stakes: {stakes}
+      - Table Size: {table_size}
+      - Session Length: {session_length}
+      
+      Hand Details:
+      - Position: {position}
+      - Stack Size: {stack_size}
+      - Cards: {player_cards}
+      - Board: {board_cards}
+      - Actions: {actions}
+      
+      Opponent Information: {opponent_info}
+      Table Dynamics: {table_dynamics}
+      
+      Provide cash game analysis:
+      1. Expected value calculations
+      2. Exploitative adjustments against opponents
+      3. Betting size analysis and alternatives
+      4. Table image considerations
+      5. Session and psychological factors
+      6. Long-term profitability assessment
+      
+    metadata:
+      difficulty: intermediate
+      focus_areas: [expected_value, exploitation, table_dynamics]
+
+  quick:
+    system_prompt: |
+      You are a poker coach providing quick, actionable feedback.
+      Keep analysis concise but insightful. Focus on the most important points.
+      
+    user_prompt: |
+      Quick hand analysis:
+      
+      {game_type} - {stakes}
+      Position: {position}
+      Cards: {player_cards}
+      Board: {board_cards}
+      Key Action: {key_action}
+      Result: {result}
+      
+      Provide brief analysis:
+      1. Was the key decision correct?
+      2. What's the main learning point?
+      3. One specific improvement suggestion
+      
+    metadata:
+      difficulty: any
+      focus_areas: [quick_feedback, key_decisions]

@@ -269,3 +269,194 @@ class UserService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete user account"
             ) from e
+
+    @staticmethod
+    async def delete_user_data_securely(db: AsyncSession, user_id: str) -> Dict[str, int]:
+        """
+        Securely delete all user data across all tables.
+        Returns count of deleted records by table.
+        """
+        user = await UserService.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        deletion_counts = {}
+        
+        try:
+            # Import models here to avoid circular imports
+            from app.models.hand import PokerHand
+            from app.models.analysis import AnalysisResult
+            from app.models.statistics import StatisticsCache
+            from app.models.file_processing import FileProcessingTask
+            from app.models.monitoring import FileMonitoring
+            
+            # Delete poker hands
+            hands_result = await db.execute(
+                select(PokerHand).where(PokerHand.user_id == user_id)
+            )
+            hands = hands_result.scalars().all()
+            for hand in hands:
+                await db.delete(hand)
+            deletion_counts['poker_hands'] = len(hands)
+            
+            # Delete analysis results (through hand relationship)
+            from sqlalchemy import and_
+            analysis_result = await db.execute(
+                select(AnalysisResult)
+                .join(PokerHand, AnalysisResult.hand_id == PokerHand.id)
+                .where(PokerHand.user_id == user_id)
+            )
+            analyses = analysis_result.scalars().all()
+            for analysis in analyses:
+                await db.delete(analysis)
+            deletion_counts['analysis_results'] = len(analyses)
+            
+            # Delete statistics cache
+            stats_result = await db.execute(
+                select(StatisticsCache).where(StatisticsCache.user_id == user_id)
+            )
+            stats = stats_result.scalars().all()
+            for stat in stats:
+                await db.delete(stat)
+            deletion_counts['statistics_cache'] = len(stats)
+            
+            # Delete file processing tasks
+            tasks_result = await db.execute(
+                select(FileProcessingTask).where(FileProcessingTask.user_id == user_id)
+            )
+            tasks = tasks_result.scalars().all()
+            for task in tasks:
+                await db.delete(task)
+            deletion_counts['file_processing_tasks'] = len(tasks)
+            
+            # Delete file monitoring settings
+            monitoring_result = await db.execute(
+                select(FileMonitoring).where(FileMonitoring.user_id == user_id)
+            )
+            monitoring_records = monitoring_result.scalars().all()
+            for record in monitoring_records:
+                await db.delete(record)
+            deletion_counts['file_monitoring'] = len(monitoring_records)
+            
+            # Finally delete the user
+            await db.delete(user)
+            deletion_counts['user'] = 1
+            
+            await db.commit()
+            
+            return deletion_counts
+            
+        except Exception as e:
+            await db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to securely delete user data: {str(e)}"
+            ) from e
+
+    @staticmethod
+    async def get_user_data_summary(db: AsyncSession, user_id: str) -> Dict[str, int]:
+        """
+        Get summary of user's data across all tables.
+        Returns count of records by table.
+        """
+        user = await UserService.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        try:
+            # Import models here to avoid circular imports
+            from app.models.hand import PokerHand
+            from app.models.analysis import AnalysisResult
+            from app.models.statistics import StatisticsCache
+            from app.models.file_processing import FileProcessingTask
+            from app.models.monitoring import FileMonitoring
+            from sqlalchemy import func
+            
+            data_summary = {}
+            
+            # Count poker hands
+            hands_count = await db.execute(
+                select(func.count(PokerHand.id)).where(PokerHand.user_id == user_id)
+            )
+            data_summary['poker_hands'] = hands_count.scalar() or 0
+            
+            # Count analysis results
+            analysis_count = await db.execute(
+                select(func.count(AnalysisResult.id)).where(AnalysisResult.user_id == user_id)
+            )
+            data_summary['analysis_results'] = analysis_count.scalar() or 0
+            
+            # Count statistics cache entries
+            stats_count = await db.execute(
+                select(func.count(StatisticsCache.id)).where(StatisticsCache.user_id == user_id)
+            )
+            data_summary['statistics_cache'] = stats_count.scalar() or 0
+            
+            # Count file processing tasks
+            tasks_count = await db.execute(
+                select(func.count(FileProcessingTask.id)).where(FileProcessingTask.user_id == user_id)
+            )
+            data_summary['file_processing_tasks'] = tasks_count.scalar() or 0
+            
+            # Count file monitoring records
+            monitoring_count = await db.execute(
+                select(func.count(FileMonitoring.id)).where(FileMonitoring.user_id == user_id)
+            )
+            data_summary['file_monitoring'] = monitoring_count.scalar() or 0
+            
+            return data_summary
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to get user data summary: {str(e)}"
+            ) from e
+
+    @staticmethod
+    async def export_user_data(db: AsyncSession, user_id: str) -> Dict[str, Any]:
+        """
+        Export all user data for GDPR compliance.
+        Returns user data in a structured format.
+        """
+        user = await UserService.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        try:
+            # Get decrypted API keys
+            api_keys = await UserService.get_user_api_keys(db, user_id)
+            
+            # Basic user data
+            user_data = {
+                'user_info': {
+                    'id': str(user.id),
+                    'email': user.email,
+                    'created_at': user.created_at.isoformat() if user.created_at else None,
+                    'updated_at': user.updated_at.isoformat() if user.updated_at else None,
+                    'is_active': user.is_active,
+                    'preferences': user.preferences,
+                    'hand_history_paths': user.hand_history_paths,
+                    'api_keys_configured': list(api_keys.keys()) if api_keys else []
+                }
+            }
+            
+            # Get data summary
+            data_summary = await UserService.get_user_data_summary(db, user_id)
+            user_data['data_summary'] = data_summary
+            
+            return user_data
+            
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to export user data: {str(e)}"
+            ) from e

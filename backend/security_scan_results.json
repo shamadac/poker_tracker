@@ -1,0 +1,427 @@
+{
+  "timestamp": "2026-01-20T04:02:31.633673",
+  "scans": {
+    "hardcoded_secrets": {
+      "name": "Hardcoded Secrets Scan",
+      "findings": [
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_data_encryption_security.py",
+          "line": 770,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "correct_password = \"correct_password\""
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_data_encryption_security.py",
+          "line": 771,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "wrong_password = \"wrong_password\""
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_data_encryption_security.py",
+          "line": 861,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "plain_password = \"user_password_123\""
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_oauth_pkce.py",
+          "line": 168,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "\"password\": \"NewPass123!\","
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_oauth_pkce.py",
+          "line": 169,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "\"confirm_password\": \"NewPass123!\""
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_security_comprehensive.py",
+          "line": 689,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "(\"POST\", \"/api/v1/auth/login\", {\"email\": \"invalid\", \"password\": \"\"}),\n            (\"GET\", \"/api/v1/users/99999\", {}),"
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_statistics_service.py",
+          "line": 52,
+          "description": "Potential UUID/GUID found",
+          "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+          "context": "id=\"550e8400-e29b-41d4-a716-446655440000\",  # Valid UUID format"
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_user_account_management.py",
+          "line": 40,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "password=\"StrongPass123!\""
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_user_account_management.py",
+          "line": 122,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "password=\"StrongPass123!\","
+        },
+        {
+          "type": "Hardcoded Secret",
+          "severity": "HIGH",
+          "file": "test_user_account_management.py",
+          "line": 123,
+          "description": "Potential Password found",
+          "pattern": "password[\"\\s]*[:=][\"\\s]*[\"\\']([^\"\\']{8,})[\"\\']",
+          "context": "confirm_password=\"StrongPass123!\""
+        }
+      ],
+      "severity": "HIGH"
+    },
+    "sql_injection": {
+      "name": "SQL Injection Scan",
+      "findings": [
+        {
+          "type": "SQL Injection Risk",
+          "severity": "HIGH",
+          "file": "security_scanner.py",
+          "line": 133,
+          "description": "String concatenation in SELECT",
+          "context": "(r'SELECT.*\\+.*FROM', \"String concatenation in SELECT\"),"
+        },
+        {
+          "type": "SQL Injection Risk",
+          "severity": "HIGH",
+          "file": "security_scanner.py",
+          "line": 134,
+          "description": "String concatenation in WHERE clause",
+          "context": "(r'WHERE.*\\+.*=', \"String concatenation in WHERE clause\"),"
+        }
+      ],
+      "severity": "HIGH"
+    },
+    "xss_vulnerabilities": {
+      "name": "XSS Vulnerability Scan",
+      "findings": [],
+      "severity": "INFO"
+    },
+    "insecure_functions": {
+      "name": "Insecure Functions Scan",
+      "findings": [
+        {
+          "type": "Insecure Function",
+          "severity": "HIGH",
+          "file": "security_scanner.py",
+          "line": 235,
+          "description": "eval() function usage",
+          "context": "(r'\\beval\\s*\\(', \"eval() function usage\", \"HIGH\"),"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "HIGH",
+          "file": "security_scanner.py",
+          "line": 236,
+          "description": "exec() function usage",
+          "context": "(r'\\bexec\\s*\\(', \"exec() function usage\", \"HIGH\"),"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "HIGH",
+          "file": "security_scanner.py",
+          "line": 238,
+          "description": "os.system() usage",
+          "context": "(r'os\\.system\\s*\\(', \"os.system() usage\", \"HIGH\"),"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "MEDIUM",
+          "file": "security_scanner.py",
+          "line": 239,
+          "description": "pickle.load() usage",
+          "context": "(r'pickle\\.loads?\\s*\\(', \"pickle.load() usage\", \"MEDIUM\"),"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "LOW",
+          "file": "security_scanner.py",
+          "line": 241,
+          "description": "random.random() for security",
+          "context": "(r'random\\.random\\s*\\(', \"random.random() for security\", \"LOW\"),"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "LOW",
+          "file": "test_concurrent_load.py",
+          "line": 70,
+          "description": "random.random() for security",
+          "context": "if random.random() < 0.05:"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "LOW",
+          "file": "test_concurrent_load.py",
+          "line": 74,
+          "description": "random.random() for security",
+          "context": "if random.random() < 0.02:"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "HIGH",
+          "file": "test_security_comprehensive.py",
+          "line": 521,
+          "description": "exec() function usage",
+          "context": "(\"test.jsp\", \"<% Runtime.getRuntime().exec(request.getParameter(\\\"cmd\\\")); %>\", \"application/x-jsp\"),"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "MEDIUM",
+          "file": "app\\services\\cache_service.py",
+          "line": 97,
+          "description": "MD5 hash usage",
+          "context": "params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]"
+        },
+        {
+          "type": "Insecure Function",
+          "severity": "MEDIUM",
+          "file": "app\\services\\hand_validator.py",
+          "line": 354,
+          "description": "MD5 hash usage",
+          "context": "return hashlib.md5(content.encode()).hexdigest()"
+        }
+      ],
+      "severity": "HIGH"
+    },
+    "weak_crypto": {
+      "name": "Weak Cryptography Scan",
+      "findings": [
+        {
+          "type": "Weak Cryptography",
+          "severity": "MEDIUM",
+          "file": "app\\services\\cache_service.py",
+          "line": 97,
+          "description": "MD5 hash usage",
+          "context": "params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]"
+        },
+        {
+          "type": "Weak Cryptography",
+          "severity": "MEDIUM",
+          "file": "app\\services\\hand_validator.py",
+          "line": 354,
+          "description": "MD5 hash usage",
+          "context": "return hashlib.md5(content.encode()).hexdigest()"
+        }
+      ],
+      "severity": "MEDIUM"
+    },
+    "file_permissions": {
+      "name": "File Permissions Scan",
+      "findings": [
+        {
+          "type": "File Permission",
+          "severity": "MEDIUM",
+          "file": ".env",
+          "description": "Sensitive file is world-readable (permissions: 666)",
+          "recommendation": "Change permissions to 600 or 640"
+        },
+        {
+          "type": "File Permission",
+          "severity": "HIGH",
+          "file": ".env",
+          "description": "Sensitive file is world-writable (permissions: 666)",
+          "recommendation": "Change permissions to 600 or 640"
+        },
+        {
+          "type": "File Permission",
+          "severity": "MEDIUM",
+          "file": ".env.local",
+          "description": "Sensitive file is world-readable (permissions: 666)",
+          "recommendation": "Change permissions to 600 or 640"
+        },
+        {
+          "type": "File Permission",
+          "severity": "HIGH",
+          "file": ".env.local",
+          "description": "Sensitive file is world-writable (permissions: 666)",
+          "recommendation": "Change permissions to 600 or 640"
+        }
+      ],
+      "severity": "HIGH"
+    },
+    "dependency_vulnerabilities": {
+      "name": "Dependency Vulnerability Scan",
+      "findings": [],
+      "severity": "INFO"
+    },
+    "configuration_security": {
+      "name": "Configuration Security Scan",
+      "findings": [
+        {
+          "type": "Configuration Issue",
+          "severity": "MEDIUM",
+          "file": ".env",
+          "description": "Debug mode enabled",
+          "recommendation": "Disable debug mode in production"
+        },
+        {
+          "type": "Configuration Issue",
+          "severity": "MEDIUM",
+          "file": ".env.local",
+          "description": "Debug mode enabled",
+          "recommendation": "Disable debug mode in production"
+        },
+        {
+          "type": "Configuration Issue",
+          "severity": "MEDIUM",
+          "file": ".env.example",
+          "description": "Debug mode enabled",
+          "recommendation": "Disable debug mode in production"
+        }
+      ],
+      "severity": "MEDIUM"
+    },
+    "authentication_issues": {
+      "name": "Authentication Security Scan",
+      "findings": [
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "simple_oauth_test.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "test_oauth_pkce.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "LOW",
+          "file": "test_oauth_pkce.py",
+          "description": "No session timeout implementation found",
+          "recommendation": "Implement session timeout"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "LOW",
+          "file": "app\\middleware\\authorization.py",
+          "description": "No session timeout implementation found",
+          "recommendation": "Implement session timeout"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "app\\schemas\\auth.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "app\\schemas\\auth.py",
+          "description": "No rate limiting on authentication endpoints",
+          "recommendation": "Implement rate limiting for login attempts"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "app\\api\\v1\\endpoints\\auth.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "LOW",
+          "file": "app\\api\\v1\\endpoints\\auth.py",
+          "description": "No session timeout implementation found",
+          "recommendation": "Implement session timeout"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "test_data_encryption_security.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "test_security_comprehensive.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "test_security_integration.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "test_security_measures.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "test_security_simple.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "app\\core\\security.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "MEDIUM",
+          "file": "app\\api\\v1\\endpoints\\security.py",
+          "description": "No minimum password length check found",
+          "recommendation": "Implement minimum password length requirement"
+        },
+        {
+          "type": "Authentication Issue",
+          "severity": "LOW",
+          "file": "app\\api\\v1\\endpoints\\security.py",
+          "description": "No session timeout implementation found",
+          "recommendation": "Implement session timeout"
+        }
+      ],
+      "severity": "MEDIUM"
+    },
+    "authorization_issues": {
+      "name": "Authorization Security Scan",
+      "findings": [],
+      "severity": "INFO"
+    }
+  },
+  "risk_score": 105,
+  "total_findings": 47
+}

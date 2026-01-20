@@ -8,6 +8,7 @@ from .hand import *
 from .analysis import *
 from .statistics import *
 from .file_processing import *
+from .education import *
 from .common import *
 
 __all__ = [
@@ -74,6 +75,23 @@ __all__ = [
     "SupportedFormatsResponse",
     "TaskCancellationResponse",
     "UserTasksResponse",
+    
+    # Education schemas
+    "DifficultyLevel",
+    "ContentCategory",
+    "EducationContentBase",
+    "EducationContentCreate",
+    "EducationContentUpdate",
+    "EducationContentResponse",
+    "EducationProgressBase",
+    "EducationProgressCreate",
+    "EducationProgressUpdate",
+    "EducationProgressResponse",
+    "EducationContentWithProgress",
+    "EducationSearchFilters",
+    "EducationSearchResponse",
+    "EducationCategoryStats",
+    "EducationOverview",
     
     # Common schemas
     "PaginationParams",

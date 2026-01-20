@@ -33,11 +33,14 @@ class MetricsResponse(BaseModel):
 
 class AlertResponse(BaseModel):
     """Alert response model."""
+    id: str
     type: str
+    severity: str
     message: str
     threshold: float
     current: float
     timestamp: datetime
+    resolved: bool
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -62,7 +65,9 @@ async def health_check():
             monitoring={
                 "metrics_collected": len(metrics_collector.metrics),
                 "system_metrics_count": len(metrics_collector.system_metrics),
+                "active_alerts": health_status["active_alerts"],
                 "recent_alerts": health_status["recent_alerts"],
+                "critical_alerts": health_status["critical_alerts"],
                 "collection_running": metrics_collector._running,
                 "thresholds": health_status["thresholds"]
             },
@@ -183,23 +188,36 @@ async def get_system_metrics(
 
 
 @router.get("/alerts", response_model=List[AlertResponse])
-async def get_alerts():
+async def get_alerts(
+    active_only: bool = Query(default=True, description="Return only active alerts"),
+    hours: int = Query(default=24, ge=1, le=168, description="Hours of alert history")
+):
     """
-    Get current performance alerts.
+    Get performance alerts.
+    
+    Args:
+        active_only: If True, return only unresolved alerts
+        hours: Hours of alert history to include
     
     Returns:
-        List of active performance alerts
+        List of performance alerts
     """
     try:
-        alerts = performance_monitor.check_performance_thresholds()
+        if active_only:
+            alerts = performance_monitor.alert_manager.get_active_alerts()
+        else:
+            alerts = performance_monitor.alert_manager.get_alert_history(hours=hours)
         
         return [
             AlertResponse(
-                type=alert["type"],
-                message=alert["message"],
-                threshold=alert["threshold"],
-                current=alert["current"],
-                timestamp=alert["timestamp"]
+                id=alert.id,
+                type=alert.type,
+                severity=alert.severity.value,
+                message=alert.message,
+                threshold=alert.threshold,
+                current=alert.current,
+                timestamp=alert.timestamp,
+                resolved=alert.resolved
             )
             for alert in alerts
         ]
@@ -207,6 +225,62 @@ async def get_alerts():
     except Exception as e:
         logger.error("Failed to get alerts", error=str(e))
         raise HTTPException(status_code=500, detail="Failed to retrieve alerts")
+
+
+@router.post("/alerts/{alert_id}/resolve")
+async def resolve_alert(alert_id: str):
+    """
+    Resolve a specific alert.
+    
+    Args:
+        alert_id: ID of the alert to resolve
+    
+    Returns:
+        Success confirmation
+    """
+    try:
+        success = performance_monitor.alert_manager.resolve_alert(alert_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="Alert not found")
+        
+        return {"message": "Alert resolved successfully", "alert_id": alert_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to resolve alert", alert_id=alert_id, error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to resolve alert")
+
+
+@router.post("/check-thresholds")
+async def check_performance_thresholds():
+    """
+    Manually trigger performance threshold checks.
+    
+    Returns:
+        List of new alerts generated
+    """
+    try:
+        new_alerts = performance_monitor.check_performance_thresholds()
+        
+        return {
+            "message": "Performance thresholds checked",
+            "new_alerts": len(new_alerts),
+            "alerts": [
+                {
+                    "id": alert.id,
+                    "type": alert.type,
+                    "severity": alert.severity.value,
+                    "message": alert.message
+                }
+                for alert in new_alerts
+            ]
+        }
+        
+    except Exception as e:
+        logger.error("Failed to check performance thresholds", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to check thresholds")
 
 
 @router.post("/collect-metrics")

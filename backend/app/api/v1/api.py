@@ -3,7 +3,7 @@ API v1 router configuration.
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, hands, stats, analysis, users, monitoring, rbac, file_monitoring, file_processing, performance
+from app.api.v1.endpoints import auth, hands, stats, analysis, users, monitoring, rbac, file_monitoring, file_processing, performance, education, export, security
 
 api_router = APIRouter()
 
@@ -18,3 +18,6 @@ api_router.include_router(file_monitoring.router, prefix="/file-monitoring", tag
 api_router.include_router(file_processing.router, prefix="/file-processing", tags=["file-processing"])
 api_router.include_router(rbac.router, prefix="/rbac", tags=["role-based-access-control"])
 api_router.include_router(performance.router, prefix="/performance", tags=["performance-optimization"])
+api_router.include_router(education.router, prefix="/education", tags=["poker-education"])
+api_router.include_router(export.router, prefix="/export", tags=["data-export"])
+api_router.include_router(security.router, prefix="/security", tags=["security-management"])

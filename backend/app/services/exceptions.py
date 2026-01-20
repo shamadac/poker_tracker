@@ -26,3 +26,8 @@ class DuplicateHandError(HandParsingError):
 class FileMonitoringError(Exception):
     """Exception raised when file monitoring operations fail."""
     pass
+
+
+class NotFoundError(Exception):
+    """Exception raised when a requested resource is not found."""
+    pass

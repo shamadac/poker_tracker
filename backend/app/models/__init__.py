@@ -8,6 +8,7 @@ from .statistics import StatisticsCache
 from .monitoring import FileMonitoring
 from .file_processing import FileProcessingTask, ProcessingStatus
 from .rbac import Role, Permission, UserRole
+from .education import EducationContent, EducationProgress, DifficultyLevel, ContentCategory
 
 __all__ = [
     "User",
@@ -20,4 +21,8 @@ __all__ = [
     "Role",
     "Permission", 
     "UserRole",
+    "EducationContent",
+    "EducationProgress",
+    "DifficultyLevel",
+    "ContentCategory",
 ]

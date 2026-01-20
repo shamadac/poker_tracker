@@ -10,6 +10,8 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard" },
   { name: "Analysis", href: "/analysis" },
   { name: "Statistics", href: "/statistics" },
+  { name: "Upload", href: "/upload" },
+  { name: "Education", href: "/education" },
   { name: "Settings", href: "/settings" },
 ]
 
@@ -110,7 +112,7 @@ export function MobileNavigation() {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background z-50">
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-6">
         {navigation.map((item) => (
           <Link
             key={item.name}
@@ -136,6 +138,16 @@ export function MobileNavigation() {
               {item.name === "Statistics" && (
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 002 2v2a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 00-2 2h-2a2 2 0 00-2 2v6a2 2 0 01-2 2H9z" />
+                </svg>
+              )}
+              {item.name === "Upload" && (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              )}
+              {item.name === "Education" && (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               )}
               {item.name === "Settings" && (

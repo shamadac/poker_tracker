@@ -6,11 +6,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.database import async_session_maker
+from app.core.error_handlers import (
+    http_exception_handler,
+    validation_exception_handler,
+    general_exception_handler,
+    get_system_health,
+    degradation_manager
+)
 from app.services.file_watcher import FileWatcherService
 from app.services.background_processor import BackgroundFileProcessor
 from app.middleware.security import (
@@ -42,16 +51,20 @@ async def lifespan(app: FastAPI):
         background_processor_service = BackgroundFileProcessor(async_session_maker)
         await background_processor_service.start_service()
         logger.info("Background processor service started successfully")
+        degradation_manager.mark_service_up("file_monitoring")
     except Exception as e:
         logger.error(f"Failed to start background processor service: {e}")
+        degradation_manager.mark_service_down("file_monitoring")
     
     # Initialize file watcher service
     try:
         file_watcher_service = FileWatcherService(async_session_maker)
         await file_watcher_service.start_service()
         logger.info("File watcher service started successfully")
+        degradation_manager.mark_service_up("file_monitoring")
     except Exception as e:
         logger.error(f"Failed to start file watcher service: {e}")
+        degradation_manager.mark_service_down("file_monitoring")
     
     yield
     
@@ -126,6 +139,11 @@ def create_application() -> FastAPI:
     # Include API router with versioning
     application.include_router(api_router, prefix=settings.API_V1_STR)
     
+    # Add comprehensive error handlers
+    application.add_exception_handler(StarletteHTTPException, http_exception_handler)
+    application.add_exception_handler(RequestValidationError, validation_exception_handler)
+    application.add_exception_handler(Exception, general_exception_handler)
+    
     return application
 
 
@@ -156,17 +174,10 @@ if settings.BACKEND_CORS_ORIGINS:
 async def global_exception_handler(request, exc):
     """
     Global exception handler for unhandled exceptions.
+    This is a fallback - most errors should be handled by the comprehensive error handlers.
     """
-    # Log security events for certain types of exceptions
-    if isinstance(exc, (ValueError, KeyError, AttributeError)):
-        SecurityEventLogger.log_suspicious_activity(
-            request, 
-            "unexpected_exception",
-            {"exception_type": type(exc).__name__, "exception_message": str(exc)}
-        )
-    
     logger.error(
-        "Unhandled exception: %s (%s) at %s %s",
+        "Fallback exception handler triggered: %s (%s) at %s %s",
         str(exc),
         type(exc).__name__,
         request.method,
@@ -176,8 +187,10 @@ async def global_exception_handler(request, exc):
     return JSONResponse(
         status_code=500,
         content={
-            "detail": "Internal server error",
-            "type": "internal_error"
+            "error": {
+                "type": "internal_error",
+                "message": "An unexpected error occurred. Our team has been notified."
+            }
         }
     )
 
@@ -195,12 +208,8 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy", 
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT
-    }
+    """Comprehensive health check endpoint with service status."""
+    return await get_system_health()
 
 
 if __name__ == "__main__":

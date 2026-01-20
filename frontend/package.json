@@ -7,13 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lighthouse": "node scripts/lighthouse-audit.js",
+    "lighthouse:ci": "npm run build && npm run start & sleep 10 && npm run lighthouse && kill %1",
+    "analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@tanstack/react-query": "^5.8.4",
+    "@tanstack/react-query-devtools": "^5.91.2",
     "axios": "^1.6.2",
-    "class-variance-authority": "^0.7.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.0.0",
     "lucide-react": "^0.294.0",
     "next": "^14.2.35",
@@ -24,14 +31,18 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.2.35",
     "@types/node": "^20.9.4",
     "@types/react": "^18.2.38",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0",
     "autoprefixer": "^10.4.16",
+    "chrome-launcher": "^1.1.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.54.0",
     "eslint-config-next": "14.0.4",
+    "lighthouse": "^11.4.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.2"

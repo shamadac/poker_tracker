@@ -9,8 +9,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load .env file and .env.local for development
-env_path = Path(__file__).parent.parent / '.env'
-env_local_path = Path(__file__).parent.parent / '.env.local'
+env_path = Path(__file__).parent.parent.parent / '.env'
+env_local_path = Path(__file__).parent.parent.parent / '.env.local'
 
 load_dotenv(env_path)
 # Load local development overrides if they exist

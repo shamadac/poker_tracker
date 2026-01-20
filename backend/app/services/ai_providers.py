@@ -70,7 +70,7 @@ class BaseAIClient(ABC):
 class GeminiClient(BaseAIClient):
     """Google Gemini AI client."""
     
-    def __init__(self, api_key: str, model: str = "gemini-pro"):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
         """
         Initialize Gemini client.
         
@@ -144,10 +144,12 @@ class GeminiClient(BaseAIClient):
             # Extract usage information if available
             usage_info = {}
             if hasattr(response, 'usage_metadata'):
+                prompt_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0)
+                completion_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0)
                 usage_info = {
-                    'prompt_tokens': getattr(response.usage_metadata, 'prompt_token_count', 0),
-                    'completion_tokens': getattr(response.usage_metadata, 'candidates_token_count', 0),
-                    'total_tokens': getattr(response.usage_metadata, 'total_token_count', 0)
+                    'prompt_tokens': prompt_tokens,
+                    'completion_tokens': completion_tokens,
+                    'total_tokens': prompt_tokens + completion_tokens  # Calculate for consistency
                 }
             
             return AIResponse(
@@ -178,7 +180,7 @@ class GeminiClient(BaseAIClient):
 class GroqClient(BaseAIClient):
     """Groq AI client."""
     
-    def __init__(self, api_key: str, model: str = "mixtral-8x7b-32768"):
+    def __init__(self, api_key: str, model: str = "llama-3.1-8b-instant"):
         """
         Initialize Groq client.
         
@@ -311,10 +313,10 @@ class AIProviderFactory:
             ValueError: If provider is not supported
         """
         if provider == AIProvider.GEMINI:
-            model = kwargs.get('model', 'gemini-1.5-pro-latest')
+            model = kwargs.get('model', 'gemini-2.5-flash')
             return GeminiClient(api_key, model)
         elif provider == AIProvider.GROQ:
-            model = kwargs.get('model', 'llama3-8b-8192')
+            model = kwargs.get('model', 'llama-3.1-8b-instant')
             return GroqClient(api_key, model)
         else:
             raise ValueError(f"Unsupported AI provider: {provider}")
@@ -328,8 +330,8 @@ class AIProviderFactory:
     def get_default_models() -> Dict[AIProvider, str]:
         """Get default models for each provider."""
         return {
-            AIProvider.GEMINI: "gemini-1.5-pro-latest",
-            AIProvider.GROQ: "llama3-8b-8192"
+            AIProvider.GEMINI: "gemini-2.5-flash",
+            AIProvider.GROQ: "llama-3.1-8b-instant"
         }
     
     @staticmethod

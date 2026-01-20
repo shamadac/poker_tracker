@@ -547,7 +547,7 @@ class AIAnalysisService:
         Args:
             concept: Poker concept to explain
             provider: AI provider to use
-            api_key: API key for the provider
+            api_key: API key for the provider (or empty for dev keys)
             experience_level: Student's experience level
             context: Optional context for the explanation
             model: Optional specific model to use
@@ -557,8 +557,11 @@ class AIAnalysisService:
             AnalysisResult with educational content
         """
         try:
-            # Validate API key first
-            if not await self.validate_api_key(provider, api_key):
+            # Get the appropriate API key (user-provided or development)
+            resolved_api_key = self._get_api_key(provider, api_key)
+            
+            # Validate API key
+            if not await self.validate_api_key(provider, resolved_api_key):
                 return AnalysisResult(
                     success=False,
                     error="Invalid API key for the selected provider",
@@ -587,7 +590,7 @@ class AIAnalysisService:
                 )
             
             # Get AI client and call provider
-            client = self._get_or_create_client(provider, api_key, model)
+            client = self._get_or_create_client(provider, resolved_api_key, model)
             ai_response = await client.generate_response(
                 formatted_prompt['system'],
                 formatted_prompt['user'],
@@ -611,6 +614,7 @@ class AIAnalysisService:
                     'concept': concept,
                     'experience_level': experience_level,
                     'model': model or "default",
+                    'used_dev_key': settings.USE_DEV_API_KEYS and not api_key,
                     **ai_response.metadata
                 }
             )
@@ -1108,18 +1112,21 @@ class AIAnalysisService:
         if not analysis_content:
             return insights
         
-        # Extract first paragraph as summary
+        # Extract first paragraph as summary - ensure it stays as a string
         paragraphs = analysis_content.split('\n\n')
-        if paragraphs:
-            insights['session_summary'] = paragraphs[0].strip()
+        if paragraphs and len(paragraphs) > 0:
+            summary = paragraphs[0].strip()
+            # Make sure it's a string, not accidentally converted to list
+            insights['session_summary'] = str(summary) if summary else ''
         
-        # Simple pattern extraction
+        # Simple pattern extraction - process lines, not characters
         lines = analysis_content.split('\n')
         for line in lines:
             line = line.strip()
-            if not line:
+            if not line or len(line) < 10:  # Skip empty lines and very short lines
                 continue
             
+            # Look for lines that contain patterns, not individual characters
             if 'pattern' in line.lower():
                 insights['major_patterns'].append(line)
             elif 'improve' in line.lower() or 'work on' in line.lower():

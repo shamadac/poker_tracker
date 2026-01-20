@@ -2,7 +2,7 @@
 Role-Based Access Control (RBAC) service.
 """
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +17,7 @@ class RBACService:
     """Service for managing roles, permissions, and access control."""
     
     @staticmethod
-    async def get_role_by_name(db: AsyncSession, role_name: str, timezone) -> Optional[Role]:
+    async def get_role_by_name(db: AsyncSession, role_name: str, tz=None) -> Optional[Role]:
         """Get role by name."""
         result = await db.execute(
             select(Role)

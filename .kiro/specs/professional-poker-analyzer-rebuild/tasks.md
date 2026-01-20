@@ -87,7 +87,8 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Add authorization middleware
     - _Requirements: 8.4_
 
-  - [ ]* 4.6 Write property test for access control
+  - [x] 4.6 Write property test for access control
+
     - **Property 21: Role-Based Access Control**
     - **Validates: Requirements 8.4**
 

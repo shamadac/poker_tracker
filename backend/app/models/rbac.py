@@ -126,7 +126,7 @@ class Permission(Base, UUIDMixin, TimestampMixin):
         return f"<Permission(id={self.id}, name={self.name}, resource={self.resource}, action={self.action})>"
 
 
-class UserRole(Base, TimestampMixin):
+class UserRole(Base):
     """User-Role association model with additional metadata."""
     
     __tablename__ = "user_roles"

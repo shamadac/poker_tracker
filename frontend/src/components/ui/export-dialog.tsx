@@ -306,29 +306,3 @@ export function ExportDialog({
     </div>
   )
 }
-
-// Checkbox component if not already available
-export function Checkbox({ 
-  checked, 
-  onCheckedChange, 
-  id, 
-  className,
-  ...props 
-}: {
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void
-  id?: string
-  className?: string
-  [key: string]: any
-}) {
-  return (
-    <input
-      type="checkbox"
-      id={id}
-      checked={checked}
-      onChange={(e) => onCheckedChange(e.target.checked)}
-      className={`h-4 w-4 rounded border border-input bg-background ${className}`}
-      {...props}
-    />
-  )
-}

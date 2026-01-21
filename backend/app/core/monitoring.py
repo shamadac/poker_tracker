@@ -5,8 +5,6 @@ import asyncio
 import time
 import psutil
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
 from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -227,7 +225,7 @@ class AlertManager:
         logger.warning("Performance alert created", 
                       alert_type=alert_type, 
                       severity=severity.value,
-                      message=message,
+                      alert_message=message,
                       threshold=threshold,
                       current=current)
         
@@ -303,6 +301,13 @@ class PerformanceMonitor:
     def _send_email_alert(self, alert: Alert, smtp_host: str, smtp_port: int,
                          username: str, password: str, recipients: List[str]) -> None:
         """Send email alert notification."""
+        try:
+            from email.mime.text import MimeText
+            from email.mime.multipart import MimeMultipart
+        except ImportError:
+            logger.error("Email modules not available, cannot send email alerts")
+            return
+        
         msg = MimeMultipart()
         msg['From'] = username
         msg['To'] = ', '.join(recipients)
@@ -328,7 +333,6 @@ class PerformanceMonitor:
             server.login(username, password)
             server.send_message(msg)
     
-    def check_performance_thresholds(self) -> List[Alert]:
     def check_performance_thresholds(self) -> List[Alert]:
         """Check if any performance thresholds are exceeded."""
         new_alerts = []

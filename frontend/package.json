@@ -11,8 +11,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:lighthouse": "jest --testPathPattern=lighthouse-compliance",
+    "test:lighthouse:integration": "jest --testPathPattern=lighthouse-integration",
     "lighthouse": "node scripts/lighthouse-audit.js",
-    "lighthouse:ci": "npm run build && npm run start & sleep 10 && npm run lighthouse && kill %1",
+    "lighthouse:ci": "node scripts/lighthouse-ci.js",
+    "lighthouse:ci:full": "npm run build && npm run start & sleep 10 && npm run lighthouse:ci && kill %1",
     "analyze": "cross-env ANALYZE=true npm run build"
   },
   "dependencies": {
@@ -31,7 +34,8 @@
     "react-dom": "^18.2.0",
     "recharts": "^2.8.0",
     "tailwind-merge": "^2.0.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^14.2.35",

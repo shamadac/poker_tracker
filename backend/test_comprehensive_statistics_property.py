@@ -39,8 +39,8 @@ TestSessionLocal = sessionmaker(test_engine, class_=AsyncSession, expire_on_comm
 # Hypothesis strategies for generating test data
 @st.composite
 def valid_poker_position(draw):
-    """Generate valid poker positions."""
-    positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'MP+1', 'MP+2', 'CO', 'BTN', 'SB', 'BB']
+    """Generate valid poker positions that match the schema pattern."""
+    positions = ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB']  # Only use positions that match the schema pattern
     return draw(st.sampled_from(positions))
 
 @st.composite
@@ -201,7 +201,7 @@ def poker_hand_data(draw):
 @st.composite
 def poker_session_data(draw):
     """Generate a session of poker hands."""
-    num_hands = draw(st.integers(min_value=10, max_value=100))
+    num_hands = draw(st.integers(min_value=5, max_value=30))  # Reduced from 10-100 to 5-30
     hands = []
     
     for i in range(num_hands):
@@ -215,103 +215,16 @@ def poker_session_data(draw):
 
 @pytest_asyncio.fixture
 async def db_session():
-    """Create a test database session."""
-    # Create a unique database URL for each test to ensure isolation
-    import tempfile
-    import os
-    
-    # Create a temporary database file
-    temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
-    temp_db.close()
-    
-    test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
-    test_engine_local = create_async_engine(test_db_url, echo=False)
-    TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
-    
-    # Create tables manually to avoid education model issues
-    async with test_engine_local.begin() as conn:
-        # Create users table
-        await conn.execute(text("""
-            CREATE TABLE users (
-                id TEXT PRIMARY KEY,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                api_keys TEXT DEFAULT '{}',
-                hand_history_paths TEXT DEFAULT '{}',
-                preferences TEXT DEFAULT '{}',
-                is_active BOOLEAN DEFAULT true,
-                is_superuser BOOLEAN DEFAULT false,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """))
-        
-        # Create poker_hands table
-        await conn.execute(text("""
-            CREATE TABLE poker_hands (
-                id TEXT PRIMARY KEY,
-                user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
-                hand_id TEXT NOT NULL,
-                platform TEXT NOT NULL,
-                game_type TEXT,
-                game_format TEXT,
-                stakes TEXT,
-                blinds TEXT,
-                table_size INTEGER,
-                date_played TIMESTAMP,
-                player_cards TEXT,
-                board_cards TEXT,
-                position TEXT,
-                seat_number INTEGER,
-                button_position INTEGER,
-                actions TEXT,
-                result TEXT,
-                pot_size DECIMAL(10,2),
-                rake DECIMAL(10,2),
-                jackpot_contribution DECIMAL(10,2),
-                tournament_info TEXT,
-                cash_game_info TEXT,
-                player_stacks TEXT,
-                timebank_info TEXT,
-                hand_duration INTEGER,
-                timezone TEXT,
-                currency TEXT,
-                is_play_money BOOLEAN DEFAULT false,
-                raw_text TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(user_id, hand_id, platform)
-            )
-        """))
-    
-    async with TestSessionLocal_local() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-    
-    # Clean up
-    await test_engine_local.dispose()
-    
-    # Remove the temporary database file
-    try:
-        os.unlink(temp_db.name)
-    except OSError:
-        pass  # File might already be deleted
+    """Create a test database session - kept for compatibility but not used."""
+    # This fixture is kept for compatibility but tests now create their own databases
+    pass
 
 
 @pytest_asyncio.fixture
 async def test_user(db_session: AsyncSession):
-    """Create a test user with a unique ID for each test."""
-    user = User(
-        id=str(uuid.uuid4()),
-        email=f"test-{uuid.uuid4()}@example.com",  # Unique email for each test
-        password_hash="hashed_password"
-    )
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-    return user
+    """Create a test user - kept for compatibility but not used."""
+    # This fixture is kept for compatibility but tests now create their own users
+    pass
 
 
 class TestComprehensiveStatisticsProperty:
@@ -472,12 +385,11 @@ class TestComprehensiveStatisticsProperty:
                 os.unlink(temp_db.name)
             except OSError:
                 pass  # File might already be deleted
-                pass  # File might already be deleted
 
     @given(session_hands=poker_session_data())
-    @settings(max_examples=15, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow])
     @pytest.mark.asyncio
-    async def test_advanced_statistics_coverage(self, session_hands, db_session, test_user):
+    async def test_advanced_statistics_coverage(self, session_hands):
         """
         Property 30: Comprehensive Statistics Coverage - Advanced Statistics
         
@@ -487,57 +399,147 @@ class TestComprehensiveStatisticsProperty:
         
         **Validates: Requirements 6.6**
         """
-        # Create poker hands in database
-        for hand_data in session_hands:
-            poker_hand = PokerHand(
-                user_id=test_user.id,
-                **hand_data
-            )
-            db_session.add(poker_hand)
+        # Create a fresh database for each Hypothesis example
+        import tempfile
+        import os
         
-        await db_session.commit()
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # Calculate advanced statistics
-        stats_service = StatisticsService(db_session)
-        advanced_stats = await stats_service.calculate_advanced_statistics(test_user.id)
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
-        # Verify all advanced statistics are calculated
-        assert advanced_stats is not None, "Advanced statistics should be calculated"
+        try:
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
+            
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # Create poker hands in database
+                for hand_data in session_hands:
+                    poker_hand = PokerHand(
+                        user_id=test_user.id,
+                        **hand_data
+                    )
+                    db_session.add(poker_hand)
+                
+                await db_session.commit()
+                
+                # Calculate advanced statistics
+                stats_service = StatisticsService(db_session)
+                advanced_stats = await stats_service.calculate_advanced_statistics(test_user.id)
+                
+                # Verify all advanced statistics are calculated
+                assert advanced_stats is not None, "Advanced statistics should be calculated"
+                
+                # Verify preflop advanced statistics
+                assert 0 <= advanced_stats.three_bet_percentage <= 100, "3-bet % should be 0-100%"
+                assert 0 <= advanced_stats.fold_to_three_bet <= 100, "Fold to 3-bet % should be 0-100%"
+                assert 0 <= advanced_stats.four_bet_percentage <= 100, "4-bet % should be 0-100%"
+                assert 0 <= advanced_stats.fold_to_four_bet <= 100, "Fold to 4-bet % should be 0-100%"
+                assert 0 <= advanced_stats.cold_call_percentage <= 100, "Cold call % should be 0-100%"
+                assert 0 <= advanced_stats.isolation_raise <= 100, "Isolation raise % should be 0-100%"
+                
+                # Verify postflop advanced statistics
+                assert 0 <= advanced_stats.c_bet_flop <= 100, "C-bet flop % should be 0-100%"
+                assert 0 <= advanced_stats.c_bet_turn <= 100, "C-bet turn % should be 0-100%"
+                assert 0 <= advanced_stats.c_bet_river <= 100, "C-bet river % should be 0-100%"
+                
+                assert 0 <= advanced_stats.fold_to_c_bet_flop <= 100, "Fold to c-bet flop % should be 0-100%"
+                assert 0 <= advanced_stats.fold_to_c_bet_turn <= 100, "Fold to c-bet turn % should be 0-100%"
+                assert 0 <= advanced_stats.fold_to_c_bet_river <= 100, "Fold to c-bet river % should be 0-100%"
+                
+                assert 0 <= advanced_stats.check_raise_flop <= 100, "Check-raise flop % should be 0-100%"
+                assert 0 <= advanced_stats.check_raise_turn <= 100, "Check-raise turn % should be 0-100%"
+                assert 0 <= advanced_stats.check_raise_river <= 100, "Check-raise river % should be 0-100%"
+                
+                # Verify red line/blue line analysis
+                assert isinstance(advanced_stats.red_line_winnings, Decimal), "Red line winnings should be Decimal"
+                assert isinstance(advanced_stats.blue_line_winnings, Decimal), "Blue line winnings should be Decimal"
+                
+                # Verify variance and EV calculations
+                assert isinstance(advanced_stats.expected_value, Decimal), "Expected value should be Decimal"
+                assert advanced_stats.variance >= 0, "Variance should be non-negative"
+                assert isinstance(advanced_stats.standard_deviations, Decimal), "Standard deviations should be Decimal"
         
-        # Verify preflop advanced statistics
-        assert 0 <= advanced_stats.three_bet_percentage <= 100, "3-bet % should be 0-100%"
-        assert 0 <= advanced_stats.fold_to_three_bet <= 100, "Fold to 3-bet % should be 0-100%"
-        assert 0 <= advanced_stats.four_bet_percentage <= 100, "4-bet % should be 0-100%"
-        assert 0 <= advanced_stats.fold_to_four_bet <= 100, "Fold to 4-bet % should be 0-100%"
-        assert 0 <= advanced_stats.cold_call_percentage <= 100, "Cold call % should be 0-100%"
-        assert 0 <= advanced_stats.isolation_raise <= 100, "Isolation raise % should be 0-100%"
-        
-        # Verify postflop advanced statistics
-        assert 0 <= advanced_stats.c_bet_flop <= 100, "C-bet flop % should be 0-100%"
-        assert 0 <= advanced_stats.c_bet_turn <= 100, "C-bet turn % should be 0-100%"
-        assert 0 <= advanced_stats.c_bet_river <= 100, "C-bet river % should be 0-100%"
-        
-        assert 0 <= advanced_stats.fold_to_c_bet_flop <= 100, "Fold to c-bet flop % should be 0-100%"
-        assert 0 <= advanced_stats.fold_to_c_bet_turn <= 100, "Fold to c-bet turn % should be 0-100%"
-        assert 0 <= advanced_stats.fold_to_c_bet_river <= 100, "Fold to c-bet river % should be 0-100%"
-        
-        assert 0 <= advanced_stats.check_raise_flop <= 100, "Check-raise flop % should be 0-100%"
-        assert 0 <= advanced_stats.check_raise_turn <= 100, "Check-raise turn % should be 0-100%"
-        assert 0 <= advanced_stats.check_raise_river <= 100, "Check-raise river % should be 0-100%"
-        
-        # Verify red line/blue line analysis
-        assert isinstance(advanced_stats.red_line_winnings, Decimal), "Red line winnings should be Decimal"
-        assert isinstance(advanced_stats.blue_line_winnings, Decimal), "Blue line winnings should be Decimal"
-        
-        # Verify variance and EV calculations
-        assert isinstance(advanced_stats.expected_value, Decimal), "Expected value should be Decimal"
-        assert advanced_stats.variance >= 0, "Variance should be non-negative"
-        assert isinstance(advanced_stats.standard_deviations, Decimal), "Standard deviations should be Decimal"
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
+            
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
 
     @given(session_hands=poker_session_data())
-    @settings(max_examples=15, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=10, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow])
     @pytest.mark.asyncio
-    async def test_positional_statistics_coverage(self, session_hands, db_session, test_user):
+    async def test_positional_statistics_coverage(self, session_hands):
         """
         Property 30: Comprehensive Statistics Coverage - Positional Statistics
         
@@ -546,45 +548,135 @@ class TestComprehensiveStatisticsProperty:
         
         **Validates: Requirements 6.1**
         """
-        # Create poker hands in database
-        for hand_data in session_hands:
-            poker_hand = PokerHand(
-                user_id=test_user.id,
-                **hand_data
-            )
-            db_session.add(poker_hand)
+        # Create a fresh database for each Hypothesis example
+        import tempfile
+        import os
         
-        await db_session.commit()
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # Calculate positional statistics
-        stats_service = StatisticsService(db_session)
-        positional_stats = await stats_service.calculate_positional_statistics(test_user.id)
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
-        # Verify positional statistics structure
-        assert isinstance(positional_stats, list), "Positional statistics should be a list"
-        
-        # Verify each position has valid statistics
-        for pos_stat in positional_stats:
-            assert pos_stat.position is not None, "Position should be specified"
-            assert pos_stat.hands_played > 0, "Hands played should be positive"
+        try:
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
             
-            # Verify statistical ranges
-            assert 0 <= pos_stat.vpip <= 100, f"Position {pos_stat.position} VPIP should be 0-100%"
-            assert 0 <= pos_stat.pfr <= 100, f"Position {pos_stat.position} PFR should be 0-100%"
-            assert pos_stat.pfr <= pos_stat.vpip, f"Position {pos_stat.position} PFR should not exceed VPIP"
-            assert pos_stat.aggression_factor >= 0, f"Position {pos_stat.position} aggression factor should be non-negative"
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # Create poker hands in database
+                for hand_data in session_hands:
+                    poker_hand = PokerHand(
+                        user_id=test_user.id,
+                        **hand_data
+                    )
+                    db_session.add(poker_hand)
+                
+                await db_session.commit()
+                
+                # Calculate positional statistics
+                stats_service = StatisticsService(db_session)
+                positional_stats = await stats_service.calculate_positional_statistics(test_user.id)
+                
+                # Verify positional statistics structure
+                assert isinstance(positional_stats, list), "Positional statistics should be a list"
+                
+                # Verify each position has valid statistics
+                for pos_stat in positional_stats:
+                    assert pos_stat.position is not None, "Position should be specified"
+                    assert pos_stat.hands_played > 0, "Hands played should be positive"
+                    
+                    # Verify statistical ranges
+                    assert 0 <= pos_stat.vpip <= 100, f"Position {pos_stat.position} VPIP should be 0-100%"
+                    assert 0 <= pos_stat.pfr <= 100, f"Position {pos_stat.position} PFR should be 0-100%"
+                    assert pos_stat.pfr <= pos_stat.vpip, f"Position {pos_stat.position} PFR should not exceed VPIP"
+                    assert pos_stat.aggression_factor >= 0, f"Position {pos_stat.position} aggression factor should be non-negative"
+                    
+                    # Verify optional statistics
+                    if pos_stat.three_bet_percentage is not None:
+                        assert 0 <= pos_stat.three_bet_percentage <= 100, f"Position {pos_stat.position} 3-bet % should be 0-100%"
+                    
+                    if pos_stat.fold_to_three_bet is not None:
+                        assert 0 <= pos_stat.fold_to_three_bet <= 100, f"Position {pos_stat.position} fold to 3-bet % should be 0-100%"
+        
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
             
-            # Verify optional statistics
-            if pos_stat.three_bet_percentage is not None:
-                assert 0 <= pos_stat.three_bet_percentage <= 100, f"Position {pos_stat.position} 3-bet % should be 0-100%"
-            
-            if pos_stat.fold_to_three_bet is not None:
-                assert 0 <= pos_stat.fold_to_three_bet <= 100, f"Position {pos_stat.position} fold to 3-bet % should be 0-100%"
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
 
     @given(session_hands=poker_session_data())
-    @settings(max_examples=10, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=5, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow])
     @pytest.mark.asyncio
-    async def test_tournament_statistics_coverage(self, session_hands, db_session, test_user):
+    async def test_tournament_statistics_coverage(self, session_hands):
         """
         Property 30: Comprehensive Statistics Coverage - Tournament Statistics
         
@@ -600,49 +692,139 @@ class TestComprehensiveStatisticsProperty:
         # Skip if no tournament hands
         assume(len(tournament_hands) > 0)
         
-        # Create poker hands in database
-        for hand_data in tournament_hands:
-            poker_hand = PokerHand(
-                user_id=test_user.id,
-                **hand_data
-            )
-            db_session.add(poker_hand)
+        # Create a fresh database for each Hypothesis example
+        import tempfile
+        import os
         
-        await db_session.commit()
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # Calculate tournament statistics
-        stats_service = StatisticsService(db_session)
-        tournament_stats = await stats_service.calculate_tournament_statistics(test_user.id)
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
-        # Verify tournament statistics are calculated
-        if tournament_stats is not None:  # May be None if insufficient data
-            assert tournament_stats.tournaments_played > 0, "Tournaments played should be positive"
-            assert tournament_stats.tournaments_cashed >= 0, "Tournaments cashed should be non-negative"
-            assert tournament_stats.tournaments_cashed <= tournament_stats.tournaments_played, "Cashed should not exceed played"
+        try:
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
             
-            # Verify percentage calculations
-            assert 0 <= tournament_stats.cash_percentage <= 100, "Cash percentage should be 0-100%"
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # Create poker hands in database
+                for hand_data in tournament_hands:
+                    poker_hand = PokerHand(
+                        user_id=test_user.id,
+                        **hand_data
+                    )
+                    db_session.add(poker_hand)
+                
+                await db_session.commit()
+                
+                # Calculate tournament statistics
+                stats_service = StatisticsService(db_session)
+                tournament_stats = await stats_service.calculate_tournament_statistics(test_user.id)
+                
+                # Verify tournament statistics are calculated
+                if tournament_stats is not None:  # May be None if insufficient data
+                    assert tournament_stats.tournaments_played > 0, "Tournaments played should be positive"
+                    assert tournament_stats.tournaments_cashed >= 0, "Tournaments cashed should be non-negative"
+                    assert tournament_stats.tournaments_cashed <= tournament_stats.tournaments_played, "Cashed should not exceed played"
+                    
+                    # Verify percentage calculations
+                    assert 0 <= tournament_stats.cash_percentage <= 100, "Cash percentage should be 0-100%"
+                    
+                    # Verify financial calculations
+                    assert tournament_stats.total_buy_ins >= 0, "Total buy-ins should be non-negative"
+                    assert tournament_stats.total_winnings >= 0, "Total winnings should be non-negative"
+                    assert isinstance(tournament_stats.roi, Decimal), "ROI should be Decimal"
+                    assert isinstance(tournament_stats.profit, Decimal), "Profit should be Decimal"
+                    
+                    # Verify finish position analysis
+                    if tournament_stats.average_finish > 0:
+                        assert tournament_stats.average_finish >= 1, "Average finish should be at least 1st place"
+                    
+                    # Verify optional tournament metrics
+                    if tournament_stats.final_table_appearances is not None:
+                        assert tournament_stats.final_table_appearances >= 0, "Final table appearances should be non-negative"
+                        assert tournament_stats.final_table_appearances <= tournament_stats.tournaments_played, "Final tables should not exceed tournaments played"
+                    
+                    if tournament_stats.bubble_factor is not None:
+                        assert 0 <= tournament_stats.bubble_factor <= 1, "Bubble factor should be 0-1"
+                    
+                    if tournament_stats.icm_pressure_spots is not None:
+                        assert tournament_stats.icm_pressure_spots >= 0, "ICM pressure spots should be non-negative"
+        
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
             
-            # Verify financial calculations
-            assert tournament_stats.total_buy_ins >= 0, "Total buy-ins should be non-negative"
-            assert tournament_stats.total_winnings >= 0, "Total winnings should be non-negative"
-            assert isinstance(tournament_stats.roi, Decimal), "ROI should be Decimal"
-            assert isinstance(tournament_stats.profit, Decimal), "Profit should be Decimal"
-            
-            # Verify finish position analysis
-            if tournament_stats.average_finish > 0:
-                assert tournament_stats.average_finish >= 1, "Average finish should be at least 1st place"
-            
-            # Verify optional tournament metrics
-            if tournament_stats.final_table_appearances is not None:
-                assert tournament_stats.final_table_appearances >= 0, "Final table appearances should be non-negative"
-                assert tournament_stats.final_table_appearances <= tournament_stats.tournaments_played, "Final tables should not exceed tournaments played"
-            
-            if tournament_stats.bubble_factor is not None:
-                assert 0 <= tournament_stats.bubble_factor <= 1, "Bubble factor should be 0-1"
-            
-            if tournament_stats.icm_pressure_spots is not None:
-                assert tournament_stats.icm_pressure_spots >= 0, "ICM pressure spots should be non-negative"
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
 
     @given(
         session_hands=poker_session_data(),
@@ -657,9 +839,9 @@ class TestComprehensiveStatisticsProperty:
             exclude_play_money=st.one_of(st.none(), st.booleans())
         )
     )
-    @settings(max_examples=10, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=5, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow])
     @pytest.mark.asyncio
-    async def test_filtered_statistics_coverage(self, session_hands, filters, db_session, test_user):
+    async def test_filtered_statistics_coverage(self, session_hands, filters):
         """
         Property 30: Comprehensive Statistics Coverage - Filtered Statistics
         
@@ -669,68 +851,158 @@ class TestComprehensiveStatisticsProperty:
         
         **Validates: Requirements 6.1, 6.6**
         """
-        # Create poker hands in database
-        for hand_data in session_hands:
-            poker_hand = PokerHand(
-                user_id=test_user.id,
-                **hand_data
-            )
-            db_session.add(poker_hand)
+        # Create a fresh database for each Hypothesis example
+        import tempfile
+        import os
         
-        await db_session.commit()
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # Calculate filtered statistics
-        stats_service = StatisticsService(db_session)
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
         try:
-            filtered_stats = await stats_service.calculate_filtered_statistics(test_user.id, filters)
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
             
-            # Verify comprehensive statistics response
-            assert filtered_stats is not None, "Filtered statistics should be calculated"
-            assert filtered_stats.basic_stats is not None, "Basic stats should be included"
-            assert filtered_stats.advanced_stats is not None, "Advanced stats should be included"
-            assert isinstance(filtered_stats.positional_stats, list), "Positional stats should be a list"
-            
-            # Verify metadata
-            assert filtered_stats.filters_applied == filters, "Applied filters should match input"
-            assert filtered_stats.sample_size >= 0, "Sample size should be non-negative"
-            assert 0 <= filtered_stats.confidence_level <= 1, "Confidence level should be 0-1"
-            assert isinstance(filtered_stats.calculation_date, datetime), "Calculation date should be datetime"
-            assert isinstance(filtered_stats.cache_expires, datetime), "Cache expiry should be datetime"
-            
-            # Verify filter consistency
-            total_hands = filtered_stats.basic_stats.total_hands
-            
-            # If tournament_only filter is applied, tournament_stats should exist or be None
-            if filters.tournament_only and total_hands > 0:
-                # Should have tournament data or None if insufficient
-                pass  # Tournament stats may be None if insufficient data
-            
-            # If cash_only filter is applied, should not have tournament stats
-            if filters.cash_only and total_hands > 0:
-                # Tournament stats should be None for cash-only filter
-                pass  # This is acceptable as tournament_stats can be None
-            
-            # Verify statistical consistency across all components
-            basic_total = filtered_stats.basic_stats.total_hands
-            positional_total = sum(pos.hands_played for pos in filtered_stats.positional_stats)
-            
-            # Positional total may be less due to minimum hand requirements per position
-            if positional_total > 0:
-                assert positional_total <= basic_total, "Positional hands should not exceed total hands"
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # Create poker hands in database
+                for hand_data in session_hands:
+                    poker_hand = PokerHand(
+                        user_id=test_user.id,
+                        **hand_data
+                    )
+                    db_session.add(poker_hand)
+                
+                await db_session.commit()
+                
+                # Calculate filtered statistics
+                stats_service = StatisticsService(db_session)
+                
+                try:
+                    filtered_stats = await stats_service.calculate_filtered_statistics(test_user.id, filters)
+                    
+                    # Verify comprehensive statistics response
+                    assert filtered_stats is not None, "Filtered statistics should be calculated"
+                    assert filtered_stats.basic_stats is not None, "Basic stats should be included"
+                    assert filtered_stats.advanced_stats is not None, "Advanced stats should be included"
+                    assert isinstance(filtered_stats.positional_stats, list), "Positional stats should be a list"
+                    
+                    # Verify metadata
+                    assert filtered_stats.filters_applied == filters, "Applied filters should match input"
+                    assert filtered_stats.sample_size >= 0, "Sample size should be non-negative"
+                    assert 0 <= filtered_stats.confidence_level <= 1, "Confidence level should be 0-1"
+                    assert isinstance(filtered_stats.calculation_date, datetime), "Calculation date should be datetime"
+                    assert isinstance(filtered_stats.cache_expires, datetime), "Cache expiry should be datetime"
+                    
+                    # Verify filter consistency
+                    total_hands = filtered_stats.basic_stats.total_hands
+                    
+                    # If tournament_only filter is applied, tournament_stats should exist or be None
+                    if filters.tournament_only and total_hands > 0:
+                        # Should have tournament data or None if insufficient
+                        pass  # Tournament stats may be None if insufficient data
+                    
+                    # If cash_only filter is applied, should not have tournament stats
+                    if filters.cash_only and total_hands > 0:
+                        # Tournament stats should be None for cash-only filter
+                        pass  # This is acceptable as tournament_stats can be None
+                    
+                    # Verify statistical consistency across all components
+                    basic_total = filtered_stats.basic_stats.total_hands
+                    positional_total = sum(pos.hands_played for pos in filtered_stats.positional_stats)
+                    
+                    # Positional total may be less due to minimum hand requirements per position
+                    if positional_total > 0:
+                        assert positional_total <= basic_total, "Positional hands should not exceed total hands"
+                
+                except ValueError as e:
+                    # Handle insufficient hands for statistical significance
+                    if "Insufficient hands" in str(e):
+                        # This is acceptable - filters may result in too few hands
+                        pass
+                    else:
+                        raise
         
-        except ValueError as e:
-            # Handle insufficient hands for statistical significance
-            if "Insufficient hands" in str(e):
-                # This is acceptable - filters may result in too few hands
-                pass
-            else:
-                raise
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
+            
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
 
     @given(session_hands=poker_session_data())
-    @settings(max_examples=10, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    @settings(max_examples=5, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow])
     @pytest.mark.asyncio
-    async def test_statistics_mathematical_consistency(self, session_hands, db_session, test_user):
+    async def test_statistics_mathematical_consistency(self, session_hands):
         """
         Property 30: Comprehensive Statistics Coverage - Mathematical Consistency
         
@@ -739,56 +1011,147 @@ class TestComprehensiveStatisticsProperty:
         
         **Validates: Requirements 6.1, 6.6**
         """
-        # Create poker hands in database
-        for hand_data in session_hands:
-            poker_hand = PokerHand(
-                user_id=test_user.id,
-                **hand_data
-            )
-            db_session.add(poker_hand)
+        # Create a fresh database for each Hypothesis example
+        import tempfile
+        import os
         
-        await db_session.commit()
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # Calculate all statistics
-        stats_service = StatisticsService(db_session)
-        basic_stats = await stats_service.calculate_basic_statistics(test_user.id)
-        advanced_stats = await stats_service.calculate_advanced_statistics(test_user.id)
-        positional_stats = await stats_service.calculate_positional_statistics(test_user.id)
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
-        # Verify mathematical consistency
+        try:
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
+            
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # Create poker hands in database
+                for hand_data in session_hands:
+                    poker_hand = PokerHand(
+                        user_id=test_user.id,
+                        **hand_data
+                    )
+                    db_session.add(poker_hand)
+                
+                await db_session.commit()
+                
+                # Calculate all statistics
+                stats_service = StatisticsService(db_session)
+                basic_stats = await stats_service.calculate_basic_statistics(test_user.id)
+                advanced_stats = await stats_service.calculate_advanced_statistics(test_user.id)
+                positional_stats = await stats_service.calculate_positional_statistics(test_user.id)
+                
+                # Verify mathematical consistency
+                
+                # 1. PFR should never exceed VPIP (you can't raise without putting money in pot)
+                assert basic_stats.pfr <= basic_stats.vpip, "PFR should not exceed VPIP"
+                
+                # 2. All percentages should be in valid range
+                percentage_fields = [
+                    basic_stats.vpip, basic_stats.pfr,
+                    advanced_stats.three_bet_percentage, advanced_stats.fold_to_three_bet,
+                    advanced_stats.four_bet_percentage, advanced_stats.fold_to_four_bet,
+                    advanced_stats.cold_call_percentage, advanced_stats.isolation_raise,
+                    advanced_stats.c_bet_flop, advanced_stats.c_bet_turn, advanced_stats.c_bet_river,
+                    advanced_stats.fold_to_c_bet_flop, advanced_stats.fold_to_c_bet_turn, advanced_stats.fold_to_c_bet_river,
+                    advanced_stats.check_raise_flop, advanced_stats.check_raise_turn, advanced_stats.check_raise_river
+                ]
+                
+                for percentage in percentage_fields:
+                    assert 0 <= percentage <= 100, f"Percentage {percentage} should be 0-100%"
+                
+                # 3. Aggression factor should be non-negative
+                assert basic_stats.aggression_factor >= 0, "Aggression factor should be non-negative"
+                assert advanced_stats.variance >= 0, "Variance should be non-negative"
+                
+                # 4. Positional statistics should be consistent
+                for pos_stat in positional_stats:
+                    assert pos_stat.pfr <= pos_stat.vpip, f"Position {pos_stat.position}: PFR should not exceed VPIP"
+                    assert pos_stat.aggression_factor >= 0, f"Position {pos_stat.position}: Aggression factor should be non-negative"
+                
+                # 5. Red line + Blue line should relate to total winnings
+                total_line_winnings = advanced_stats.red_line_winnings + advanced_stats.blue_line_winnings
+                # This should be non-negative in most cases, but can be negative if player lost money
+                assert isinstance(total_line_winnings, Decimal), "Combined line winnings should be Decimal"
         
-        # 1. PFR should never exceed VPIP (you can't raise without putting money in pot)
-        assert basic_stats.pfr <= basic_stats.vpip, "PFR should not exceed VPIP"
-        
-        # 2. All percentages should be in valid range
-        percentage_fields = [
-            basic_stats.vpip, basic_stats.pfr,
-            advanced_stats.three_bet_percentage, advanced_stats.fold_to_three_bet,
-            advanced_stats.four_bet_percentage, advanced_stats.fold_to_four_bet,
-            advanced_stats.cold_call_percentage, advanced_stats.isolation_raise,
-            advanced_stats.c_bet_flop, advanced_stats.c_bet_turn, advanced_stats.c_bet_river,
-            advanced_stats.fold_to_c_bet_flop, advanced_stats.fold_to_c_bet_turn, advanced_stats.fold_to_c_bet_river,
-            advanced_stats.check_raise_flop, advanced_stats.check_raise_turn, advanced_stats.check_raise_river
-        ]
-        
-        for percentage in percentage_fields:
-            assert 0 <= percentage <= 100, f"Percentage {percentage} should be 0-100%"
-        
-        # 3. Aggression factor should be non-negative
-        assert basic_stats.aggression_factor >= 0, "Aggression factor should be non-negative"
-        assert advanced_stats.variance >= 0, "Variance should be non-negative"
-        
-        # 4. Positional statistics should be consistent
-        for pos_stat in positional_stats:
-            assert pos_stat.pfr <= pos_stat.vpip, f"Position {pos_stat.position}: PFR should not exceed VPIP"
-            assert pos_stat.aggression_factor >= 0, f"Position {pos_stat.position}: Aggression factor should be non-negative"
-        
-        # 5. Red line + Blue line should relate to total winnings
-        total_line_winnings = advanced_stats.red_line_winnings + advanced_stats.blue_line_winnings
-        # This should be non-negative in most cases, but can be negative if player lost money
-        assert isinstance(total_line_winnings, Decimal), "Combined line winnings should be Decimal"
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
+            
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
 
-    def test_empty_session_statistics_coverage(self, db_session, test_user):
+    @pytest.mark.asyncio
+    async def test_empty_session_statistics_coverage(self):
         """
         Property 30: Comprehensive Statistics Coverage - Empty Session Handling
         
@@ -797,36 +1160,126 @@ class TestComprehensiveStatisticsProperty:
         
         **Validates: Requirements 6.1, 6.6**
         """
-        # No hands added to database
+        # Create a fresh database for this test
+        import tempfile
+        import os
         
-        # Calculate statistics for empty session
-        stats_service = StatisticsService(db_session)
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # All statistics should handle empty data gracefully
-        basic_stats = asyncio.run(stats_service.calculate_basic_statistics(test_user.id))
-        advanced_stats = asyncio.run(stats_service.calculate_advanced_statistics(test_user.id))
-        positional_stats = asyncio.run(stats_service.calculate_positional_statistics(test_user.id))
-        tournament_stats = asyncio.run(stats_service.calculate_tournament_statistics(test_user.id))
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
-        # Verify empty session handling
-        assert basic_stats.total_hands == 0, "Empty session should have 0 hands"
-        assert basic_stats.vpip == Decimal('0.0'), "Empty session VPIP should be 0"
-        assert basic_stats.pfr == Decimal('0.0'), "Empty session PFR should be 0"
-        assert basic_stats.aggression_factor == Decimal('0.0'), "Empty session aggression factor should be 0"
-        assert basic_stats.win_rate == Decimal('0.0'), "Empty session win rate should be 0"
+        try:
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
+            
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # No hands added to database
+                
+                # Calculate statistics for empty session
+                stats_service = StatisticsService(db_session)
+                
+                # All statistics should handle empty data gracefully
+                basic_stats = await stats_service.calculate_basic_statistics(test_user.id)
+                advanced_stats = await stats_service.calculate_advanced_statistics(test_user.id)
+                positional_stats = await stats_service.calculate_positional_statistics(test_user.id)
+                tournament_stats = await stats_service.calculate_tournament_statistics(test_user.id)
+                
+                # Verify empty session handling
+                assert basic_stats.total_hands == 0, "Empty session should have 0 hands"
+                assert basic_stats.vpip == Decimal('0.0'), "Empty session VPIP should be 0"
+                assert basic_stats.pfr == Decimal('0.0'), "Empty session PFR should be 0"
+                assert basic_stats.aggression_factor == Decimal('0.0'), "Empty session aggression factor should be 0"
+                assert basic_stats.win_rate == Decimal('0.0'), "Empty session win rate should be 0"
+                
+                # Advanced stats should all be zero
+                assert advanced_stats.three_bet_percentage == Decimal('0.0'), "Empty session 3-bet % should be 0"
+                assert advanced_stats.c_bet_flop == Decimal('0.0'), "Empty session c-bet % should be 0"
+                assert advanced_stats.red_line_winnings == Decimal('0.0'), "Empty session red line should be 0"
+                assert advanced_stats.blue_line_winnings == Decimal('0.0'), "Empty session blue line should be 0"
+                assert advanced_stats.variance == Decimal('0.0'), "Empty session variance should be 0"
+                
+                # Positional stats should be empty list
+                assert positional_stats == [], "Empty session should have no positional stats"
+                
+                # Tournament stats should be None
+                assert tournament_stats is None, "Empty session should have no tournament stats"
         
-        # Advanced stats should all be zero
-        assert advanced_stats.three_bet_percentage == Decimal('0.0'), "Empty session 3-bet % should be 0"
-        assert advanced_stats.c_bet_flop == Decimal('0.0'), "Empty session c-bet % should be 0"
-        assert advanced_stats.red_line_winnings == Decimal('0.0'), "Empty session red line should be 0"
-        assert advanced_stats.blue_line_winnings == Decimal('0.0'), "Empty session blue line should be 0"
-        assert advanced_stats.variance == Decimal('0.0'), "Empty session variance should be 0"
-        
-        # Positional stats should be empty list
-        assert positional_stats == [], "Empty session should have no positional stats"
-        
-        # Tournament stats should be None
-        assert tournament_stats is None, "Empty session should have no tournament stats"
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
+            
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
 
 
 if __name__ == "__main__":

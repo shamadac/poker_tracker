@@ -1,10 +1,10 @@
 {
   "player_username": "Z420909",
-  "ai_provider": "gemini",
+  "ai_provider": "ollama",
   "ollama_url": "http://localhost:11434",
-  "ollama_model": "llama2",
-  "gemini_api_key": "AIzaSyC8kI1BbK8_nYJBXcxb1h9p4-tEmoHkcOA",
-  "gemini_model": "gemini-3-flash-preview",
+  "ollama_model": "mistral",
+  "gemini_api_key": "AIzaSyCPvwyjcPnk4TH_gZecLJ0nxqJ4dMYXdlY",
+  "gemini_model": "gemini-1.5-flash-latest",
   "hand_history_dir": "sample_data",
   "reports_dir": "reports",
   "auto_detect_enabled": true

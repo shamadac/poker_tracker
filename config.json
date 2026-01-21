@@ -1,6 +1,6 @@
 {
   "player_username": "Z420909",
-  "ai_provider": "gemini",
+  "ai_provider": "ollama",
   "ollama_url": "http://localhost:11434",
   "ollama_model": "llama2",
   "gemini_api_key": "AIzaSyCLgM3gLTqqn1EEzWJ6BMInIxj-GSk1d2c",

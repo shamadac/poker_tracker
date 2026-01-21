@@ -360,6 +360,6 @@ if __name__ == '__main__':
     print("=" * 50)
     print(f"Player: {config['player_username']}")
     print(f"AI Provider: {config.get('ai_provider', 'ollama')}")
-    print("\n🌐 Starting server at http://localhost:5000")
+    print("\n🌐 Starting server at http://localhost:5001")
     print("Open this URL in Chrome to use the app\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

@@ -68,8 +68,8 @@ Successfully implemented comprehensive analysis features that fulfill requiremen
 - **Security**: Development keys are excluded from version control
 
 #### API Key Management
-- **Groq Development Key**: `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`
-- **Gemini Development Key**: `AIzaSyCLgM3gLTqqn1EEzWJ6BMInIxj-GSk1d2c`
+- **Groq Development Key**: `[REDACTED_FOR_SECURITY]`
+- **Gemini Development Key**: `[REDACTED_FOR_SECURITY]`
 - **Usage**: Automatically used when `USE_DEV_API_KEYS=true` and no user key provided
 - **Production Ready**: System maintains ability to use user-provided keys in production
 

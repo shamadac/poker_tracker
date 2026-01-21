@@ -97,7 +97,7 @@ async def test_groq_client():
         
         # Test with properly formatted key (won't work without real key)
         try:
-            test_key = "gsk_dummy_key_for_testing_purposes_only_1234567890abcdef"
+            test_key = "gsk_dummy_test_key_123"
             client = AIProviderFactory.create_client(AIProvider.GROQ, test_key)
             print("✅ Groq client created successfully with valid format key")
             

@@ -89,8 +89,8 @@ async def test_complete_workflow():
     print("\n🔑 Testing API Key Validation:")
     
     test_keys = {
-        AIProvider.GEMINI: "AIzaSyDummyKeyForTestingPurposesOnly1234567890",
-        AIProvider.GROQ: "gsk_dummy_key_for_testing_purposes_only_1234567890abcdef"
+        AIProvider.GEMINI: "AIzaSyDummyKeyForTesting123",
+        AIProvider.GROQ: "gsk_dummy_test_key_123"
     }
     
     for provider, test_key in test_keys.items():

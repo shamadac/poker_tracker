@@ -3,7 +3,7 @@ Pydantic schemas for education content API.
 """
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from enum import Enum
 
 
@@ -41,14 +41,16 @@ class EducationContentBase(BaseModel):
     version: str = Field(default="1.0", max_length=50, description="Content version")
     is_published: bool = Field(default=True, description="Is content published")
 
-    @validator('slug')
+    @field_validator('slug')
+    @classmethod
     def validate_slug(cls, v):
         """Validate slug format."""
         if not v.replace('-', '').replace('_', '').isalnum():
             raise ValueError('Slug must contain only alphanumeric characters, hyphens, and underscores')
         return v.lower()
 
-    @validator('video_url')
+    @field_validator('video_url')
+    @classmethod
     def validate_video_url(cls, v):
         """Validate video URL format."""
         if v and not (v.startswith('http://') or v.startswith('https://')):
@@ -79,7 +81,8 @@ class EducationContentUpdate(BaseModel):
     version: Optional[str] = Field(None, max_length=50)
     is_published: Optional[bool] = None
 
-    @validator('video_url')
+    @field_validator('video_url')
+    @classmethod
     def validate_video_url(cls, v):
         """Validate video URL format."""
         if v and not (v.startswith('http://') or v.startswith('https://')):
@@ -93,8 +96,7 @@ class EducationContentResponse(EducationContentBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EducationProgressBase(BaseModel):
@@ -129,8 +131,7 @@ class EducationProgressResponse(EducationProgressBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EducationContentWithProgress(EducationContentResponse):
@@ -154,7 +155,8 @@ class EducationSearchFilters(BaseModel):
     limit: int = Field(default=50, ge=1, le=100, description="Number of results")
     offset: int = Field(default=0, ge=0, description="Results offset")
 
-    @validator('sort_by')
+    @field_validator('sort_by')
+    @classmethod
     def validate_sort_by(cls, v):
         """Validate sort_by field."""
         allowed_fields = ['title', 'difficulty', 'created_at', 'updated_at', 'category']
@@ -162,7 +164,8 @@ class EducationSearchFilters(BaseModel):
             raise ValueError(f'sort_by must be one of: {", ".join(allowed_fields)}')
         return v
 
-    @validator('sort_order')
+    @field_validator('sort_order')
+    @classmethod
     def validate_sort_order(cls, v):
         """Validate sort_order field."""
         if v.lower() not in ['asc', 'desc']:

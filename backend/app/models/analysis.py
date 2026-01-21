@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import Dict, Any, List, Optional
 
 from sqlalchemy import String, Text, ForeignKey, DECIMAL, Index, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, UUIDMixin, TimestampMixin
@@ -17,7 +18,7 @@ class AnalysisResult(Base, UUIDMixin, TimestampMixin):
     
     # Foreign key to poker hand
     hand_id: Mapped[str] = mapped_column(
-        String(36),
+        UUID(as_uuid=False),
         ForeignKey("poker_hands.id", ondelete="CASCADE"),
         nullable=False,
         index=True

@@ -110,7 +110,8 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Extract all available data
     - _Requirements: 5.1, 5.5_
 
-  - [ ]* 5.4 Write property test for multi-platform parsing
+  - [x] 5.4 Write property test for multi-platform parsing
+
     - **Property 28: Multi-Platform Hand Parsing**
     - **Validates: Requirements 5.1, 5.5**
 
@@ -120,7 +121,8 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Detect and handle duplicates
     - _Requirements: 5.3, 5.4, 5.8_
 
-  - [ ]* 5.6 Write property test for parsing validation
+  - [-] 5.6 Write property test for parsing validation
+
     - **Property 12: Hand Parsing Accuracy and Error Handling**
     - **Validates: Requirements 5.3, 5.4, 5.5, 5.8**
 

@@ -216,8 +216,20 @@ def poker_session_data(draw):
 @pytest_asyncio.fixture
 async def db_session():
     """Create a test database session."""
+    # Create a unique database URL for each test to ensure isolation
+    import tempfile
+    import os
+    
+    # Create a temporary database file
+    temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+    temp_db.close()
+    
+    test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+    test_engine_local = create_async_engine(test_db_url, echo=False)
+    TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
+    
     # Create tables manually to avoid education model issues
-    async with test_engine.begin() as conn:
+    async with test_engine_local.begin() as conn:
         # Create users table
         await conn.execute(text("""
             CREATE TABLE users (
@@ -272,26 +284,28 @@ async def db_session():
             )
         """))
     
-    async with TestSessionLocal() as session:
+    async with TestSessionLocal_local() as session:
         try:
             yield session
         finally:
             await session.close()
     
     # Clean up
-    async with test_engine.begin() as conn:
-        await conn.execute(text("DROP TABLE IF EXISTS poker_hands"))
-        await conn.execute(text("DROP TABLE IF EXISTS users"))
+    await test_engine_local.dispose()
     
-    await test_engine.dispose()
+    # Remove the temporary database file
+    try:
+        os.unlink(temp_db.name)
+    except OSError:
+        pass  # File might already be deleted
 
 
 @pytest_asyncio.fixture
 async def test_user(db_session: AsyncSession):
-    """Create a test user."""
+    """Create a test user with a unique ID for each test."""
     user = User(
         id=str(uuid.uuid4()),
-        email="test@example.com",
+        email=f"test-{uuid.uuid4()}@example.com",  # Unique email for each test
         password_hash="hashed_password"
     )
     db_session.add(user)
@@ -306,55 +320,159 @@ class TestComprehensiveStatisticsProperty:
     @given(session_hands=poker_session_data())
     @settings(max_examples=20, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
     @pytest.mark.asyncio
-    async def test_basic_statistics_coverage(self, session_hands, db_session, test_user):
+    async def test_basic_statistics_coverage(self, session_hands):
         """
         Property 30: Comprehensive Statistics Coverage - Basic Statistics
-        
+
         For any poker session data, the system should calculate all basic
         poker statistics (VPIP, PFR, aggression factor, win rate) with
         mathematical accuracy.
-        
+
         **Validates: Requirements 6.1**
         """
-        # Create poker hands in database
-        poker_hands = []
-        for hand_data in session_hands:
-            poker_hand = PokerHand(
-                user_id=test_user.id,
-                **hand_data
-            )
-            poker_hands.append(poker_hand)
-            db_session.add(poker_hand)
+        # Create a fresh database for each Hypothesis example
+        import tempfile
+        import os
         
-        await db_session.commit()
+        # Create a temporary database file
+        temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_db.close()
         
-        # Calculate statistics
-        stats_service = StatisticsService(db_session)
-        basic_stats = await stats_service.calculate_basic_statistics(test_user.id)
+        test_db_url = f"sqlite+aiosqlite:///{temp_db.name}"
+        test_engine_local = create_async_engine(test_db_url, echo=False)
+        TestSessionLocal_local = sessionmaker(test_engine_local, class_=AsyncSession, expire_on_commit=False)
         
-        # Verify all basic statistics are calculated
-        assert basic_stats is not None, "Basic statistics should be calculated"
-        assert basic_stats.total_hands == len(session_hands), "Total hands should match input"
+        try:
+            # Create tables manually to avoid education model issues
+            async with test_engine_local.begin() as conn:
+                # Create users table
+                await conn.execute(text("""
+                CREATE TABLE users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    api_keys TEXT DEFAULT '{}',
+                    hand_history_paths TEXT DEFAULT '{}',
+                    preferences TEXT DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT true,
+                    is_superuser BOOLEAN DEFAULT false,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """))
+                
+                # Create poker_hands table
+                await conn.execute(text("""
+                CREATE TABLE poker_hands (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                    hand_id TEXT NOT NULL,
+                    platform TEXT NOT NULL,
+                    game_type TEXT,
+                    game_format TEXT,
+                    stakes TEXT,
+                    blinds TEXT,
+                    table_size INTEGER,
+                    date_played TIMESTAMP,
+                    player_cards TEXT,
+                    board_cards TEXT,
+                    position TEXT,
+                    seat_number INTEGER,
+                    button_position INTEGER,
+                    actions TEXT,
+                    result TEXT,
+                    pot_size DECIMAL(10,2),
+                    rake DECIMAL(10,2),
+                    jackpot_contribution DECIMAL(10,2),
+                    tournament_info TEXT,
+                    cash_game_info TEXT,
+                    player_stacks TEXT,
+                    timebank_info TEXT,
+                    hand_duration INTEGER,
+                    timezone TEXT,
+                    currency TEXT,
+                    is_play_money BOOLEAN DEFAULT false,
+                    raw_text TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, hand_id, platform)
+                )
+                """))
+            
+            async with TestSessionLocal_local() as db_session:
+                # Create a test user
+                test_user = User(
+                    id=str(uuid.uuid4()),
+                    email=f"test-{uuid.uuid4()}@example.com",
+                    password_hash="hashed_password"
+                )
+                db_session.add(test_user)
+                await db_session.commit()
+                await db_session.refresh(test_user)
+                
+                # Create poker hands in database
+                poker_hands = []
+                for hand_data in session_hands:
+                    poker_hand = PokerHand(
+                        user_id=test_user.id,
+                        **hand_data
+                    )
+                    poker_hands.append(poker_hand)
+                    db_session.add(poker_hand)
+                
+                await db_session.commit()
+                
+                # Debug: Check how many hands were actually inserted
+                from sqlalchemy import select, func
+                count_result = await db_session.execute(
+                    select(func.count(PokerHand.id)).where(PokerHand.user_id == test_user.id)
+                )
+                actual_count = count_result.scalar()
+                
+                # Calculate statistics
+                stats_service = StatisticsService(db_session)
+                basic_stats = await stats_service.calculate_basic_statistics(test_user.id)
+                
+                # Verify all basic statistics are calculated
+                assert basic_stats is not None, "Basic statistics should be calculated"
+                
+                # Debug information
+                if basic_stats.total_hands != len(session_hands):
+                    print(f"Expected hands: {len(session_hands)}, DB count: {actual_count}, Stats count: {basic_stats.total_hands}")
+                    print(f"Sample hand IDs: {[h['hand_id'] for h in session_hands[:3]]}")
+                
+                assert basic_stats.total_hands == len(session_hands), f"Total hands should match input. Expected: {len(session_hands)}, Got: {basic_stats.total_hands}, DB Count: {actual_count}"
+                
+                # Verify VPIP is within valid range
+                assert 0 <= basic_stats.vpip <= 100, f"VPIP should be 0-100%, got {basic_stats.vpip}"
+                
+                # Verify PFR is within valid range and not greater than VPIP
+                assert 0 <= basic_stats.pfr <= 100, f"PFR should be 0-100%, got {basic_stats.pfr}"
+                assert basic_stats.pfr <= basic_stats.vpip, "PFR should not exceed VPIP"
+                
+                # Verify aggression factor is non-negative
+                assert basic_stats.aggression_factor >= 0, f"Aggression factor should be non-negative, got {basic_stats.aggression_factor}"
+                
+                # Verify win rate is calculated (can be negative)
+                assert isinstance(basic_stats.win_rate, Decimal), "Win rate should be a Decimal"
+                
+                # Verify optional statistics are properly handled
+                if basic_stats.went_to_showdown is not None:
+                    assert 0 <= basic_stats.went_to_showdown <= 100, "Went to showdown % should be 0-100%"
+                
+                if basic_stats.won_at_showdown is not None:
+                    assert 0 <= basic_stats.won_at_showdown <= 100, "Won at showdown % should be 0-100%"
         
-        # Verify VPIP is within valid range
-        assert 0 <= basic_stats.vpip <= 100, f"VPIP should be 0-100%, got {basic_stats.vpip}"
-        
-        # Verify PFR is within valid range and not greater than VPIP
-        assert 0 <= basic_stats.pfr <= 100, f"PFR should be 0-100%, got {basic_stats.pfr}"
-        assert basic_stats.pfr <= basic_stats.vpip, "PFR should not exceed VPIP"
-        
-        # Verify aggression factor is non-negative
-        assert basic_stats.aggression_factor >= 0, f"Aggression factor should be non-negative, got {basic_stats.aggression_factor}"
-        
-        # Verify win rate is calculated (can be negative)
-        assert isinstance(basic_stats.win_rate, Decimal), "Win rate should be a Decimal"
-        
-        # Verify optional statistics are properly handled
-        if basic_stats.went_to_showdown is not None:
-            assert 0 <= basic_stats.went_to_showdown <= 100, "Went to showdown % should be 0-100%"
-        
-        if basic_stats.won_at_showdown is not None:
-            assert 0 <= basic_stats.won_at_showdown <= 100, "Won at showdown % should be 0-100%"
+        finally:
+            # Clean up
+            await test_engine_local.dispose()
+            
+            # Remove the temporary database file
+            try:
+                os.unlink(temp_db.name)
+            except OSError:
+                pass  # File might already be deleted
+                pass  # File might already be deleted
 
     @given(session_hands=poker_session_data())
     @settings(max_examples=15, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])

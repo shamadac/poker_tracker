@@ -129,6 +129,11 @@ class StatisticsService:
         vpip = self._calculate_percentage(vpip_hands, total_hands)
         pfr = self._calculate_percentage(pfr_hands, total_hands)
         
+        # Ensure mathematical consistency: PFR should never exceed VPIP
+        if pfr > vpip:
+            logger.warning(f"PFR ({pfr}) exceeds VPIP ({vpip}) for user {user_id}. Adjusting PFR to match VPIP.")
+            pfr = vpip
+        
         # Calculate aggression factor
         if passive_actions > 0:
             aggression_factor = Decimal(str(aggressive_actions)) / Decimal(str(passive_actions))
@@ -248,6 +253,11 @@ class StatisticsService:
             # Calculate percentages
             vpip = self._calculate_percentage(vpip_hands, total_hands)
             pfr = self._calculate_percentage(pfr_hands, total_hands)
+            
+            # Ensure mathematical consistency: PFR should never exceed VPIP
+            if pfr > vpip:
+                logger.warning(f"Position {position}: PFR ({pfr}) exceeds VPIP ({vpip}). Adjusting PFR to match VPIP.")
+                pfr = vpip
             
             # Aggression factor
             if passive_actions > 0:
@@ -686,6 +696,11 @@ class StatisticsService:
             vpip = self._calculate_percentage(vpip_hands, total_hands)
             pfr = self._calculate_percentage(pfr_hands, total_hands)
             
+            # Ensure mathematical consistency: PFR should never exceed VPIP
+            if pfr > vpip:
+                logger.warning(f"Session {session_date}: PFR ({pfr}) exceeds VPIP ({vpip}). Adjusting PFR to match VPIP.")
+                pfr = vpip
+            
             # Aggression factor
             if passive_actions > 0:
                 aggression_factor = Decimal(str(aggressive_actions)) / Decimal(str(passive_actions))
@@ -717,6 +732,8 @@ class StatisticsService:
         """
         Determine if this hand counts as VPIP.
         VPIP = Voluntarily Put In Pot (excludes big blind unless there was a raise)
+        
+        Key rule: If a player raises, they MUST count for VPIP (you can't raise without VPIP)
         """
         preflop_actions = actions.get('preflop', [])
         
@@ -724,29 +741,57 @@ class StatisticsService:
         if not preflop_actions:
             return False
         
-        # Find player's first voluntary action
+        # Check for any voluntary money put in pot
         for action in preflop_actions:
-            if action.get('action') in ['call', 'bet', 'raise', 'all-in']:
+            action_type = action.get('action')
+            
+            # Any raise or bet is always VPIP
+            if action_type in ['bet', 'raise', 'all-in']:
                 return True
-            elif action.get('action') == 'fold':
-                return False
-        
-        # If we reach here and position is BB, check if there was a raise
-        if position == 'BB':
-            # BB only counts as VPIP if they called a raise or raised themselves
-            for action in preflop_actions:
-                if action.get('action') in ['raise', 'call'] and action.get('amount', 0) > 0:
+            
+            # Call is VPIP (except for BB checking when no raise)
+            elif action_type == 'call':
+                # For BB, only count as VPIP if calling a raise (amount > big blind)
+                if position == 'BB':
+                    amount = action.get('amount', 0)
+                    # If calling with an amount, it's voluntary
+                    if amount and amount > 0:
+                        return True
+                else:
+                    # For all other positions, any call is VPIP
                     return True
+            
+            # Fold means no VPIP
+            elif action_type == 'fold':
+                return False
+            
+            # Check action for BB is not VPIP (just checking the option)
+            elif action_type == 'check' and position == 'BB':
+                continue  # Keep looking for other actions
         
+        # If we only found checks and we're BB, it's not VPIP
         return False
     
     def _is_pfr_hand(self, actions: Dict[str, Any]) -> bool:
-        """Determine if this hand counts as PFR (Pre-Flop Raise)."""
+        """
+        Determine if this hand counts as PFR (Pre-Flop Raise).
+        
+        PFR means the player raised or bet preflop (first aggressive action).
+        Note: PFR should NEVER exceed VPIP mathematically.
+        """
         preflop_actions = actions.get('preflop', [])
         
+        # Look for the first aggressive action
         for action in preflop_actions:
-            if action.get('action') in ['raise', 'bet']:
+            action_type = action.get('action')
+            if action_type in ['raise', 'bet']:
                 return True
+            # If we see a call or check first, then it's not PFR
+            elif action_type in ['call', 'check']:
+                return False
+            # Fold means no PFR
+            elif action_type == 'fold':
+                return False
         
         return False
     

@@ -10,7 +10,6 @@ to Requirement 4.2.
 """
 
 import pytest
-import os
 import asyncio
 from datetime import datetime
 from decimal import Decimal
@@ -32,13 +31,6 @@ from app.models.user import User
 # Database URL for testing
 DATABASE_URL = "postgresql+asyncpg://postgres:password@localhost:5432/poker_analyzer"
 
-# Check if PostgreSQL is available
-try:
-    import asyncpg
-    POSTGRESQL_AVAILABLE = True
-except ImportError:
-    POSTGRESQL_AVAILABLE = False
-
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
@@ -49,34 +41,23 @@ def event_loop():
 @pytest.fixture(scope="session")
 async def test_engine():
     """Create test database engine with proper cleanup."""
-    if not POSTGRESQL_AVAILABLE:
-        pytest.skip("PostgreSQL (asyncpg) not available for testing")
+    engine = create_async_engine(DATABASE_URL, echo=False)
     
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    
+    yield engine
+    
+    # Cleanup
     try:
-        engine = create_async_engine(DATABASE_URL, echo=False)
-        
-        # Test connection first
-        async with engine.begin() as conn:
-            await conn.execute(text("SELECT 1"))
-        
-        # Create all tables
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
-            await conn.run_sync(Base.metadata.create_all)
-        
-        yield engine
-        
-        # Cleanup
-        try:
-            async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.drop_all)
-        except Exception:
-            pass
-        
-        await engine.dispose()
-        
-    except Exception as e:
-        pytest.skip(f"PostgreSQL database not available: {e}")
+    except Exception:
+        pass
+    
+    await engine.dispose()
 
 @pytest.fixture
 async def test_session(test_engine):

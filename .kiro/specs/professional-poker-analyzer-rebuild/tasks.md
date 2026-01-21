@@ -133,7 +133,8 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Implement real-time file monitoring
     - _Requirements: 5.2_
 
-  - [ ]* 6.2 Write property test for directory monitoring
+  - [x] 6.2 Write property test for directory monitoring
+
     - **Property 29: Directory Monitoring**
     - **Validates: Requirements 5.2**
 

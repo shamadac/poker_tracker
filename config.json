@@ -3,7 +3,7 @@
   "ai_provider": "ollama",
   "ollama_url": "http://localhost:11434",
   "ollama_model": "llama2",
-  "gemini_api_key": "AIzaSyCLgM3gLTqqn1EEzWJ6BMInIxj-GSk1d2c",
+  "gemini_api_key": "[REDACTED_FOR_SECURITY]",
   "gemini_model": "gemini-3-flash-preview",
   "hand_history_dir": "sample_data",
   "reports_dir": "reports",

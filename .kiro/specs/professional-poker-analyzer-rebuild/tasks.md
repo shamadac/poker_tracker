@@ -143,7 +143,8 @@ This implementation plan transforms the existing Flask prototype into a professi
     - Add progress tracking for large files
     - _Requirements: 5.2, 5.6_
 
-  - [ ]* 6.4 Write property test for asynchronous processing
+  - [x] 6.4 Write property test for asynchronous processing
+
     - **Property 13: Asynchronous Processing with Progress**
     - **Validates: Requirements 5.2**
 

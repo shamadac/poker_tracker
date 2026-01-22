@@ -352,11 +352,11 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 # Health check with service status
 async def get_system_health() -> Dict[str, Any]:
     """Get comprehensive system health status."""
+    from datetime import datetime, timezone
+    
     health_status = {
         "status": "healthy",
-        "timestamp": logger.logger.handlers[0].formatter.formatTime(logger.logger.makeRecord(
-            "health", logging.INFO, "", 0, "", (), None
-        )),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "services": degradation_manager.get_service_status(),
         "version": "1.0.0"
     }

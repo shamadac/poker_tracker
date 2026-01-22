@@ -4,6 +4,7 @@ Test statistics API endpoint.
 import asyncio
 from datetime import datetime, timezone
 from decimal import Decimal
+from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
@@ -31,9 +32,9 @@ async def test_stats_endpoint_with_data():
         await conn.run_sync(Base.metadata.create_all)
     
     async with TestSessionLocal() as session:
-        # Create test user
+        # Create test user with proper UUID
         user = User(
-            id="test-user-id",
+            id=str(uuid4()),
             email="test@example.com",
             password_hash="hashed_password"
         )

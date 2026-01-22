@@ -5,6 +5,7 @@ import pytest
 import pytest_asyncio
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
+from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -47,9 +48,9 @@ async def db_session():
 @pytest.mark.asyncio
 async def test_calculate_filtered_statistics(db_session: AsyncSession):
     """Test comprehensive statistics calculation with filtering."""
-    # Create test user
+    # Create test user with proper UUID
     user = User(
-        id="test-user-id",
+        id=str(uuid4()),
         email="test@example.com",
         password_hash="hashed_password"
     )
@@ -108,9 +109,9 @@ async def test_calculate_filtered_statistics(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_calculate_performance_trends(db_session: AsyncSession):
     """Test performance trends calculation."""
-    # Create test user
+    # Create test user with proper UUID
     user = User(
-        id="test-user-trends",
+        id=str(uuid4()),
         email="trends@example.com",
         password_hash="hashed_password"
     )
@@ -170,9 +171,9 @@ async def test_calculate_performance_trends(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_calculate_session_statistics(db_session: AsyncSession):
     """Test session statistics calculation."""
-    # Create test user
+    # Create test user with proper UUID
     user = User(
-        id="test-user-sessions",
+        id=str(uuid4()),
         email="sessions@example.com",
         password_hash="hashed_password"
     )
@@ -224,9 +225,9 @@ async def test_calculate_session_statistics(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_minimum_hands_filter(db_session: AsyncSession):
     """Test minimum hands filtering."""
-    # Create test user
+    # Create test user with proper UUID
     user = User(
-        id="test-user-min-hands",
+        id=str(uuid4()),
         email="minhands@example.com",
         password_hash="hashed_password"
     )

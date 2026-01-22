@@ -2,6 +2,7 @@
 Simple test for statistics service functionality.
 """
 import asyncio
+import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -31,8 +32,9 @@ async def test_basic_statistics():
     
     async with TestSessionLocal() as session:
         # Create test user
+        user_id = str(uuid.uuid4())
         user = User(
-            id="test-user-id",
+            id=user_id,
             email="test@example.com",
             password_hash="hashed_password"
         )

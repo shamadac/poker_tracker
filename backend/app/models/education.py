@@ -4,8 +4,10 @@ Education content database models.
 from sqlalchemy import Column, String, Text, Boolean, DateTime, JSON, Enum, Integer
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.sql import func
+from sqlalchemy.ext.hybrid import hybrid_property
 import uuid
 import enum
+import json
 
 from .base import Base
 
@@ -43,17 +45,17 @@ class EducationContent(Base):
     # Core content
     definition = Column(Text, nullable=False)
     explanation = Column(Text, nullable=False)
-    examples = Column(ARRAY(Text), nullable=False, default=[])
-    related_stats = Column(ARRAY(String), nullable=False, default=[])
+    _examples = Column("examples", JSON, nullable=False, default=list)
+    _related_stats = Column("related_stats", JSON, nullable=False, default=list)
     
     # Optional multimedia content
     video_url = Column(String(500), nullable=True)
     interactive_demo = Column(Boolean, default=False)
     
     # Additional metadata
-    tags = Column(ARRAY(String), nullable=False, default=[])
-    prerequisites = Column(ARRAY(String), nullable=False, default=[])
-    learning_objectives = Column(ARRAY(Text), nullable=False, default=[])
+    _tags = Column("tags", JSON, nullable=False, default=list)
+    _prerequisites = Column("prerequisites", JSON, nullable=False, default=list)
+    _learning_objectives = Column("learning_objectives", JSON, nullable=False, default=list)
     
     # Content metadata
     author = Column(String(255), nullable=True)
@@ -63,6 +65,56 @@ class EducationContent(Base):
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    @hybrid_property
+    def examples(self):
+        """Get examples as a list."""
+        return self._examples or []
+    
+    @examples.setter
+    def examples(self, value):
+        """Set examples from a list."""
+        self._examples = value or []
+
+    @hybrid_property
+    def related_stats(self):
+        """Get related stats as a list."""
+        return self._related_stats or []
+    
+    @related_stats.setter
+    def related_stats(self, value):
+        """Set related stats from a list."""
+        self._related_stats = value or []
+
+    @hybrid_property
+    def tags(self):
+        """Get tags as a list."""
+        return self._tags or []
+    
+    @tags.setter
+    def tags(self, value):
+        """Set tags from a list."""
+        self._tags = value or []
+
+    @hybrid_property
+    def prerequisites(self):
+        """Get prerequisites as a list."""
+        return self._prerequisites or []
+    
+    @prerequisites.setter
+    def prerequisites(self, value):
+        """Set prerequisites from a list."""
+        self._prerequisites = value or []
+
+    @hybrid_property
+    def learning_objectives(self):
+        """Get learning objectives as a list."""
+        return self._learning_objectives or []
+    
+    @learning_objectives.setter
+    def learning_objectives(self, value):
+        """Set learning objectives from a list."""
+        self._learning_objectives = value or []
 
     def __repr__(self):
         return f"<EducationContent(id={self.id}, title='{self.title}', category='{self.category}')>"

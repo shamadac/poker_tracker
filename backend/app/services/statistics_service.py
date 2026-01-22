@@ -1,11 +1,14 @@
 """
 Statistics calculation service for poker hand analysis.
+Enhanced with reliability features including retry logic, caching, and data integrity validation.
 """
+import asyncio
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Callable
 from sqlalchemy import select, func, and_, or_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError, DisconnectionError, TimeoutError as SQLTimeoutError
 import statistics
 
 from app.models.hand import PokerHand
@@ -28,12 +31,224 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class StatisticsReliabilityError(Exception):
+    """Custom exception for statistics reliability issues."""
+    pass
+
+
+class DataIntegrityError(Exception):
+    """Custom exception for data integrity validation failures."""
+    pass
+
+
 class StatisticsService:
-    """Service for calculating comprehensive poker statistics with Redis caching."""
+    """Service for calculating comprehensive poker statistics with enhanced reliability features."""
     
     def __init__(self, db: AsyncSession, cache_service: Optional[StatisticsCacheService] = None):
         self.db = db
         self.cache_service = cache_service
+        
+        # Retry configuration for exponential backoff
+        self.retry_config = {
+            'max_attempts': 3,
+            'base_delay': 1.0,  # 1 second base delay
+            'max_delay': 4.0,   # Maximum 4 seconds delay
+            'backoff_factor': 2.0  # Exponential backoff factor
+        }
+        
+        # Data integrity validation thresholds
+        self.integrity_thresholds = {
+            'max_vpip': Decimal('100.0'),  # VPIP cannot exceed 100%
+            'max_pfr': Decimal('100.0'),   # PFR cannot exceed 100%
+            'min_aggression_factor': Decimal('0.0'),  # AF cannot be negative
+            'max_aggression_factor': Decimal('999.0'),  # Reasonable upper bound for AF
+            'min_hands_for_reliability': 10  # Minimum hands for reliable statistics
+        }
+    
+    async def _execute_with_retry(
+        self, 
+        operation: Callable,
+        operation_name: str,
+        *args,
+        **kwargs
+    ) -> Any:
+        """
+        Execute database operation with exponential backoff retry logic.
+        
+        Args:
+            operation: The async function to execute
+            operation_name: Name of the operation for logging
+            *args, **kwargs: Arguments to pass to the operation
+            
+        Returns:
+            Result of the operation
+            
+        Raises:
+            StatisticsReliabilityError: If all retry attempts fail
+        """
+        last_exception = None
+        
+        for attempt in range(self.retry_config['max_attempts']):
+            try:
+                logger.debug(f"Executing {operation_name}, attempt {attempt + 1}")
+                result = await operation(*args, **kwargs)
+                
+                if attempt > 0:
+                    logger.info(f"Operation {operation_name} succeeded on attempt {attempt + 1}")
+                
+                return result
+                
+            except (SQLAlchemyError, DisconnectionError, SQLTimeoutError, ConnectionError) as e:
+                last_exception = e
+                attempt_num = attempt + 1
+                
+                logger.warning(
+                    f"Operation {operation_name} failed on attempt {attempt_num}: {str(e)}"
+                )
+                
+                # Don't retry on the last attempt
+                if attempt < self.retry_config['max_attempts'] - 1:
+                    # Calculate exponential backoff delay
+                    delay = min(
+                        self.retry_config['base_delay'] * (self.retry_config['backoff_factor'] ** attempt),
+                        self.retry_config['max_delay']
+                    )
+                    
+                    logger.info(f"Retrying {operation_name} in {delay} seconds...")
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error(f"All retry attempts failed for {operation_name}")
+            
+            except Exception as e:
+                # Non-retryable errors (data validation, programming errors, etc.)
+                logger.error(f"Non-retryable error in {operation_name}: {str(e)}")
+                raise StatisticsReliabilityError(f"Operation {operation_name} failed: {str(e)}") from e
+        
+        # All retries exhausted
+        raise StatisticsReliabilityError(
+            f"Operation {operation_name} failed after {self.retry_config['max_attempts']} attempts. "
+            f"Last error: {str(last_exception)}"
+        ) from last_exception
+    
+    async def _get_cached_or_calculate(
+        self,
+        cache_key_params: Dict[str, Any],
+        calculation_func: Callable,
+        operation_name: str,
+        *args,
+        **kwargs
+    ) -> Any:
+        """
+        Get data from cache or calculate with fallback to cached data on failure.
+        
+        Args:
+            cache_key_params: Parameters for cache key generation
+            calculation_func: Function to calculate fresh data
+            operation_name: Name of the operation for logging
+            *args, **kwargs: Arguments for calculation function
+            
+        Returns:
+            Statistics data (fresh or cached)
+        """
+        # Try to get from cache first
+        cached_data = None
+        if self.cache_service:
+            try:
+                cached_data = await self.cache_service.get_user_statistics(
+                    cache_key_params.get('user_id'),
+                    cache_key_params.get('filters')
+                )
+                if cached_data:
+                    logger.debug(f"Cache hit for {operation_name}")
+                    return cached_data
+            except Exception as e:
+                logger.warning(f"Cache retrieval failed for {operation_name}: {e}")
+        
+        # Calculate fresh data with retry logic
+        try:
+            fresh_data = await self._execute_with_retry(
+                calculation_func,
+                operation_name,
+                *args,
+                **kwargs
+            )
+            
+            # Validate data integrity
+            self._validate_data_integrity(fresh_data, operation_name)
+            
+            # Cache the fresh data
+            if self.cache_service:
+                try:
+                    await self.cache_service.set_user_statistics(
+                        cache_key_params.get('user_id'),
+                        cache_key_params.get('filters'),
+                        fresh_data.dict() if hasattr(fresh_data, 'dict') else fresh_data
+                    )
+                    logger.debug(f"Cached fresh data for {operation_name}")
+                except Exception as e:
+                    logger.warning(f"Cache storage failed for {operation_name}: {e}")
+            
+            return fresh_data
+            
+        except StatisticsReliabilityError as e:
+            # If calculation fails and we have cached data, use it as fallback
+            if cached_data:
+                logger.warning(
+                    f"Calculation failed for {operation_name}, falling back to cached data: {e}"
+                )
+                return cached_data
+            else:
+                logger.error(f"No cached data available for fallback in {operation_name}")
+                raise
+    
+    def _validate_data_integrity(self, data: Any, operation_name: str) -> None:
+        """
+        Validate data integrity before returning statistics.
+        
+        Args:
+            data: Statistics data to validate
+            operation_name: Name of the operation for logging
+            
+        Raises:
+            DataIntegrityError: If data integrity validation fails
+        """
+        try:
+            if hasattr(data, 'vpip') and data.vpip is not None:
+                if data.vpip < 0 or data.vpip > self.integrity_thresholds['max_vpip']:
+                    raise DataIntegrityError(f"VPIP value {data.vpip} is out of valid range (0-100)")
+            
+            if hasattr(data, 'pfr') and data.pfr is not None:
+                if data.pfr < 0 or data.pfr > self.integrity_thresholds['max_pfr']:
+                    raise DataIntegrityError(f"PFR value {data.pfr} is out of valid range (0-100)")
+                
+                # PFR should never exceed VPIP
+                if hasattr(data, 'vpip') and data.vpip is not None and data.pfr > data.vpip:
+                    logger.warning(f"PFR ({data.pfr}) exceeds VPIP ({data.vpip}) - adjusting PFR to match VPIP")
+                    data.pfr = data.vpip
+            
+            if hasattr(data, 'aggression_factor') and data.aggression_factor is not None:
+                if (data.aggression_factor < self.integrity_thresholds['min_aggression_factor'] or 
+                    data.aggression_factor > self.integrity_thresholds['max_aggression_factor']):
+                    raise DataIntegrityError(
+                        f"Aggression factor {data.aggression_factor} is out of valid range "
+                        f"({self.integrity_thresholds['min_aggression_factor']}-{self.integrity_thresholds['max_aggression_factor']})"
+                    )
+            
+            if hasattr(data, 'total_hands') and data.total_hands is not None:
+                if data.total_hands < 0:
+                    raise DataIntegrityError(f"Total hands {data.total_hands} cannot be negative")
+                
+                # Log warning for low sample sizes
+                if data.total_hands < self.integrity_thresholds['min_hands_for_reliability']:
+                    logger.warning(
+                        f"Low sample size ({data.total_hands} hands) may affect statistical reliability in {operation_name}"
+                    )
+            
+            logger.debug(f"Data integrity validation passed for {operation_name}")
+            
+        except Exception as e:
+            logger.error(f"Data integrity validation failed for {operation_name}: {e}")
+            raise DataIntegrityError(f"Data integrity validation failed: {str(e)}") from e
     
     async def calculate_basic_statistics(
         self, 
@@ -41,7 +256,41 @@ class StatisticsService:
         filters: Optional[StatisticsFilters] = None
     ) -> BasicStatistics:
         """
-        Calculate basic poker statistics (VPIP, PFR, aggression factor, win rate).
+        Calculate basic poker statistics with enhanced reliability and caching.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            BasicStatistics object with calculated metrics
+            
+        Raises:
+            StatisticsReliabilityError: If calculation fails after retries
+            DataIntegrityError: If data integrity validation fails
+        """
+        # Prepare cache parameters
+        cache_params = {
+            'user_id': user_id,
+            'filters': filters or StatisticsFilters()
+        }
+        
+        # Use cached data or calculate with retry logic
+        return await self._get_cached_or_calculate(
+            cache_params,
+            self._calculate_basic_statistics_internal,
+            "calculate_basic_statistics",
+            user_id,
+            filters
+        )
+    
+    async def _calculate_basic_statistics_internal(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> BasicStatistics:
+        """
+        Internal method to calculate basic poker statistics (VPIP, PFR, aggression factor, win rate).
         
         Args:
             user_id: User ID to calculate statistics for
@@ -167,7 +416,35 @@ class StatisticsService:
         filters: Optional[StatisticsFilters] = None
     ) -> List[PositionalStatistics]:
         """
-        Calculate position-based statistics.
+        Calculate position-based statistics with enhanced reliability.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            List of PositionalStatistics for each position
+        """
+        cache_params = {
+            'user_id': user_id,
+            'filters': filters or StatisticsFilters()
+        }
+        
+        return await self._get_cached_or_calculate(
+            cache_params,
+            self._calculate_positional_statistics_internal,
+            "calculate_positional_statistics",
+            user_id,
+            filters
+        )
+    
+    async def _calculate_positional_statistics_internal(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> List[PositionalStatistics]:
+        """
+        Internal method to calculate position-based statistics.
         
         Args:
             user_id: User ID to calculate statistics for
@@ -332,8 +609,7 @@ class StatisticsService:
         filters: StatisticsFilters
     ) -> StatisticsResponse:
         """
-        Calculate comprehensive statistics with dynamic filtering by multiple criteria.
-        Implements Redis caching for improved performance.
+        Calculate comprehensive statistics with enhanced reliability, caching, and data integrity validation.
         
         Args:
             user_id: User ID to calculate statistics for
@@ -341,56 +617,155 @@ class StatisticsService:
             
         Returns:
             StatisticsResponse with all calculated statistics
+            
+        Raises:
+            StatisticsReliabilityError: If calculation fails after retries
+            DataIntegrityError: If data integrity validation fails
         """
+        operation_name = "calculate_filtered_statistics"
+        
         # Try to get from cache first
         if self.cache_service:
             try:
                 cached_stats = await self.cache_service.get_user_statistics(user_id, filters)
                 if cached_stats:
-                    logger.debug(f"Cache hit for user {user_id} statistics")
+                    logger.debug(f"Cache hit for user {user_id} filtered statistics")
                     return StatisticsResponse(**cached_stats)
             except Exception as e:
                 logger.warning(f"Cache retrieval failed for user {user_id}: {e}")
         
-        # Calculate all statistics with the same filters
-        logger.debug(f"Calculating fresh statistics for user {user_id}")
-        basic_stats = await self.calculate_basic_statistics(user_id, filters)
-        advanced_stats = await self.calculate_advanced_statistics(user_id, filters)
-        positional_stats = await self.calculate_positional_statistics(user_id, filters)
-        tournament_stats = await self.calculate_tournament_statistics(user_id, filters)
-        
-        # Check minimum hands requirement
-        if filters.min_hands and basic_stats.total_hands < filters.min_hands:
-            raise ValueError(f"Insufficient hands for statistical significance. Found {basic_stats.total_hands}, minimum required: {filters.min_hands}")
-        
-        # Calculate confidence level based on sample size
-        confidence_level = min(Decimal('0.95'), Decimal(str(basic_stats.total_hands)) / Decimal('1000')) if basic_stats.total_hands > 0 else Decimal('0.0')
-        
-        response = StatisticsResponse(
-            basic_stats=basic_stats,
-            advanced_stats=advanced_stats,
-            positional_stats=positional_stats,
-            tournament_stats=tournament_stats,
-            filters_applied=filters,
-            calculation_date=datetime.now(timezone.utc),
-            cache_expires=datetime.now(timezone.utc) + timedelta(hours=1),  # Cache for 1 hour
-            sample_size=basic_stats.total_hands,
-            confidence_level=confidence_level
-        )
-        
-        # Cache the results
-        if self.cache_service:
-            try:
-                await self.cache_service.set_user_statistics(
-                    user_id, 
-                    filters, 
-                    response.dict()
+        # Calculate all statistics with retry logic and error handling
+        try:
+            logger.debug(f"Calculating fresh filtered statistics for user {user_id}")
+            
+            # Calculate each component with individual retry logic
+            basic_stats = await self._execute_with_retry(
+                self._calculate_basic_statistics_internal,
+                f"{operation_name}_basic",
+                user_id, filters
+            )
+            
+            advanced_stats = await self._execute_with_retry(
+                self._calculate_advanced_statistics_internal,
+                f"{operation_name}_advanced", 
+                user_id, filters
+            )
+            
+            positional_stats = await self._execute_with_retry(
+                self._calculate_positional_statistics_internal,
+                f"{operation_name}_positional",
+                user_id, filters
+            )
+            
+            tournament_stats = await self._execute_with_retry(
+                self._calculate_tournament_statistics_internal,
+                f"{operation_name}_tournament",
+                user_id, filters
+            )
+            
+            # Validate minimum hands requirement
+            if filters.min_hands and basic_stats.total_hands < filters.min_hands:
+                raise ValueError(
+                    f"Insufficient hands for statistical significance. "
+                    f"Found {basic_stats.total_hands}, minimum required: {filters.min_hands}"
                 )
-                logger.debug(f"Cached statistics for user {user_id}")
-            except Exception as e:
-                logger.warning(f"Cache storage failed for user {user_id}: {e}")
+            
+            # Calculate confidence level based on sample size
+            confidence_level = min(
+                Decimal('0.95'), 
+                Decimal(str(basic_stats.total_hands)) / Decimal('1000')
+            ) if basic_stats.total_hands > 0 else Decimal('0.0')
+            
+            # Create response
+            response = StatisticsResponse(
+                basic_stats=basic_stats,
+                advanced_stats=advanced_stats,
+                positional_stats=positional_stats,
+                tournament_stats=tournament_stats,
+                filters_applied=filters,
+                calculation_date=datetime.now(timezone.utc),
+                cache_expires=datetime.now(timezone.utc) + timedelta(hours=1),  # Cache for 1 hour
+                sample_size=basic_stats.total_hands,
+                confidence_level=confidence_level
+            )
+            
+            # Validate overall response integrity
+            self._validate_response_integrity(response, operation_name)
+            
+            # Cache the results
+            if self.cache_service:
+                try:
+                    await self.cache_service.set_user_statistics(
+                        user_id, 
+                        filters, 
+                        response.dict()
+                    )
+                    logger.debug(f"Cached filtered statistics for user {user_id}")
+                except Exception as e:
+                    logger.warning(f"Cache storage failed for user {user_id}: {e}")
+            
+            return response
+            
+        except Exception as e:
+            # Try to fallback to cached data if available
+            if self.cache_service:
+                try:
+                    cached_stats = await self.cache_service.get_user_statistics(user_id, filters)
+                    if cached_stats:
+                        logger.warning(
+                            f"Calculation failed for user {user_id}, falling back to cached data: {e}"
+                        )
+                        return StatisticsResponse(**cached_stats)
+                except Exception as cache_e:
+                    logger.error(f"Cache fallback also failed: {cache_e}")
+            
+            # No cached data available, re-raise the original error
+            logger.error(f"Filtered statistics calculation failed for user {user_id}: {e}")
+            raise StatisticsReliabilityError(
+                f"Failed to calculate filtered statistics for user {user_id}: {str(e)}"
+            ) from e
+    
+    def _validate_response_integrity(self, response: StatisticsResponse, operation_name: str) -> None:
+        """
+        Validate the integrity of a complete StatisticsResponse.
         
-        return response
+        Args:
+            response: StatisticsResponse to validate
+            operation_name: Name of the operation for logging
+            
+        Raises:
+            DataIntegrityError: If response integrity validation fails
+        """
+        try:
+            # Validate basic stats
+            if response.basic_stats:
+                self._validate_data_integrity(response.basic_stats, f"{operation_name}_basic")
+            
+            # Validate advanced stats
+            if response.advanced_stats:
+                self._validate_data_integrity(response.advanced_stats, f"{operation_name}_advanced")
+            
+            # Validate positional stats
+            if response.positional_stats:
+                for pos_stat in response.positional_stats:
+                    self._validate_data_integrity(pos_stat, f"{operation_name}_positional_{pos_stat.position}")
+            
+            # Validate confidence level
+            if response.confidence_level < 0 or response.confidence_level > 1:
+                raise DataIntegrityError(f"Confidence level {response.confidence_level} is out of valid range (0-1)")
+            
+            # Validate sample size consistency
+            if response.basic_stats and response.sample_size != response.basic_stats.total_hands:
+                logger.warning(
+                    f"Sample size mismatch: response.sample_size={response.sample_size}, "
+                    f"basic_stats.total_hands={response.basic_stats.total_hands}"
+                )
+            
+            logger.debug(f"Response integrity validation passed for {operation_name}")
+            
+        except Exception as e:
+            logger.error(f"Response integrity validation failed for {operation_name}: {e}")
+            raise DataIntegrityError(f"Response integrity validation failed: {str(e)}") from e
     
     async def calculate_performance_trends(
         self, 
@@ -399,8 +774,7 @@ class StatisticsService:
         metrics: List[str] = None
     ) -> List[TrendData]:
         """
-        Calculate performance trends over time for specified metrics.
-        Implements Redis caching for improved performance.
+        Calculate performance trends over time with enhanced reliability and caching.
         
         Args:
             user_id: User ID to calculate trends for
@@ -416,7 +790,6 @@ class StatisticsService:
         # Try to get from cache first
         if self.cache_service:
             try:
-                # Create a simple filters object for caching
                 cache_filters = StatisticsFilters()
                 cached_trends = await self.cache_service.get_trend_data(
                     user_id, period, cache_filters
@@ -426,6 +799,69 @@ class StatisticsService:
                     return [TrendData(**trend) for trend in cached_trends]
             except Exception as e:
                 logger.warning(f"Trend cache retrieval failed for user {user_id}: {e}")
+        
+        # Calculate trends with retry logic
+        try:
+            trend_results = await self._execute_with_retry(
+                self._calculate_performance_trends_internal,
+                "calculate_performance_trends",
+                user_id, period, metrics
+            )
+            
+            # Cache the results
+            if self.cache_service:
+                try:
+                    cache_filters = StatisticsFilters()
+                    trend_dicts = [trend.dict() for trend in trend_results]
+                    await self.cache_service.set_trend_data(
+                        user_id, period, cache_filters, trend_dicts
+                    )
+                    logger.debug(f"Cached trends for user {user_id}")
+                except Exception as e:
+                    logger.warning(f"Trend cache storage failed for user {user_id}: {e}")
+            
+            return trend_results
+            
+        except Exception as e:
+            # Try to fallback to cached data
+            if self.cache_service:
+                try:
+                    cache_filters = StatisticsFilters()
+                    cached_trends = await self.cache_service.get_trend_data(
+                        user_id, period, cache_filters
+                    )
+                    if cached_trends:
+                        logger.warning(
+                            f"Trend calculation failed for user {user_id}, falling back to cached data: {e}"
+                        )
+                        return [TrendData(**trend) for trend in cached_trends]
+                except Exception as cache_e:
+                    logger.error(f"Trend cache fallback also failed: {cache_e}")
+            
+            logger.error(f"Performance trends calculation failed for user {user_id}: {e}")
+            raise StatisticsReliabilityError(
+                f"Failed to calculate performance trends for user {user_id}: {str(e)}"
+            ) from e
+    
+    async def _calculate_performance_trends_internal(
+        self, 
+        user_id: str, 
+        period: str = "30d",
+        metrics: List[str] = None
+    ) -> List[TrendData]:
+        """
+        Internal method to calculate performance trends over time for specified metrics.
+        
+        Args:
+            user_id: User ID to calculate trends for
+            period: Time period for trends (7d, 30d, 90d, 1y)
+            metrics: List of metrics to analyze trends for
+            
+        Returns:
+            List of TrendData objects with trend analysis
+        """
+        if metrics is None:
+            metrics = ["vpip", "pfr", "win_rate", "aggression_factor"]
         
         # Calculate date range based on period
         logger.debug(f"Calculating fresh trends for user {user_id}, period {period}")
@@ -476,18 +912,6 @@ class StatisticsService:
                 trend_strength=trend_strength,
                 statistical_significance=is_significant
             ))
-        
-        # Cache the results
-        if self.cache_service:
-            try:
-                cache_filters = StatisticsFilters()
-                trend_dicts = [trend.dict() for trend in trend_results]
-                await self.cache_service.set_trend_data(
-                    user_id, period, cache_filters, trend_dicts
-                )
-                logger.debug(f"Cached trends for user {user_id}")
-            except Exception as e:
-                logger.warning(f"Trend cache storage failed for user {user_id}: {e}")
         
         return trend_results
     
@@ -923,7 +1347,35 @@ class StatisticsService:
         filters: Optional[StatisticsFilters] = None
     ) -> AdvancedStatistics:
         """
-        Calculate advanced poker statistics including 3-bet %, c-bet %, check-raise %, 
+        Calculate advanced poker statistics with enhanced reliability.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            AdvancedStatistics object with calculated metrics
+        """
+        cache_params = {
+            'user_id': user_id,
+            'filters': filters or StatisticsFilters()
+        }
+        
+        return await self._get_cached_or_calculate(
+            cache_params,
+            self._calculate_advanced_statistics_internal,
+            "calculate_advanced_statistics",
+            user_id,
+            filters
+        )
+    
+    async def _calculate_advanced_statistics_internal(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> AdvancedStatistics:
+        """
+        Internal method to calculate advanced poker statistics including 3-bet %, c-bet %, check-raise %, 
         and red line/blue line analysis.
         
         Args:
@@ -1199,7 +1651,35 @@ class StatisticsService:
         filters: Optional[StatisticsFilters] = None
     ) -> Optional[TournamentStatistics]:
         """
-        Calculate tournament-specific statistics including ROI, cash rate, and ICM metrics.
+        Calculate tournament-specific statistics with enhanced reliability.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            filters: Optional filters to apply to the calculation
+            
+        Returns:
+            TournamentStatistics object with calculated metrics, or None if no tournament data
+        """
+        cache_params = {
+            'user_id': user_id,
+            'filters': filters or StatisticsFilters()
+        }
+        
+        return await self._get_cached_or_calculate(
+            cache_params,
+            self._calculate_tournament_statistics_internal,
+            "calculate_tournament_statistics",
+            user_id,
+            filters
+        )
+    
+    async def _calculate_tournament_statistics_internal(
+        self, 
+        user_id: str, 
+        filters: Optional[StatisticsFilters] = None
+    ) -> Optional[TournamentStatistics]:
+        """
+        Internal method to calculate tournament-specific statistics including ROI, cash rate, and ICM metrics.
         
         Args:
             user_id: User ID to calculate statistics for

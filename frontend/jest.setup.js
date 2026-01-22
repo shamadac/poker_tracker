@@ -58,18 +58,35 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
 
 // Suppress console warnings in tests
 const originalError = console.error
+const originalLog = console.log
 beforeAll(() => {
   console.error = (...args) => {
     if (
       typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
+      (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
+       args[0].includes('Warning: The tag <') ||
+       args[0].includes('Warning: <linearGradient') ||
+       args[0].includes('Warning: <defs>') ||
+       args[0].includes('Warning: <stop>'))
     ) {
       return
     }
     originalError.call(console, ...args)
   }
+  
+  console.log = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('WebSocket connected') ||
+       args[0].includes('WebSocket disconnected'))
+    ) {
+      return
+    }
+    originalLog.call(console, ...args)
+  }
 })
 
 afterAll(() => {
   console.error = originalError
+  console.log = originalLog
 })

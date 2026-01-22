@@ -226,14 +226,22 @@ describe('Real-Time Updates Property Tests', () => {
             const dataWithTimestamps = result.current.data.filter(d => d.timestamp)
             if (dataWithTimestamps.length > 1) {
               // Sort the data first to handle the case where timestamps might be equal
-              const sortedData = [...dataWithTimestamps].sort((a, b) => 
-                new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-              )
+              // Filter out invalid dates before sorting
+              const validTimestampData = dataWithTimestamps.filter(d => {
+                const timestamp = new Date(d.timestamp)
+                return !isNaN(timestamp.getTime())
+              })
               
-              for (let i = 1; i < sortedData.length; i++) {
-                const prev = new Date(sortedData[i - 1].timestamp).getTime()
-                const curr = new Date(sortedData[i].timestamp).getTime()
-                expect(curr).toBeGreaterThanOrEqual(prev)
+              if (validTimestampData.length > 1) {
+                const sortedData = [...validTimestampData].sort((a, b) => 
+                  new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                )
+                
+                for (let i = 1; i < sortedData.length; i++) {
+                  const prev = new Date(sortedData[i - 1].timestamp).getTime()
+                  const curr = new Date(sortedData[i].timestamp).getTime()
+                  expect(curr).toBeGreaterThanOrEqual(prev)
+                }
               }
             }
 

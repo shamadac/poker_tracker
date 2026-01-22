@@ -285,8 +285,12 @@ class RBACService:
                 await RBACService.user_has_resource_permission(db, user_id, resource, action)):
                 return True
         
-        # Check for general permissions (without ownership restriction)
-        return await RBACService.user_has_resource_permission(db, user_id, resource, action)
+        # For resources without ownership (system resources), check general permissions
+        if resource_owner_id is None:
+            return await RBACService.user_has_resource_permission(db, user_id, resource, action)
+        
+        # If we reach here, user doesn't have access to the specific resource
+        return False
     
     @staticmethod
     async def create_role(

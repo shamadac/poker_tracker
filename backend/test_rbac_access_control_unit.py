@@ -18,7 +18,7 @@ import pytest
 from datetime import datetime, timezone, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, text
 
 # Import the RBAC components to test
 from app.services.rbac_service import RBACService
@@ -37,6 +37,9 @@ class TestRBACAccessControlUnit:
         """Setup and cleanup for each test."""
         self.test_users = []
         
+        # Setup RBAC system for tests
+        await self.setup_rbac_system()
+        
         yield
         
         # Cleanup test data
@@ -48,6 +51,74 @@ class TestRBACAccessControlUnit:
                 await db.commit()
             except Exception:
                 await db.rollback()
+
+    async def setup_rbac_system(self):
+        """Set up RBAC roles and permissions for testing."""
+        async with async_session_maker() as db:
+            try:
+                # Check if roles already exist
+                result = await db.execute(select(Role).where(Role.name == 'user'))
+                if result.scalar_one_or_none():
+                    return  # RBAC system already set up
+                
+                # Create default roles
+                user_role = Role(
+                    name='user',
+                    description='Standard user with access to own data',
+                    is_system_role=True
+                )
+                admin_role = Role(
+                    name='admin', 
+                    description='Administrator with elevated privileges',
+                    is_system_role=True
+                )
+                superuser_role = Role(
+                    name='superuser',
+                    description='Super administrator with full system access',
+                    is_system_role=True
+                )
+                
+                db.add_all([user_role, admin_role, superuser_role])
+                await db.commit()
+                
+                # Create basic permissions
+                permissions = [
+                    Permission(name='read_own_hands', resource='poker_hands', action='read', description='Read own poker hands'),
+                    Permission(name='write_own_hands', resource='poker_hands', action='write', description='Create/update own poker hands'),
+                    Permission(name='read_all_users', resource='users', action='read_all', description='Read all user profiles'),
+                    Permission(name='manage_system', resource='system', action='manage', description='Full system management access'),
+                ]
+                
+                db.add_all(permissions)
+                await db.commit()
+                
+                # Refresh roles to get IDs
+                await db.refresh(user_role)
+                await db.refresh(admin_role)
+                await db.refresh(superuser_role)
+                
+                # Assign permissions to roles
+                for permission in permissions:
+                    await db.refresh(permission)
+                    
+                    # User role gets basic permissions
+                    if permission.name in ['read_own_hands', 'write_own_hands']:
+                        user_role.permissions.append(permission)
+                    
+                    # Admin role gets user permissions + admin permissions
+                    if permission.name in ['read_own_hands', 'write_own_hands', 'read_all_users']:
+                        admin_role.permissions.append(permission)
+                    
+                    # Superuser gets all permissions
+                    superuser_role.permissions.append(permission)
+                
+                await db.commit()
+                
+            except Exception as e:
+                await db.rollback()
+                # If setup fails, it might be because the system is already set up
+                # This is acceptable for tests
+                pass
 
     async def create_test_user(self, db: AsyncSession, email: str, is_superuser: bool = False) -> User:
         """Create a test user and track for cleanup."""

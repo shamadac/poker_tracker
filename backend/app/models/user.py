@@ -77,6 +77,7 @@ class User(Base, UUIDMixin, TimestampMixin):
         cascade="all, delete-orphan",
         foreign_keys="UserRole.user_id"
     )
+    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"

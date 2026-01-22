@@ -13,6 +13,7 @@ import statistics
 
 from app.models.hand import PokerHand
 from app.models.statistics import StatisticsCache
+from app.services.session_service import SessionService
 from app.schemas.statistics import (
     BasicStatistics,
     AdvancedStatistics,
@@ -1033,7 +1034,7 @@ class StatisticsService:
         filters: Optional[StatisticsFilters] = None
     ) -> List[SessionStatistics]:
         """
-        Calculate session-based statistics grouped by date.
+        Calculate session-based statistics grouped by date using timezone-aware calculations.
         
         Args:
             user_id: User ID to calculate statistics for
@@ -1059,15 +1060,8 @@ class StatisticsService:
         if not hands:
             return []
         
-        # Group hands by session (same date)
-        sessions = {}
-        for hand in hands:
-            session_date = hand.date_played.date() if hand.date_played else datetime.now().date()
-            
-            if session_date not in sessions:
-                sessions[session_date] = []
-            
-            sessions[session_date].append(hand)
+        # Group hands by session using timezone-aware date boundaries
+        sessions = await self._group_hands_by_timezone_aware_date(user_id, hands)
         
         # Calculate statistics for each session
         session_stats = []
@@ -2214,3 +2208,273 @@ class StatisticsService:
                 hand.profit = self._calculate_hand_winnings(hand)
         
         return hands
+        # Execute query
+        result = await self.db.execute(query)
+        hands = result.scalars().all()
+
+        # Add profit calculation to each hand
+        for hand in hands:
+            if not hasattr(hand, 'profit'):
+                hand.profit = self._calculate_hand_winnings(hand)
+
+        return hands
+    
+    async def _group_hands_by_timezone_aware_date(
+        self, 
+        user_id: str, 
+        hands: List[PokerHand]
+    ) -> Dict[datetime.date, List[PokerHand]]:
+        """
+        Group hands by date using timezone-aware date boundaries.
+        
+        Args:
+            user_id: User ID for timezone lookup
+            hands: List of poker hands to group
+            
+        Returns:
+            Dictionary mapping dates to lists of hands
+        """
+        sessions = {}
+        
+        # Get user's active session for timezone info
+        try:
+            user_session = await SessionService.get_active_session(self.db, user_id)
+            if not user_session:
+                # Fallback to UTC grouping if no session found
+                logger.warning(f"No active session found for user {user_id}, using UTC for date grouping")
+                for hand in hands:
+                    session_date = hand.date_played.date() if hand.date_played else datetime.now().date()
+                    if session_date not in sessions:
+                        sessions[session_date] = []
+                    sessions[session_date].append(hand)
+                return sessions
+        except Exception as e:
+            logger.error(f"Failed to get user session for timezone-aware grouping: {e}")
+            # Fallback to UTC grouping
+            for hand in hands:
+                session_date = hand.date_played.date() if hand.date_played else datetime.now().date()
+                if session_date not in sessions:
+                    sessions[session_date] = []
+                sessions[session_date].append(hand)
+            return sessions
+        
+        # Group hands using timezone-aware date boundaries
+        for hand in hands:
+            if not hand.date_played:
+                # Use current date if no date_played
+                session_date = datetime.now().date()
+            else:
+                # Convert hand timestamp to user's local date
+                try:
+                    local_time = user_session.get_local_time(hand.date_played)
+                    session_date = local_time.date()
+                except Exception as e:
+                    logger.warning(f"Failed to convert hand timestamp to local time: {e}")
+                    # Fallback to UTC date
+                    session_date = hand.date_played.date()
+            
+            if session_date not in sessions:
+                sessions[session_date] = []
+            sessions[session_date].append(hand)
+        
+        return sessions
+    
+    async def calculate_daily_statistics_for_date(
+        self,
+        user_id: str,
+        target_date: Optional[datetime] = None,
+        filters: Optional[StatisticsFilters] = None
+    ) -> Optional[SessionStatistics]:
+        """
+        Calculate daily statistics for a specific date using timezone-aware boundaries.
+        
+        Args:
+            user_id: User ID to calculate statistics for
+            target_date: Target date (defaults to today)
+            filters: Optional filters to apply
+            
+        Returns:
+            SessionStatistics for the specified date or None if no data
+        """
+        try:
+            # Get timezone-aware date boundaries
+            start_utc, end_utc = await SessionService.calculate_date_boundaries(
+                self.db, user_id, target_date
+            )
+            
+            # Build query for hands within the date boundaries
+            query = select(PokerHand).where(
+                and_(
+                    PokerHand.user_id == user_id,
+                    PokerHand.date_played >= start_utc,
+                    PokerHand.date_played <= end_utc
+                )
+            )
+            
+            # Apply additional filters if provided
+            if filters:
+                query = self._apply_filters(query, filters)
+            
+            # Execute query
+            result = await self.db.execute(query)
+            hands = list(result.scalars().all())
+            
+            if not hands:
+                # Return empty state for dates with no sessions
+                target_date_obj = target_date or datetime.utcnow()
+                return SessionStatistics(
+                    session_date=target_date_obj.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc),
+                    hands_played=0,
+                    duration_minutes=0,
+                    win_rate=Decimal('0.0'),
+                    vpip=Decimal('0.0'),
+                    pfr=Decimal('0.0'),
+                    aggression_factor=Decimal('0.0'),
+                    biggest_win=Decimal('0.0'),
+                    biggest_loss=Decimal('0.0'),
+                    net_result=Decimal('0.0')
+                )
+            
+            # Calculate statistics for the day
+            total_hands = len(hands)
+            vpip_hands = 0
+            pfr_hands = 0
+            aggressive_actions = 0
+            passive_actions = 0
+            total_winnings = Decimal('0.0')
+            biggest_win = Decimal('0.0')
+            biggest_loss = Decimal('0.0')
+            
+            # Calculate session duration
+            session_start = min(hand.date_played for hand in hands if hand.date_played)
+            session_end = max(hand.date_played for hand in hands if hand.date_played)
+            duration_minutes = int((session_end - session_start).total_seconds() / 60) if session_start and session_end else 0
+            
+            for hand in hands:
+                actions = hand.actions or {}
+                
+                # VPIP and PFR
+                if self._is_vpip_hand(actions, hand.position):
+                    vpip_hands += 1
+                
+                if self._is_pfr_hand(actions):
+                    pfr_hands += 1
+                
+                # Aggression factor
+                agg_actions = self._count_aggressive_actions(actions)
+                pass_actions = self._count_passive_actions(actions)
+                aggressive_actions += agg_actions
+                passive_actions += pass_actions
+                
+                # Winnings tracking
+                if hand.result and hand.pot_size:
+                    hand_winnings = self._calculate_hand_winnings(hand)
+                    total_winnings += hand_winnings
+                    
+                    if hand_winnings > biggest_win:
+                        biggest_win = hand_winnings
+                    elif hand_winnings < biggest_loss:
+                        biggest_loss = hand_winnings
+            
+            # Calculate percentages
+            vpip = self._calculate_percentage(vpip_hands, total_hands)
+            pfr = self._calculate_percentage(pfr_hands, total_hands)
+            
+            # Ensure mathematical consistency: PFR should never exceed VPIP
+            if pfr > vpip:
+                logger.warning(f"Daily stats for {target_date}: PFR ({pfr}) exceeds VPIP ({vpip}). Adjusting PFR to match VPIP.")
+                pfr = vpip
+            
+            # Aggression factor
+            if passive_actions > 0:
+                aggression_factor = Decimal(str(aggressive_actions)) / Decimal(str(passive_actions))
+            else:
+                aggression_factor = Decimal('0.0') if aggressive_actions == 0 else Decimal('999.0')
+            
+            # Win rate
+            win_rate = total_winnings / Decimal(str(total_hands)) if total_hands > 0 else Decimal('0.0')
+            
+            target_date_obj = target_date or datetime.utcnow()
+            return SessionStatistics(
+                session_date=target_date_obj.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc),
+                hands_played=total_hands,
+                duration_minutes=duration_minutes,
+                win_rate=win_rate,
+                vpip=vpip,
+                pfr=pfr,
+                aggression_factor=aggression_factor.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP),
+                biggest_win=biggest_win,
+                biggest_loss=biggest_loss,
+                net_result=total_winnings
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to calculate daily statistics for user {user_id}: {e}")
+            return None
+    
+    async def recalculate_statistics_on_time_change(
+        self,
+        user_id: str,
+        old_timezone: str,
+        new_timezone: str
+    ) -> Dict[str, Any]:
+        """
+        Recalculate statistics when system time or timezone changes.
+        
+        Args:
+            user_id: User ID to recalculate statistics for
+            old_timezone: Previous timezone
+            new_timezone: New timezone
+            
+        Returns:
+            Dictionary with recalculation results
+        """
+        try:
+            logger.info(f"Recalculating statistics for user {user_id} due to timezone change: {old_timezone} -> {new_timezone}")
+            
+            # Clear cached statistics to force recalculation
+            if self.cache_service:
+                await self.cache_service.clear_user_cache(user_id)
+            
+            # Get all hands for the user
+            query = select(PokerHand).where(PokerHand.user_id == user_id)
+            result = await self.db.execute(query)
+            hands = list(result.scalars().all())
+            
+            if not hands:
+                return {
+                    "status": "success",
+                    "message": "No hands found for recalculation",
+                    "hands_processed": 0,
+                    "sessions_recalculated": 0
+                }
+            
+            # Recalculate session statistics with new timezone
+            session_stats = await self.calculate_session_statistics(user_id)
+            
+            # Recalculate daily statistics for recent dates
+            recent_dates = []
+            for i in range(30):  # Last 30 days
+                date = datetime.utcnow() - timedelta(days=i)
+                daily_stats = await self.calculate_daily_statistics_for_date(user_id, date)
+                if daily_stats and daily_stats.hands_played > 0:
+                    recent_dates.append(date.strftime("%Y-%m-%d"))
+            
+            return {
+                "status": "success",
+                "message": f"Statistics recalculated for timezone change",
+                "hands_processed": len(hands),
+                "sessions_recalculated": len(session_stats),
+                "recent_dates_updated": recent_dates,
+                "old_timezone": old_timezone,
+                "new_timezone": new_timezone
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to recalculate statistics for timezone change: {e}")
+            return {
+                "status": "error",
+                "message": f"Failed to recalculate statistics: {str(e)}",
+                "hands_processed": 0,
+                "sessions_recalculated": 0
+            }

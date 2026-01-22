@@ -3,12 +3,13 @@ API v1 router configuration.
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, hands, stats, analysis, users, monitoring, rbac, file_monitoring, file_processing, performance, education, export, security
+from app.api.v1.endpoints import auth, hands, stats, analysis, users, monitoring, rbac, file_monitoring, file_processing, performance, education, export, security, sessions
 
 api_router = APIRouter()
 
 # Include all endpoint routers
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
+api_router.include_router(sessions.router, prefix="/sessions", tags=["session-management"])
 api_router.include_router(hands.router, prefix="/hands", tags=["hand-history"])
 api_router.include_router(stats.router, prefix="/stats", tags=["statistics"])
 api_router.include_router(analysis.router, prefix="/analysis", tags=["ai-analysis"])

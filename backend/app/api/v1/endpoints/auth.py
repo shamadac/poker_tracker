@@ -30,6 +30,7 @@ from app.schemas.auth import (
 from app.schemas.common import ErrorResponse, SuccessResponse
 from app.models.user import User
 from app.services.user_service import UserService
+from app.services.session_service import SessionService
 
 router = APIRouter()
 
@@ -157,6 +158,30 @@ async def login_for_access_token(
         user_id=str(user.id),
         success=True
     )
+    
+    # Detect timezone from request headers
+    timezone = SessionService.detect_timezone_from_request(dict(request.headers))
+    
+    # Extract device info from request
+    device_info = {
+        "user_agent": request.headers.get("user-agent", ""),
+        "accept_language": request.headers.get("accept-language", ""),
+        "platform": "web",
+        "browser": "unknown"
+    }
+    
+    # Create user session
+    try:
+        session = await SessionService.create_session(
+            db=db,
+            user_id=str(user.id),
+            timezone=timezone,
+            device_info=device_info,
+            ip_address=request.client.host if request.client else None
+        )
+    except Exception as e:
+        # Log session creation failure but don't fail login
+        print(f"Failed to create session for user {user.id}: {e}")
     
     # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -439,7 +464,8 @@ async def get_csrf_token():
 @router.post("/logout", response_model=SuccessResponse)
 async def logout(
     request: Request,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ) -> SuccessResponse:
     """
     Logout user and invalidate tokens.
@@ -451,6 +477,17 @@ async def logout(
         dict: Logout confirmation
     """
     from app.middleware.security import SecurityEventLogger
+    
+    # End user session
+    try:
+        await SessionService.end_user_sessions(
+            db=db,
+            user_id=str(current_user.id),
+            logout_reason="logout"
+        )
+    except Exception as e:
+        # Log session end failure but don't fail logout
+        print(f"Failed to end sessions for user {current_user.id}: {e}")
     
     # Log the logout event
     SecurityEventLogger.log_authentication_attempt(

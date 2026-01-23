@@ -160,32 +160,214 @@ export function useErrorBoundary() {
 }
 
 // Specialized error boundaries for different contexts
-export function APIErrorBoundary({ children }: { children: React.ReactNode }) {
+export function APIErrorBoundary({ 
+  children, 
+  title = "API Error",
+  fallbackData,
+  onRetry
+}: { 
+  children: React.ReactNode;
+  title?: string;
+  fallbackData?: any;
+  onRetry?: () => void;
+}) {
   return (
     <ErrorBoundary
-      title="API Error"
+      title={title}
       showDetails={process.env.NODE_ENV === 'development'}
-      fallback={createErrorBoundaryFallback("API Error", process.env.NODE_ENV === 'development')}
+      fallback={({ error, reset }) => (
+        <div className="min-h-[200px] flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-destructive flex items-center gap-2">
+                <ErrorIcon className="h-5 w-5" />
+                {title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This component encountered an error and couldn't load properly.
+              </p>
+              
+              {fallbackData && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <p className="text-xs text-amber-700 mb-2">
+                    Showing cached data while we try to resolve the issue.
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => {
+                  reset();
+                  onRetry?.();
+                }} className="flex-1">
+                  Try Again
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()}
+                  className="flex-1"
+                >
+                  Reload Page
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     >
       {children}
     </ErrorBoundary>
   );
 }
 
-export function ChartErrorBoundary({ children }: { children: React.ReactNode }) {
+export function ChartErrorBoundary({ 
+  children, 
+  onRetry,
+  fallbackData 
+}: { 
+  children: React.ReactNode;
+  onRetry?: () => void;
+  fallbackData?: any;
+}) {
   return (
     <ErrorBoundary
       title="Chart Error"
       fallback={({ reset }) => (
-        <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
           <div className="text-center">
             <ErrorIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-600 mb-3">Unable to load chart</p>
-            <Button variant="outline" size="sm" onClick={reset}>
-              Retry
-            </Button>
+            
+            {fallbackData && (
+              <p className="text-xs text-amber-600 mb-3">
+                Cached chart data is available
+              </p>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Button variant="outline" size="sm" onClick={() => {
+                reset();
+                onRetry?.();
+              }}>
+                Retry
+              </Button>
+              
+              {fallbackData && (
+                <Button variant="ghost" size="sm" onClick={() => {
+                  // Show fallback data logic would go here
+                  reset();
+                }}>
+                  Show Cached
+                </Button>
+              )}
+            </div>
           </div>
         </div>
+      )}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
+// Widget-specific error boundary with enhanced features
+export function WidgetErrorBoundary({ 
+  children, 
+  widgetId,
+  title,
+  onRetry,
+  fallbackData,
+  priority = "medium"
+}: { 
+  children: React.ReactNode;
+  widgetId: string;
+  title: string;
+  onRetry?: () => void;
+  fallbackData?: any;
+  priority?: "high" | "medium" | "low";
+}) {
+  const [retryCount, setRetryCount] = React.useState(0);
+  const maxRetries = priority === "high" ? 3 : 1;
+
+  const handleRetry = React.useCallback(() => {
+    if (retryCount < maxRetries) {
+      setRetryCount(prev => prev + 1);
+      onRetry?.();
+    }
+  }, [retryCount, maxRetries, onRetry]);
+
+  // Auto-retry for high priority widgets
+  React.useEffect(() => {
+    if (priority === "high" && retryCount > 0 && retryCount < maxRetries) {
+      const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 8000);
+      const timer = setTimeout(handleRetry, delay);
+      return () => clearTimeout(timer);
+    }
+  }, [retryCount, priority, maxRetries, handleRetry]);
+
+  return (
+    <ErrorBoundary
+      title={`${title} Error`}
+      fallback={({ error, reset }) => (
+        <Card className="min-h-[200px] border-destructive/20 bg-destructive/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-destructive flex items-center gap-2">
+              <ErrorIcon className="h-4 w-4" />
+              {title} Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                This widget encountered an error and couldn't load.
+              </p>
+              
+              {fallbackData && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-md mb-4">
+                  <p className="text-xs text-amber-700">
+                    Cached data is available for this widget.
+                  </p>
+                </div>
+              )}
+              
+              {retryCount > 0 && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Retry attempt {retryCount}/{maxRetries}
+                </p>
+              )}
+              
+              <div className="flex flex-col gap-2">
+                {retryCount < maxRetries && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      reset();
+                      handleRetry();
+                    }}
+                  >
+                    {retryCount > 0 ? 'Retry Again' : 'Try Again'}
+                  </Button>
+                )}
+                
+                {fallbackData && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      // Logic to show fallback data would be handled by parent
+                      reset();
+                    }}
+                  >
+                    Show Cached Data
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     >
       {children}

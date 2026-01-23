@@ -41,7 +41,8 @@ The implementation is organized into discrete, incremental steps that build upon
     - **Property 2: Timezone-Aware Date Calculations**
     - **Validates: Requirements 2.2, 2.3, 2.4, 2.5**
 
-  - [ ]* 2.4 Write property test for session tracking accuracy
+  - [x] 2.4 Write property test for session tracking accuracy
+
     - **Property 13: Session Tracking Accuracy**
     - **Validates: Requirements 13.1, 13.2, 13.3, 13.4, 13.5**
 

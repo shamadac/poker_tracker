@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { LoadingButton } from "@/components/loading-states"
+import { TermLinkedContent } from "@/components/ui/term-linked-content"
 import { useState, useCallback } from "react"
 import { Upload, FileText, Zap, Brain, Clock, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
 
@@ -229,7 +230,11 @@ Seat 3: Hero (button) folded on the River`
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold">Hand Analysis</h1>
         <p className="text-muted-foreground text-sm sm:text-base">
-          Analyze poker hands with AI-powered insights and strategic recommendations
+          <TermLinkedContent 
+            content="Analyze poker hands with AI-powered insights and strategic recommendations using advanced hand analysis techniques"
+            context="analysis"
+            maxLinks={3}
+          />
         </p>
       </div>
 
@@ -429,9 +434,12 @@ Seat 3: Hero (button) folded on the River`
                         <TrendingUp className="h-4 w-4" />
                         Analysis Summary
                       </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {currentAnalysis.analysis.summary}
-                      </p>
+                      <TermLinkedContent 
+                        content={currentAnalysis.analysis.summary}
+                        context="analysis"
+                        maxLinks={5}
+                        className="text-sm text-muted-foreground leading-relaxed"
+                      />
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -458,7 +466,11 @@ Seat 3: Hero (button) folded on the River`
                         {currentAnalysis.analysis.strengths.map((strength, index) => (
                           <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
                             <span className="text-green-500 mt-1">•</span>
-                            {strength}
+                            <TermLinkedContent 
+                              content={strength}
+                              context="analysis"
+                              maxLinks={2}
+                            />
                           </li>
                         ))}
                       </ul>
@@ -473,7 +485,11 @@ Seat 3: Hero (button) folded on the River`
                         {currentAnalysis.analysis.mistakes.map((mistake, index) => (
                           <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
                             <span className="text-red-500 mt-1">•</span>
-                            {mistake}
+                            <TermLinkedContent 
+                              content={mistake}
+                              context="analysis"
+                              maxLinks={2}
+                            />
                           </li>
                         ))}
                       </ul>
@@ -487,7 +503,12 @@ Seat 3: Hero (button) folded on the River`
                     <div className="space-y-3">
                       {currentAnalysis.analysis.recommendations.map((rec, index) => (
                         <div key={index} className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-sm">{rec}</p>
+                          <TermLinkedContent 
+                            content={rec}
+                            context="analysis"
+                            maxLinks={3}
+                            className="text-sm"
+                          />
                         </div>
                       ))}
                     </div>

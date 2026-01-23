@@ -4,6 +4,7 @@ import React, { useEffect, useCallback } from "react"
 import { DashboardWidget, useWidgetState } from "./dashboard-widget"
 import { PokerStatCard } from "@/components/ui/stat-card"
 import { useBasicStatistics } from "@/hooks/api-hooks"
+import { TermLinkedContent } from "@/components/ui/term-linked-content"
 import { Activity, TrendingUp, Target, Users, DollarSign } from "lucide-react"
 
 interface DashboardStatsWidgetProps {
@@ -122,7 +123,14 @@ export function DashboardStatsWidget({
     <DashboardWidget
       id="dashboard-stats"
       title="Performance Overview"
-      description="Key poker statistics and metrics"
+      description={
+        <TermLinkedContent 
+          content="Key poker statistics and metrics including VPIP, PFR, win rate, and session data"
+          context="dashboard"
+          maxLinks={3}
+          className="text-sm text-muted-foreground"
+        />
+      }
       loading={widgetState.loading}
       error={widgetState.error}
       onRetry={handleRetry}

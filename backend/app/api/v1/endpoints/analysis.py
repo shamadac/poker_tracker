@@ -1,8 +1,10 @@
 """
-Analysis API endpoints.
+Production-Ready Analysis API endpoints.
 
-Provides endpoints for AI-powered poker analysis using YAML prompts
-with flexible AI provider selection (Gemini, Groq).
+Provides endpoints for AI-powered poker analysis using real hand data only,
+with comprehensive error handling, AI provider failover, and batch processing.
+
+Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 11.1, 11.2, 11.3, 11.4, 11.5
 """
 
 from typing import Dict, Any, List, Optional
@@ -11,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
 from ....core.database import get_db
-from ....services.ai_analysis import get_ai_analysis_service, AIProvider, AnalysisResult
+from ....services.ai_analysis import ProductionAIAnalysisService, AIProvider, AnalysisResult, BatchAnalysisRequest
 from ....services.prompt_manager import get_prompt_manager
 from ....schemas.analysis import (
     HandAnalysisRequest,
@@ -40,8 +42,8 @@ async def get_prompt_categories():
     from the YAML prompt system.
     """
     try:
-        ai_service = get_ai_analysis_service()
-        return ai_service.get_available_analysis_types()
+        prompt_manager = get_prompt_manager()
+        return prompt_manager.get_available_analysis_types()
     except Exception as e:
         logger.error(f"Error getting prompt categories: {e}")
         raise HTTPException(
@@ -148,20 +150,24 @@ async def analyze_hand(
         )
 
 
-@router.post("/hand/{hand_id}/analyze-comprehensive", response_model=Dict[str, Any])
-async def analyze_hand_comprehensive(
+@router.post("/hand/{hand_id}/analyze-production", response_model=Dict[str, Any])
+async def analyze_hand_production(
     hand_id: str,
     request: HandAnalysisRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Perform comprehensive hand-by-hand analysis with adaptive depth.
+    Perform production analysis of a single hand using real data only.
     
-    Implements requirements 7.1, 7.6, 7.8:
-    - Strategic advice for each decision point
-    - Hand-by-hand breakdowns with specific recommendations
-    - Adaptive analysis depth based on user experience level
+    This endpoint:
+    - Retrieves real hand data from database
+    - Validates data integrity
+    - Implements AI provider failover (Groq ↔ Gemini)
+    - Validates analysis results against source data
+    - No mock or placeholder data dependencies
+    
+    Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 11.1, 11.2, 11.3, 11.4, 11.5
     """
     try:
         # Convert string to AIProvider enum
@@ -173,77 +179,217 @@ async def analyze_hand_comprehensive(
                 detail=f"Unsupported provider: {request.ai_provider}"
             )
         
-        # For development, we'll use mock data
-        # In production, this would fetch from database
-        from ...schemas.hand import HandResponse
-        from datetime import datetime
-        mock_hand = HandResponse(
-            id=hand_id,
-            hand_id=hand_id,
-            platform="pokerstars",
-            game_type="No Limit Hold'em",
-            stakes="$0.25/$0.50",
-            position="Button",
-            player_cards=["As", "Kh"],
-            board_cards=["Qh", "Jc", "9s"],
-            actions={
-                "preflop": [
-                    {"player": "Hero", "action": "raise", "amount": 1.50, "street": "preflop"},
-                    {"player": "Villain", "action": "call", "amount": 1.50, "street": "preflop"}
-                ],
-                "flop": [
-                    {"player": "Hero", "action": "bet", "amount": 2.25, "street": "flop"}
-                ]
-            },
-            result="Won $4.50",
-            pot_size=4.50,
-            user_id=current_user.id,
-            created_at=datetime.now(),
-            updated_at=datetime.now()
-        )
-        
-        ai_service = get_ai_analysis_service()
+        # Initialize production AI service with database access
+        ai_service = ProductionAIAnalysisService(db)
         
         # Get user's API key (empty string will use dev keys if available)
         api_key = ""  # In production, this would come from user settings
         
-        # Perform comprehensive analysis
-        result = await ai_service.analyze_hand_comprehensive(
-            hand=mock_hand,
+        # Perform analysis with real data
+        result = await ai_service.analyze_hand_with_real_data(
+            hand_id=hand_id,
+            user_id=current_user.id,
             provider=ai_provider,
             api_key=api_key,
-            experience_level="intermediate",  # Would come from user profile
-            analysis_depth=request.analysis_depth,
-            focus_areas=request.focus_areas
+            analysis_type=request.analysis_depth,
+            experience_level="intermediate"  # Would come from user profile
         )
         
         if result.success:
             return {
                 "hand_id": hand_id,
-                "analysis_type": "comprehensive",
+                "analysis_type": "production",
                 "provider": result.provider.value,
                 "content": result.content,
-                "structured_insights": result.metadata.get('structured_insights', {}),
-                "decision_points": result.metadata.get('decision_points', []),
-                "key_decisions": result.metadata.get('key_decisions', ''),
+                "data_validation": result.metadata.get('data_validation', {}),
                 "analysis_depth": request.analysis_depth,
                 "focus_areas": request.focus_areas or [],
+                "used_real_data": result.metadata.get('used_real_data', True),
+                "failover_used": result.metadata.get('failover_used', False),
+                "original_provider": result.metadata.get('original_provider'),
                 "usage": result.usage,
                 "metadata": result.metadata
             }
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Comprehensive analysis failed: {result.error}"
+                detail=f"Production analysis failed: {result.error}"
             )
             
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in comprehensive hand analysis: {e}")
+        logger.error(f"Error in production hand analysis: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to perform comprehensive analysis"
+            detail="Failed to perform production analysis"
+        )
+
+
+@router.post("/session/analyze-production", response_model=Dict[str, Any])
+async def analyze_session_production(
+    request: SessionAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Perform production session analysis using real hand data only.
+    
+    This endpoint:
+    - Retrieves real session hands from database
+    - Calculates real session statistics
+    - Implements AI provider failover
+    - Validates analysis results
+    - No mock or placeholder data dependencies
+    
+    Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 11.1, 11.2, 11.3, 11.4, 11.5
+    """
+    try:
+        # Convert string to AIProvider enum
+        try:
+            ai_provider = AIProvider(request.ai_provider.lower())
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported provider: {request.ai_provider}"
+            )
+        
+        # Validate hand count
+        if len(request.hand_ids) > 100:  # Limit for production analysis
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too many hands for production analysis (max 100)"
+            )
+        
+        # Initialize production AI service with database access
+        ai_service = ProductionAIAnalysisService(db)
+        
+        # Get user's API key (empty string will use dev keys if available)
+        api_key = ""  # In production, this would come from user settings
+        
+        # Perform session analysis with real data
+        result = await ai_service.analyze_session_with_real_data(
+            hand_ids=request.hand_ids,
+            user_id=current_user.id,
+            provider=ai_provider,
+            api_key=api_key,
+            analysis_type=request.analysis_type,
+            experience_level="intermediate"  # Would come from user profile
+        )
+        
+        if result.success:
+            return {
+                "session_id": f"session_{len(request.hand_ids)}",
+                "analysis_type": "production",
+                "provider": result.provider.value,
+                "hands_analyzed": result.metadata.get('hands_count', 0),
+                "content": result.content,
+                "session_stats": result.metadata.get('session_stats', {}),
+                "used_real_data": result.metadata.get('used_real_data', True),
+                "failover_used": result.metadata.get('failover_used', False),
+                "original_provider": result.metadata.get('original_provider'),
+                "usage": result.usage,
+                "metadata": result.metadata
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Production session analysis failed: {result.error}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in production session analysis: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to perform production session analysis"
+        )
+
+
+@router.post("/batch/analyze-production", response_model=Dict[str, Any])
+async def batch_analyze_production(
+    hand_ids: List[str],
+    ai_provider: str,
+    analysis_type: str = "basic",
+    include_session_analysis: bool = True,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Perform batch analysis of multiple hands with real data processing.
+    
+    This endpoint:
+    - Processes multiple hands in batches
+    - Implements rate limiting and progress tracking
+    - Uses AI provider failover
+    - Includes optional session analysis
+    - No mock or placeholder data dependencies
+    
+    Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6
+    """
+    try:
+        # Convert string to AIProvider enum
+        try:
+            provider = AIProvider(ai_provider.lower())
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported provider: {ai_provider}"
+            )
+        
+        # Validate batch size
+        if len(hand_ids) > 50:  # Limit for batch processing
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Too many hands for batch analysis (max 50)"
+            )
+        
+        # Initialize production AI service
+        ai_service = ProductionAIAnalysisService(db)
+        
+        # Create batch request
+        batch_request = BatchAnalysisRequest(
+            hand_ids=hand_ids,
+            user_id=current_user.id,
+            provider=provider,
+            api_key="",  # Will use dev keys if available
+            analysis_type=analysis_type,
+            experience_level="intermediate",
+            include_session_analysis=include_session_analysis
+        )
+        
+        # Perform batch analysis
+        batch_result = await ai_service.batch_analyze_hands(batch_request)
+        
+        return {
+            "batch_id": f"batch_{len(hand_ids)}_{provider.value}",
+            "success": batch_result.success,
+            "total_hands": batch_result.total_hands,
+            "successful_analyses": batch_result.successful_analyses,
+            "failed_analyses": batch_result.failed_analyses,
+            "processing_time": batch_result.processing_time,
+            "session_analysis_included": batch_result.session_analysis is not None,
+            "session_analysis_success": batch_result.session_analysis.success if batch_result.session_analysis else False,
+            "errors": batch_result.errors,
+            "results_summary": [
+                {
+                    "success": result.success,
+                    "provider": result.provider.value if result.provider else None,
+                    "content_length": len(result.content) if result.content else 0,
+                    "used_real_data": result.metadata.get('used_real_data', True) if result.metadata else True
+                }
+                for result in batch_result.results
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in batch analysis: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to perform batch analysis"
         )
 
 
@@ -307,109 +453,13 @@ async def analyze_session_comprehensive(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Perform comprehensive session analysis with individual hand breakdowns.
+    Perform comprehensive session analysis with real data processing.
     
-    Implements requirements 7.1, 7.6, 7.8:
-    - Strategic advice for session patterns and individual decisions
-    - Session-level breakdowns with specific recommendations
-    - Adaptive analysis depth based on user experience level
+    This is a legacy endpoint maintained for compatibility.
+    Use /session/analyze-production for new implementations.
     """
-    try:
-        # Convert string to AIProvider enum
-        try:
-            ai_provider = AIProvider(request.ai_provider.lower())
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported provider: {request.ai_provider}"
-            )
-        
-        # Validate hand count
-        if len(request.hand_ids) > 100:  # Limit for comprehensive analysis
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Too many hands for comprehensive analysis (max 100)"
-            )
-        
-        # For development, create mock session data
-        from ...schemas.hand import HandResponse
-        from datetime import datetime
-        mock_hands = []
-        for i, hand_id in enumerate(request.hand_ids[:5]):  # Limit to 5 for demo
-            mock_hands.append(HandResponse(
-                id=hand_id,
-                hand_id=hand_id,
-                platform="pokerstars",
-                game_type="No Limit Hold'em",
-                stakes="$0.25/$0.50",
-                position=["UTG", "MP", "CO", "BTN", "SB"][i % 5],
-                player_cards=["As Kh", "Qd Jc", "9h 8s", "Ah Kc", "Td 9d"][i % 5].split(),
-                board_cards=[],
-                actions={"preflop": [{"player": "Hero", "action": "fold", "street": "preflop"}]},
-                result="Lost $0.50",
-                pot_size=1.0,
-                user_id=current_user.id,
-                created_at=datetime.now(),
-                updated_at=datetime.now()
-            ))
-        
-        # Mock session statistics
-        mock_session_stats = {
-            "vpip": 22.5,
-            "pfr": 18.0,
-            "aggression_factor": 2.1,
-            "win_rate": 3.5,
-            "three_bet_percentage": 8.5,
-            "cbet_flop": 65.0,
-            "hands_played": len(request.hand_ids)
-        }
-        
-        ai_service = get_ai_analysis_service()
-        
-        # Get user's API key (empty string will use dev keys if available)
-        api_key = ""  # In production, this would come from user settings
-        
-        # Perform comprehensive session analysis
-        result = await ai_service.analyze_session_comprehensive(
-            hands=mock_hands,
-            session_stats=mock_session_stats,
-            provider=ai_provider,
-            api_key=api_key,
-            analysis_type=request.analysis_type,
-            experience_level="intermediate",  # Would come from user profile
-            include_individual_hands=True
-        )
-        
-        if result.success:
-            return {
-                "session_id": f"session_{len(request.hand_ids)}",
-                "analysis_type": "comprehensive",
-                "provider": result.provider.value,
-                "hands_analyzed": len(mock_hands),
-                "content": result.content,
-                "structured_insights": result.metadata.get('structured_insights', {}),
-                "session_stats": mock_session_stats,
-                "individual_hands": result.metadata.get('individual_hand_summaries', []),
-                "improvement_priorities": result.metadata.get('improvement_priorities', []),
-                "leak_analysis": result.metadata.get('leak_analysis', []),
-                "strength_analysis": result.metadata.get('strength_analysis', []),
-                "usage": result.usage,
-                "metadata": result.metadata
-            }
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Comprehensive session analysis failed: {result.error}"
-            )
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in comprehensive session analysis: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to perform comprehensive session analysis"
-        )
+    # Redirect to production endpoint
+    return await analyze_session_production(request, current_user, db)
 
 
 @router.get("/educational/{concept}", response_model=Dict[str, Any])
@@ -419,10 +469,11 @@ async def get_educational_content(
     api_key: str = "",
     experience_level: str = "intermediate",
     context: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
-    Get educational content about a poker concept.
+    Get educational content about a poker concept using production AI service.
     
     Uses AI to generate educational explanations about poker concepts,
     statistics, and strategies tailored to the user's experience level.
@@ -437,18 +488,16 @@ async def get_educational_content(
                 detail=f"Unsupported provider: {provider}"
             )
         
-        if not api_key:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="API key is required"
-            )
+        # Initialize production AI service
+        ai_service = ProductionAIAnalysisService(db)
         
-        ai_service = get_ai_analysis_service()
+        # Use development keys if no API key provided
+        resolved_api_key = api_key if api_key else ""
         
         result = await ai_service.get_educational_content(
             concept=concept,
             provider=ai_provider,
-            api_key=api_key,
+            api_key=resolved_api_key,
             experience_level=experience_level,
             context=context
         )
@@ -459,6 +508,7 @@ async def get_educational_content(
                 "content": result.content,
                 "provider": result.provider.value,
                 "experience_level": experience_level,
+                "used_dev_key": result.metadata.get('used_dev_key', False),
                 "usage": result.usage,
                 "metadata": result.metadata
             }
@@ -487,16 +537,18 @@ async def get_available_providers():
     their capabilities, default models, and rate limits.
     """
     try:
-        ai_service = get_ai_analysis_service()
-        providers = ai_service.get_available_providers()
+        from ....services.ai_providers import AIProviderFactory, PROVIDER_CAPABILITIES
+        
+        providers = AIProviderFactory.get_available_providers()
+        default_models = AIProviderFactory.get_default_models()
         
         provider_info = {}
         for provider in providers:
-            capabilities = ai_service.get_provider_capabilities(provider)
+            capabilities = PROVIDER_CAPABILITIES.get(provider, {})
             provider_info[provider.value] = {
                 "name": provider.value,
                 "capabilities": capabilities,
-                "default_model": ai_service.get_default_models().get(provider, "unknown")
+                "default_model": default_models.get(provider, "unknown")
             }
         
         return {
@@ -515,7 +567,8 @@ async def get_available_providers():
 async def validate_api_key(
     provider: str,
     api_key: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Validate an API key for a specific AI provider.
@@ -532,7 +585,7 @@ async def validate_api_key(
                 detail=f"Unsupported provider: {provider}"
             )
         
-        ai_service = get_ai_analysis_service()
+        ai_service = ProductionAIAnalysisService(db)
         is_valid = await ai_service.validate_api_key(ai_provider, api_key)
         
         return {
@@ -587,10 +640,11 @@ async def test_ai_integration(
     provider: str,
     api_key: str,
     model: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
-    Test AI provider integration with a simple request.
+    Test AI provider integration with a simple request using production service.
     
     Development endpoint to test AI provider connectivity and response quality.
     """
@@ -604,7 +658,7 @@ async def test_ai_integration(
                 detail=f"Unsupported provider: {provider}"
             )
         
-        ai_service = get_ai_analysis_service()
+        ai_service = ProductionAIAnalysisService(db)
         
         # Test with a simple educational content request
         result = await ai_service.get_educational_content(

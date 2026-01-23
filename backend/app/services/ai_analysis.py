@@ -1,18 +1,21 @@
 """
-AI Analysis Service with YAML Prompt Integration
+Production-Ready AI Analysis Service
 
-This service provides AI-powered poker analysis using configurable YAML prompts
-and multiple AI providers (Gemini, Groq).
+This service provides AI-powered poker analysis using real hand data only,
+with comprehensive error handling, AI provider failover, and batch processing.
 
-Requirements: 7.1, 7.2, 1.2, 1.4
+Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 11.1, 11.2, 11.3, 11.4, 11.5
 """
 
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass
 from enum import Enum
 import asyncio
 import json
+from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, func
 
 from .prompt_manager import get_prompt_manager, PromptManager
 from .ai_providers import (
@@ -24,21 +27,46 @@ from .ai_providers import (
 )
 from ..schemas.hand import HandResponse, DetailedAction
 from ..schemas.analysis import AnalysisResponse, SessionAnalysisResponse
+from ..models.hand import PokerHand
+from ..models.user import User
 from ..core.config import settings
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class AnalysisRequest:
-    """Request for AI analysis."""
+class BatchAnalysisRequest:
+    """Request for batch analysis of multiple hands."""
+    hand_ids: List[str]
+    user_id: str
     provider: AIProvider
     api_key: str
-    prompt_category: str
-    prompt_type: str
-    data: Dict[str, Any]
-    user_id: str
+    analysis_type: str = "basic"
     experience_level: str = "intermediate"
+    include_session_analysis: bool = True
+
+
+@dataclass
+class BatchAnalysisResult:
+    """Result from batch analysis."""
+    success: bool
+    total_hands: int
+    successful_analyses: int
+    failed_analyses: int
+    results: List[AnalysisResult]
+    session_analysis: Optional[AnalysisResult] = None
+    errors: List[str] = None
+    processing_time: float = 0.0
+
+
+@dataclass
+class ProviderFailoverResult:
+    """Result from provider failover attempt."""
+    success: bool
+    provider_used: AIProvider
+    original_provider: AIProvider
+    failover_reason: str
+    result: Optional[AnalysisResult] = None
 
 
 @dataclass
@@ -53,28 +81,699 @@ class AnalysisResult:
     usage: Optional[Dict[str, Any]] = None
 
 
-class AIAnalysisService:
+class ProductionAIAnalysisService:
     """
-    Service for AI-powered poker analysis using YAML prompts.
+    Production-ready AI analysis service with real data processing.
     
-    Provides functionality to:
-    - Analyze individual hands with strategic advice
-    - Generate session analysis and patterns
-    - Provide educational content and explanations
-    - Support multiple AI providers with runtime selection
+    Features:
+    - Real hand data retrieval from database
+    - AI provider failover mechanism (Groq ↔ Gemini)
+    - Batch processing for multiple files
+    - Analysis result validation against source data
+    - Comprehensive error handling and logging
+    - No mock or placeholder data dependencies
     """
     
-    def __init__(self, prompt_manager: Optional[PromptManager] = None):
+    def __init__(self, db: AsyncSession, prompt_manager: Optional[PromptManager] = None):
         """
-        Initialize the AI analysis service.
+        Initialize the production AI analysis service.
         
         Args:
+            db: Database session for real data access
             prompt_manager: Optional prompt manager instance
         """
+        self.db = db
         self.prompt_manager = prompt_manager or get_prompt_manager()
         self._client_cache: Dict[str, BaseAIClient] = {}
+        self._failover_providers = {
+            AIProvider.GROQ: AIProvider.GEMINI,
+            AIProvider.GEMINI: AIProvider.GROQ
+        }
     
-    def _get_api_key(self, provider: AIProvider, user_api_key: Optional[str] = None) -> str:
+    async def get_real_hand_data(self, hand_id: str, user_id: str) -> Optional[HandResponse]:
+        """
+        Retrieve real hand data from database.
+        
+        Args:
+            hand_id: Hand ID to retrieve
+            user_id: User ID for ownership validation
+            
+        Returns:
+            HandResponse with real data or None if not found
+        """
+        try:
+            # Query database for real hand data
+            result = await self.db.execute(
+                select(PokerHand).where(
+                    and_(
+                        PokerHand.hand_id == hand_id,
+                        PokerHand.user_id == user_id
+                    )
+                )
+            )
+            
+            hand = result.scalar_one_or_none()
+            if not hand:
+                logger.warning(f"Hand {hand_id} not found for user {user_id}")
+                return None
+            
+            # Convert database model to response schema
+            return HandResponse(
+                id=str(hand.id),
+                hand_id=hand.hand_id,
+                platform=hand.platform,
+                game_type=hand.game_type,
+                stakes=hand.stakes,
+                position=hand.position,
+                player_cards=hand.player_cards or [],
+                board_cards=hand.board_cards or [],
+                actions=hand.actions or {},
+                result=hand.result,
+                pot_size=float(hand.pot_size) if hand.pot_size else 0.0,
+                user_id=hand.user_id,
+                created_at=hand.created_at,
+                updated_at=hand.updated_at,
+                date_played=hand.date_played,
+                player_stacks=hand.player_stacks,
+                tournament_info=hand.tournament_info,
+                cash_game_info=hand.cash_game_info,
+                seat_number=hand.seat_number,
+                button_position=hand.button_position,
+                rake=float(hand.rake) if hand.rake else None,
+                currency=hand.currency,
+                is_play_money=hand.is_play_money,
+                timezone=hand.timezone
+            )
+            
+        except Exception as e:
+            logger.error(f"Error retrieving hand data {hand_id}: {e}")
+            return None
+    
+    async def get_real_session_hands(
+        self, 
+        hand_ids: List[str], 
+        user_id: str
+    ) -> List[HandResponse]:
+        """
+        Retrieve multiple real hands for session analysis.
+        
+        Args:
+            hand_ids: List of hand IDs to retrieve
+            user_id: User ID for ownership validation
+            
+        Returns:
+            List of HandResponse objects with real data
+        """
+        try:
+            # Query database for multiple hands
+            result = await self.db.execute(
+                select(PokerHand).where(
+                    and_(
+                        PokerHand.hand_id.in_(hand_ids),
+                        PokerHand.user_id == user_id
+                    )
+                ).order_by(PokerHand.date_played)
+            )
+            
+            hands = result.scalars().all()
+            
+            # Convert to response objects
+            hand_responses = []
+            for hand in hands:
+                hand_response = HandResponse(
+                    id=str(hand.id),
+                    hand_id=hand.hand_id,
+                    platform=hand.platform,
+                    game_type=hand.game_type,
+                    stakes=hand.stakes,
+                    position=hand.position,
+                    player_cards=hand.player_cards or [],
+                    board_cards=hand.board_cards or [],
+                    actions=hand.actions or {},
+                    result=hand.result,
+                    pot_size=float(hand.pot_size) if hand.pot_size else 0.0,
+                    user_id=hand.user_id,
+                    created_at=hand.created_at,
+                    updated_at=hand.updated_at,
+                    date_played=hand.date_played,
+                    player_stacks=hand.player_stacks,
+                    tournament_info=hand.tournament_info,
+                    cash_game_info=hand.cash_game_info,
+                    seat_number=hand.seat_number,
+                    button_position=hand.button_position,
+                    rake=float(hand.rake) if hand.rake else None,
+                    currency=hand.currency,
+                    is_play_money=hand.is_play_money,
+                    timezone=hand.timezone
+                )
+                hand_responses.append(hand_response)
+            
+            logger.info(f"Retrieved {len(hand_responses)} real hands for session analysis")
+            return hand_responses
+            
+        except Exception as e:
+            logger.error(f"Error retrieving session hands: {e}")
+            return []
+    
+    async def calculate_real_session_stats(self, hands: List[HandResponse]) -> Dict[str, Any]:
+        """
+        Calculate real session statistics from actual hand data.
+        
+        Args:
+            hands: List of real hand data
+            
+        Returns:
+            Dictionary with calculated statistics
+        """
+        if not hands:
+            return {}
+        
+        try:
+            total_hands = len(hands)
+            total_winnings = 0.0
+            hands_won = 0
+            hands_with_showdown = 0
+            preflop_raises = 0
+            postflop_bets = 0
+            total_actions = 0
+            
+            # Calculate statistics from real data
+            for hand in hands:
+                # Calculate winnings
+                if hand.result and 'won' in hand.result.lower():
+                    hands_won += 1
+                    if hand.pot_size:
+                        total_winnings += hand.pot_size
+                
+                # Analyze actions for VPIP, PFR, aggression
+                if hand.actions:
+                    actions_data = hand.actions
+                    if isinstance(actions_data, dict):
+                        # Count preflop actions
+                        preflop_actions = actions_data.get('preflop', [])
+                        if isinstance(preflop_actions, list):
+                            for action in preflop_actions:
+                                if isinstance(action, dict) and action.get('player') == 'Hero':
+                                    total_actions += 1
+                                    if action.get('action') in ['raise', 'bet']:
+                                        preflop_raises += 1
+                        
+                        # Count postflop actions
+                        for street in ['flop', 'turn', 'river']:
+                            street_actions = actions_data.get(street, [])
+                            if isinstance(street_actions, list):
+                                for action in street_actions:
+                                    if isinstance(action, dict) and action.get('player') == 'Hero':
+                                        total_actions += 1
+                                        if action.get('action') in ['bet', 'raise']:
+                                            postflop_bets += 1
+            
+            # Calculate derived statistics
+            win_rate = (hands_won / total_hands * 100) if total_hands > 0 else 0
+            vpip = (total_actions / total_hands * 100) if total_hands > 0 else 0
+            pfr = (preflop_raises / total_hands * 100) if total_hands > 0 else 0
+            aggression_factor = (postflop_bets / max(1, total_actions - preflop_raises)) if total_actions > preflop_raises else 0
+            
+            return {
+                'hands_played': total_hands,
+                'vpip': round(vpip, 1),
+                'pfr': round(pfr, 1),
+                'aggression_factor': round(aggression_factor, 2),
+                'win_rate': round(win_rate, 1),
+                'total_winnings': round(total_winnings, 2),
+                'hands_won': hands_won,
+                'three_bet_percentage': 0.0,  # Would need more detailed action parsing
+                'cbet_flop': 0.0  # Would need more detailed action parsing
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating session statistics: {e}")
+            return {}
+    
+    async def analyze_hand_with_real_data(
+        self,
+        hand_id: str,
+        user_id: str,
+        provider: AIProvider,
+        api_key: str,
+        analysis_type: str = "basic",
+        experience_level: str = "intermediate",
+        model: Optional[str] = None,
+        **generation_kwargs
+    ) -> AnalysisResult:
+        """
+        Analyze a single poker hand using real data from database.
+        
+        Args:
+            hand_id: Hand ID to analyze
+            user_id: User ID for data access
+            provider: AI provider to use
+            api_key: API key for the provider
+            analysis_type: Type of analysis
+            experience_level: Player's experience level
+            model: Optional specific model to use
+            **generation_kwargs: Additional parameters for AI generation
+            
+        Returns:
+            AnalysisResult with analysis of real data
+        """
+        try:
+            # Get real hand data from database
+            hand = await self.get_real_hand_data(hand_id, user_id)
+            if not hand:
+                return AnalysisResult(
+                    success=False,
+                    error=f"Hand {hand_id} not found or access denied",
+                    provider=provider
+                )
+            
+            # Validate hand data integrity
+            validation_result = self._validate_hand_data(hand)
+            if not validation_result['valid']:
+                return AnalysisResult(
+                    success=False,
+                    error=f"Hand data validation failed: {validation_result['errors']}",
+                    provider=provider
+                )
+            
+            # Get the appropriate API key (user-provided or development)
+            resolved_api_key = self._get_api_key(provider, api_key)
+            
+            # Validate API key
+            if not await self.validate_api_key(provider, resolved_api_key):
+                # Try failover to alternative provider
+                failover_result = await self._attempt_provider_failover(
+                    provider, api_key, "Invalid API key"
+                )
+                if failover_result.success:
+                    provider = failover_result.provider_used
+                    resolved_api_key = self._get_api_key(provider, api_key)
+                else:
+                    return AnalysisResult(
+                        success=False,
+                        error="Invalid API key for all available providers",
+                        provider=provider
+                    )
+            
+            # Prepare hand data for analysis
+            hand_data = self._prepare_real_hand_data(hand, experience_level)
+            
+            # Get formatted prompt
+            formatted_prompt = self.prompt_manager.format_prompt(
+                "hand_analysis",
+                analysis_type,
+                **hand_data
+            )
+            
+            if not formatted_prompt:
+                return AnalysisResult(
+                    success=False,
+                    error=f"Failed to get prompt for hand_analysis.{analysis_type}",
+                    provider=provider
+                )
+            
+            # Perform analysis with failover support
+            result = await self._analyze_with_failover(
+                provider, resolved_api_key, formatted_prompt, model, **generation_kwargs
+            )
+            
+            if result.success:
+                # Validate analysis result against source data
+                validation_result = self._validate_analysis_result(result, hand)
+                result.metadata = result.metadata or {}
+                result.metadata.update({
+                    'analysis_type': analysis_type,
+                    'experience_level': experience_level,
+                    'hand_id': hand_id,
+                    'model': model or "default",
+                    'data_validation': validation_result,
+                    'used_real_data': True,
+                    'used_dev_key': settings.USE_DEV_API_KEYS and not api_key
+                })
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error analyzing hand {hand_id}: {e}")
+            return AnalysisResult(
+                success=False,
+                error=f"Analysis failed: {str(e)}",
+                provider=provider
+            )
+    
+    async def analyze_session_with_real_data(
+        self,
+        hand_ids: List[str],
+        user_id: str,
+        provider: AIProvider,
+        api_key: str,
+        analysis_type: str = "summary",
+        experience_level: str = "intermediate",
+        model: Optional[str] = None,
+        **generation_kwargs
+    ) -> AnalysisResult:
+        """
+        Analyze a poker session using real hand data from database.
+        
+        Args:
+            hand_ids: List of hand IDs to analyze
+            user_id: User ID for data access
+            provider: AI provider to use
+            api_key: API key for the provider
+            analysis_type: Type of session analysis
+            experience_level: Player's experience level
+            model: Optional specific model to use
+            **generation_kwargs: Additional parameters for AI generation
+            
+        Returns:
+            AnalysisResult with session analysis of real data
+        """
+        try:
+            # Get real session hands from database
+            hands = await self.get_real_session_hands(hand_ids, user_id)
+            if not hands:
+                return AnalysisResult(
+                    success=False,
+                    error="No hands found for session analysis",
+                    provider=provider
+                )
+            
+            # Calculate real session statistics
+            session_stats = await self.calculate_real_session_stats(hands)
+            
+            # Get the appropriate API key (user-provided or development)
+            resolved_api_key = self._get_api_key(provider, api_key)
+            
+            # Validate API key with failover
+            if not await self.validate_api_key(provider, resolved_api_key):
+                failover_result = await self._attempt_provider_failover(
+                    provider, api_key, "Invalid API key"
+                )
+                if failover_result.success:
+                    provider = failover_result.provider_used
+                    resolved_api_key = self._get_api_key(provider, api_key)
+                else:
+                    return AnalysisResult(
+                        success=False,
+                        error="Invalid API key for all available providers",
+                        provider=provider
+                    )
+            
+            # Prepare session data for analysis
+            session_data = self._prepare_real_session_data(hands, session_stats, experience_level)
+            
+            # Get formatted prompt
+            formatted_prompt = self.prompt_manager.format_prompt(
+                "session_analysis",
+                analysis_type,
+                **session_data
+            )
+            
+            if not formatted_prompt:
+                return AnalysisResult(
+                    success=False,
+                    error=f"Failed to get prompt for session_analysis.{analysis_type}",
+                    provider=provider
+                )
+            
+            # Perform analysis with failover support
+            result = await self._analyze_with_failover(
+                provider, resolved_api_key, formatted_prompt, model, **generation_kwargs
+            )
+            
+            if result.success:
+                result.metadata = result.metadata or {}
+                result.metadata.update({
+                    'analysis_type': analysis_type,
+                    'experience_level': experience_level,
+                    'hands_count': len(hands),
+                    'session_stats': session_stats,
+                    'model': model or "default",
+                    'used_real_data': True,
+                    'used_dev_key': settings.USE_DEV_API_KEYS and not api_key
+                })
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error analyzing session: {e}")
+            return AnalysisResult(
+                success=False,
+                error=f"Session analysis failed: {str(e)}",
+                provider=provider
+            )
+    
+    async def batch_analyze_hands(
+        self,
+        batch_request: BatchAnalysisRequest
+    ) -> BatchAnalysisResult:
+        """
+        Perform batch analysis of multiple hands with progress tracking.
+        
+        Args:
+            batch_request: Batch analysis request parameters
+            
+        Returns:
+            BatchAnalysisResult with results for all hands
+        """
+        start_time = asyncio.get_event_loop().time()
+        results = []
+        errors = []
+        successful_analyses = 0
+        
+        try:
+            logger.info(f"Starting batch analysis of {len(batch_request.hand_ids)} hands")
+            
+            # Process hands in batches to avoid overwhelming the AI provider
+            batch_size = 5  # Process 5 hands at a time
+            hand_batches = [
+                batch_request.hand_ids[i:i + batch_size] 
+                for i in range(0, len(batch_request.hand_ids), batch_size)
+            ]
+            
+            for batch_num, hand_batch in enumerate(hand_batches):
+                logger.info(f"Processing batch {batch_num + 1}/{len(hand_batches)}")
+                
+                # Process hands in current batch concurrently
+                batch_tasks = []
+                for hand_id in hand_batch:
+                    task = self.analyze_hand_with_real_data(
+                        hand_id=hand_id,
+                        user_id=batch_request.user_id,
+                        provider=batch_request.provider,
+                        api_key=batch_request.api_key,
+                        analysis_type=batch_request.analysis_type,
+                        experience_level=batch_request.experience_level
+                    )
+                    batch_tasks.append(task)
+                
+                # Wait for batch completion
+                batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+                
+                # Process batch results
+                for i, result in enumerate(batch_results):
+                    if isinstance(result, Exception):
+                        error_msg = f"Hand {hand_batch[i]} failed: {str(result)}"
+                        errors.append(error_msg)
+                        logger.error(error_msg)
+                    elif isinstance(result, AnalysisResult):
+                        results.append(result)
+                        if result.success:
+                            successful_analyses += 1
+                        else:
+                            errors.append(f"Hand {hand_batch[i]}: {result.error}")
+                
+                # Small delay between batches to respect rate limits
+                if batch_num < len(hand_batches) - 1:
+                    await asyncio.sleep(1)
+            
+            # Perform session analysis if requested
+            session_analysis = None
+            if batch_request.include_session_analysis and successful_analyses > 0:
+                try:
+                    session_analysis = await self.analyze_session_with_real_data(
+                        hand_ids=batch_request.hand_ids,
+                        user_id=batch_request.user_id,
+                        provider=batch_request.provider,
+                        api_key=batch_request.api_key,
+                        analysis_type="summary",
+                        experience_level=batch_request.experience_level
+                    )
+                except Exception as e:
+                    errors.append(f"Session analysis failed: {str(e)}")
+            
+            processing_time = asyncio.get_event_loop().time() - start_time
+            
+            return BatchAnalysisResult(
+                success=successful_analyses > 0,
+                total_hands=len(batch_request.hand_ids),
+                successful_analyses=successful_analyses,
+                failed_analyses=len(batch_request.hand_ids) - successful_analyses,
+                results=results,
+                session_analysis=session_analysis,
+                errors=errors,
+                processing_time=processing_time
+            )
+            
+        except Exception as e:
+            processing_time = asyncio.get_event_loop().time() - start_time
+            logger.error(f"Batch analysis failed: {e}")
+            return BatchAnalysisResult(
+                success=False,
+                total_hands=len(batch_request.hand_ids),
+                successful_analyses=successful_analyses,
+                failed_analyses=len(batch_request.hand_ids) - successful_analyses,
+                results=results,
+                errors=errors + [f"Batch processing failed: {str(e)}"],
+                processing_time=processing_time
+            )
+    
+    async def _attempt_provider_failover(
+        self, 
+        original_provider: AIProvider, 
+        api_key: str, 
+        reason: str
+    ) -> ProviderFailoverResult:
+        """
+        Attempt to failover to alternative AI provider.
+        
+        Args:
+            original_provider: The provider that failed
+            api_key: API key to try with alternative provider
+            reason: Reason for failover attempt
+            
+        Returns:
+            ProviderFailoverResult with failover outcome
+        """
+        try:
+            # Get failover provider
+            failover_provider = self._failover_providers.get(original_provider)
+            if not failover_provider:
+                return ProviderFailoverResult(
+                    success=False,
+                    provider_used=original_provider,
+                    original_provider=original_provider,
+                    failover_reason=f"No failover provider available for {original_provider}"
+                )
+            
+            # Test failover provider
+            failover_api_key = self._get_api_key(failover_provider, api_key)
+            is_valid = await self.validate_api_key(failover_provider, failover_api_key)
+            
+            if is_valid:
+                logger.info(f"Successfully failed over from {original_provider} to {failover_provider}: {reason}")
+                return ProviderFailoverResult(
+                    success=True,
+                    provider_used=failover_provider,
+                    original_provider=original_provider,
+                    failover_reason=reason
+                )
+            else:
+                return ProviderFailoverResult(
+                    success=False,
+                    provider_used=original_provider,
+                    original_provider=original_provider,
+                    failover_reason=f"Failover provider {failover_provider} also invalid"
+                )
+                
+        except Exception as e:
+            logger.error(f"Error during provider failover: {e}")
+            return ProviderFailoverResult(
+                success=False,
+                provider_used=original_provider,
+                original_provider=original_provider,
+                failover_reason=f"Failover attempt failed: {str(e)}"
+            )
+    
+    async def _analyze_with_failover(
+        self,
+        provider: AIProvider,
+        api_key: str,
+        formatted_prompt: Dict[str, str],
+        model: Optional[str] = None,
+        **generation_kwargs
+    ) -> AnalysisResult:
+        """
+        Perform analysis with automatic failover on provider errors.
+        
+        Args:
+            provider: Primary AI provider
+            api_key: API key for provider
+            formatted_prompt: Formatted prompt dictionary
+            model: Optional model specification
+            **generation_kwargs: Additional generation parameters
+            
+        Returns:
+            AnalysisResult from successful provider
+        """
+        try:
+            # Try primary provider
+            client = self._get_or_create_client(provider, api_key, model)
+            ai_response = await client.generate_response(
+                formatted_prompt['system'],
+                formatted_prompt['user'],
+                **generation_kwargs
+            )
+            
+            if ai_response.success:
+                return AnalysisResult(
+                    success=True,
+                    content=ai_response.content,
+                    provider=provider,
+                    prompt_used=formatted_prompt,
+                    usage=ai_response.usage,
+                    metadata=ai_response.metadata
+                )
+            else:
+                # Try failover if primary provider failed
+                logger.warning(f"Primary provider {provider} failed: {ai_response.error}")
+                failover_result = await self._attempt_provider_failover(
+                    provider, api_key, f"Provider error: {ai_response.error}"
+                )
+                
+                if failover_result.success:
+                    # Retry with failover provider
+                    failover_api_key = self._get_api_key(failover_result.provider_used, api_key)
+                    failover_client = self._get_or_create_client(
+                        failover_result.provider_used, failover_api_key, model
+                    )
+                    
+                    failover_response = await failover_client.generate_response(
+                        formatted_prompt['system'],
+                        formatted_prompt['user'],
+                        **generation_kwargs
+                    )
+                    
+                    if failover_response.success:
+                        logger.info(f"Failover to {failover_result.provider_used} successful")
+                        return AnalysisResult(
+                            success=True,
+                            content=failover_response.content,
+                            provider=failover_result.provider_used,
+                            prompt_used=formatted_prompt,
+                            usage=failover_response.usage,
+                            metadata={
+                                **(failover_response.metadata or {}),
+                                'failover_used': True,
+                                'original_provider': provider.value,
+                                'failover_reason': failover_result.failover_reason
+                            }
+                        )
+                
+                # Both providers failed
+                return AnalysisResult(
+                    success=False,
+                    error=f"All providers failed. Primary: {ai_response.error}",
+                    provider=provider
+                )
+                
+        except Exception as e:
+            logger.error(f"Error in analysis with failover: {e}")
+            return AnalysisResult(
+                success=False,
+                error=f"Analysis failed: {str(e)}",
+                provider=provider
+            )
         """
         Get the appropriate API key for the provider.
         

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { TermLinkedContent } from '@/components/ui/term-linked-content';
 import { useToast } from '@/hooks/use-toast';
 import { Search, BookOpen, ExternalLink, Clock, User } from 'lucide-react';
 
@@ -235,9 +236,12 @@ export default function EncyclopediaPage() {
               </CardHeader>
               <CardContent>
                 <div className="prose prose-sm max-w-none">
-                  <p className="text-muted-foreground leading-relaxed">
-                    {truncateContent(entry.content)}
-                  </p>
+                  <TermLinkedContent 
+                    content={truncateContent(entry.content)}
+                    context="encyclopedia"
+                    maxLinks={3}
+                    className="text-muted-foreground leading-relaxed"
+                  />
                 </div>
                 <div className="mt-4 pt-4 border-t">
                   <Link href={`/encyclopedia/${entry.id}`}>

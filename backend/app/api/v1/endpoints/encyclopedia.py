@@ -329,8 +329,8 @@ async def generate_topic_suggestions(
 @router.post(
     "/entries/{entry_id}/links",
     response_model=List[dict],
-    summary="Generate entry links",
-    description="Generate inter-entry links for an encyclopedia entry"
+    summary="Generate entry links (DEPRECATED)",
+    description="Manual link generation deprecated - use automatic term linking instead"
 )
 async def generate_entry_links(
     entry_id: str,
@@ -338,54 +338,14 @@ async def generate_entry_links(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Generate inter-entry links for an encyclopedia entry using AI analysis."""
-    try:
-        # Check permissions
-        if not current_user.has_resource_permission("encyclopedia", "generate_links"):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions to generate entry links"
-            )
-        
-        # Get API key
-        encyclopedia_service = EncyclopediaService(db)
-        api_key = await encyclopedia_service.get_api_key(current_user.id, request.ai_provider.value)
-        
-        if not api_key:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"No API key configured for {request.ai_provider.value}"
-            )
-        
-        # Generate links
-        links = await encyclopedia_service.generate_entry_links(
-            entry_id=entry_id,
-            ai_provider=request.ai_provider,
-            api_key=api_key
-        )
-        
-        return [
-            {
-                "id": link.id,
-                "anchor_text": link.anchor_text,
-                "target_entry_id": link.target_entry_id,
-                "context": link.context
-            }
-            for link in links
-        ]
-        
-    except ValueError as e:
-        logger.error(f"Failed to generate entry links: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error generating entry links: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate entry links"
-        )
+    """
+    DEPRECATED: Manual link generation replaced by automatic term linking.
+    
+    This endpoint is kept for backward compatibility but returns an empty list.
+    Inter-entry links are now handled automatically by the TermLinkingService.
+    """
+    logger.info(f"Deprecated manual link generation called for entry {entry_id}")
+    return []
 
 
 @router.post(

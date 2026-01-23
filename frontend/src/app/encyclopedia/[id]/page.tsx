@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { TermLinkedContent } from '@/components/ui/term-linked-content';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, BookOpen, Clock, User, ExternalLink, Share2 } from 'lucide-react';
 
@@ -146,13 +147,17 @@ export default function EncyclopediaEntryPage() {
   };
 
   const renderContentWithLinks = (content: string, links?: EncyclopediaLink[]) => {
-    if (!links || links.length === 0) {
-      return <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />;
-    }
-
-    // For now, return content as-is
-    // In a full implementation, you'd replace anchor text with actual links
-    return <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />;
+    // Use automatic term linking instead of manual links
+    return (
+      <TermLinkedContent 
+        content={content}
+        context="encyclopedia"
+        maxLinks={15}
+        enableHover={true}
+        enableModal={true}
+        className="prose prose-lg max-w-none"
+      />
+    );
   };
 
   if (isLoading) {

@@ -171,10 +171,13 @@ class EncyclopediaConversation(Base, UUIDMixin, TimestampMixin):
 
 class EncyclopediaLink(Base, UUIDMixin, TimestampMixin):
     """
-    Inter-entry links for encyclopedia navigation.
+    DEPRECATED: Inter-entry links for encyclopedia navigation.
     
-    Stores Wikipedia-style hyperlinks between related encyclopedia entries
-    with context and anchor text information.
+    This model is deprecated in favor of automatic term linking.
+    Manual link generation has been replaced by the TermLinkingService
+    which automatically detects and links poker terms throughout the interface.
+    
+    Kept for backward compatibility with existing data.
     """
     __tablename__ = "encyclopedia_links"
     
@@ -206,6 +209,15 @@ class EncyclopediaLink(Base, UUIDMixin, TimestampMixin):
         Text,
         nullable=True,
         comment="Surrounding context where the link appears"
+    )
+    
+    # Deprecated flag for cleanup
+    deprecated: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+        comment="Deprecated flag - manual links replaced by automatic term linking"
     )
     
     # Relationships

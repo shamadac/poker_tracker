@@ -264,41 +264,12 @@ export default function EncyclopediaAdminPage() {
   };
 
   const generateLinks = async (entryId: string) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/v1/encyclopedia/entries/${entryId}/links`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ai_provider: 'groq'
-        })
-      });
-
-      if (response.ok) {
-        const links = await response.json();
-        toast({
-          title: 'Success',
-          description: `Generated ${links.length} inter-entry links`
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: 'Error',
-          description: error.detail || 'Failed to generate links',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate links',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // DEPRECATED: Manual link generation replaced by automatic term linking
+    toast({
+      title: 'Info',
+      description: 'Manual link generation is deprecated. Links are now created automatically throughout the interface.',
+      variant: 'default'
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -346,7 +317,7 @@ export default function EncyclopediaAdminPage() {
             <CardHeader>
               <CardTitle>Encyclopedia Entries</CardTitle>
               <CardDescription>
-                Manage existing encyclopedia entries
+                Manage existing encyclopedia entries. Inter-entry links are now created automatically throughout the interface.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -395,14 +366,6 @@ export default function EncyclopediaAdminPage() {
                               <Check className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => generateLinks(entry.id)}
-                            disabled={isLoading}
-                          >
-                            <Link className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     </CardContent>

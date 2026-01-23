@@ -342,117 +342,22 @@ class EncyclopediaService:
         api_key: str
     ) -> List[EncyclopediaLink]:
         """
-        Generate inter-entry links for an encyclopedia entry using AI analysis.
+        DEPRECATED: Manual link generation replaced by automatic term linking.
+        
+        This method is kept for backward compatibility but now returns an empty list.
+        Inter-entry links are now handled automatically by the TermLinkingService
+        throughout the frontend interface.
         
         Args:
-            entry_id: ID of the entry to generate links for
-            ai_provider: AI provider to use
-            api_key: API key for the AI provider
+            entry_id: ID of the entry (unused)
+            ai_provider: AI provider (unused)
+            api_key: API key (unused)
             
         Returns:
-            List of generated encyclopedia links
+            Empty list - links are now handled automatically
         """
-        try:
-            # Get the source entry
-            result = await self.db.execute(
-                select(EncyclopediaEntry)
-                .where(EncyclopediaEntry.id == entry_id)
-            )
-            source_entry = result.scalar_one_or_none()
-            
-            if not source_entry:
-                raise ValueError(f"Encyclopedia entry {entry_id} not found")
-            
-            # Get all other published entries as potential targets
-            result = await self.db.execute(
-                select(EncyclopediaEntry.id, EncyclopediaEntry.title)
-                .where(
-                    and_(
-                        EncyclopediaEntry.status == EncyclopediaStatus.PUBLISHED,
-                        EncyclopediaEntry.id != entry_id
-                    )
-                )
-            )
-            potential_targets = {row[1]: row[0] for row in result.fetchall()}
-            
-            if not potential_targets:
-                logger.info(f"No potential link targets found for entry {entry_id}")
-                return []
-            
-            # Create prompt for link generation
-            target_titles = "\n".join([f"- {title}" for title in potential_targets.keys()])
-            
-            link_prompt = f"""
-            Analyze the following encyclopedia entry content and identify opportunities to create 
-            Wikipedia-style hyperlinks to related topics.
-            
-            Entry content:
-            {source_entry.content}
-            
-            Available topics to link to:
-            {target_titles}
-            
-            For each potential link, identify:
-            1. The exact text in the content that should be linked (anchor text)
-            2. Which topic it should link to
-            3. The surrounding context (1-2 sentences around the link)
-            
-            Only suggest links where the connection is clear and would be helpful to readers.
-            Format your response as a JSON array with objects containing "anchor_text", "target_title", and "context" fields.
-            """
-            
-            response = await self._generate_content(
-                prompt=link_prompt,
-                ai_provider=ai_provider,
-                api_key=api_key,
-                context=f"Generating links for entry: {source_entry.title}"
-            )
-            
-            if not response.success:
-                logger.error(f"Failed to generate links: {response.error}")
-                return []
-            
-            # Parse response and create links (simplified parsing)
-            links = []
-            lines = response.content.split('\n')
-            current_link = {}
-            
-            for line in lines:
-                line = line.strip()
-                if '"anchor_text"' in line and ':' in line:
-                    anchor_text = line.split(':', 1)[1].strip().strip('"').strip(',')
-                    current_link['anchor_text'] = anchor_text
-                elif '"target_title"' in line and ':' in line:
-                    target_title = line.split(':', 1)[1].strip().strip('"').strip(',')
-                    current_link['target_title'] = target_title
-                elif '"context"' in line and ':' in line:
-                    context = line.split(':', 1)[1].strip().strip('"').strip(',')
-                    current_link['context'] = context
-                    
-                    # Create link if we have all required fields
-                    if all(key in current_link for key in ['anchor_text', 'target_title', 'context']):
-                        target_id = potential_targets.get(current_link['target_title'])
-                        if target_id:
-                            link = EncyclopediaLink(
-                                source_entry_id=entry_id,
-                                target_entry_id=target_id,
-                                anchor_text=current_link['anchor_text'],
-                                context=current_link['context']
-                            )
-                            self.db.add(link)
-                            links.append(link)
-                    
-                    current_link = {}
-            
-            await self.db.commit()
-            
-            logger.info(f"Generated {len(links)} links for entry {entry_id}")
-            return links
-            
-        except Exception as e:
-            await self.db.rollback()
-            logger.error(f"Failed to generate links for entry {entry_id}: {e}")
-            raise
+        logger.info(f"Manual link generation deprecated for entry {entry_id}. Using automatic term linking instead.")
+        return []
     
     async def search_entries(
         self,

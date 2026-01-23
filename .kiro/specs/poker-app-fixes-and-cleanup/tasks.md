@@ -36,7 +36,8 @@ The implementation is organized into discrete, incremental steps that build upon
     - Add empty state handling for dates with no sessions
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ]* 2.3 Write property test for timezone-aware date calculations
+  - [x] 2.3 Write property test for timezone-aware date calculations
+
     - **Property 2: Timezone-Aware Date Calculations**
     - **Validates: Requirements 2.2, 2.3, 2.4, 2.5**
 

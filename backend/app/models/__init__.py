@@ -9,6 +9,13 @@ from .monitoring import FileMonitoring
 from .file_processing import FileProcessingTask, ProcessingStatus
 from .rbac import Role, Permission, UserRole
 from .education import EducationContent, EducationProgress, DifficultyLevel, ContentCategory
+from .encyclopedia import (
+    EncyclopediaEntry, 
+    EncyclopediaConversation, 
+    EncyclopediaLink,
+    EncyclopediaStatus,
+    AIProvider
+)
 
 __all__ = [
     "User",
@@ -25,4 +32,9 @@ __all__ = [
     "EducationProgress",
     "DifficultyLevel",
     "ContentCategory",
+    "EncyclopediaEntry",
+    "EncyclopediaConversation",
+    "EncyclopediaLink",
+    "EncyclopediaStatus",
+    "AIProvider",
 ]

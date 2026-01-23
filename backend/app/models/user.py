@@ -79,6 +79,17 @@ class User(Base, UUIDMixin, TimestampMixin):
     )
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     
+    # Encyclopedia relationships
+    created_encyclopedia_entries = relationship(
+        "EncyclopediaEntry",
+        foreign_keys="EncyclopediaEntry.created_by",
+        cascade="all, delete-orphan"
+    )
+    approved_encyclopedia_entries = relationship(
+        "EncyclopediaEntry",
+        foreign_keys="EncyclopediaEntry.approved_by"
+    )
+    
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"
     

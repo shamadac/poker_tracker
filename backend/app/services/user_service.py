@@ -145,6 +145,12 @@ class UserService:
         return {}
     
     @staticmethod
+    async def get_api_key(db: AsyncSession, user_id: str, provider: str) -> Optional[str]:
+        """Get a specific API key for a provider."""
+        api_keys = await UserService.get_user_api_keys(db, user_id)
+        return api_keys.get(provider)
+    
+    @staticmethod
     async def update_user_preferences(
         db: AsyncSession, 
         user_id: str, 

@@ -24,6 +24,7 @@ from ..models.encyclopedia import (
 )
 from ..models.user import User
 from .ai_providers import AIProviderFactory, AIProvider, AIResponse
+from .user_service import UserService
 from ..core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -38,8 +39,7 @@ class EncyclopediaService:
     
     async def get_api_key(self, user_id: str, provider: str) -> Optional[str]:
         """Get API key for a specific provider."""
-        user_service = UserService()
-        return await user_service.get_api_key(self.db, user_id, provider)
+        return await UserService.get_api_key(self.db, user_id, provider)
     
     async def create_entry(
         self,

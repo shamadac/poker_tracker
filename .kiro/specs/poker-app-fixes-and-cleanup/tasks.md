@@ -87,7 +87,8 @@ The implementation is organized into discrete, incremental steps that build upon
     - Implement related entries display and navigation
     - _Requirements: 4.6_
 
-  - [ ]* 4.5 Write property test for encyclopedia content workflow
+  - [-] 4.5 Write property test for encyclopedia content workflow
+
     - **Property 4: Encyclopedia Content Workflow**
     - **Validates: Requirements 4.2, 4.3, 4.4, 4.5**
 

@@ -35,7 +35,7 @@ class Settings:
     
     # OAuth 2.0 PKCE Configuration
     OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "poker-analyzer-client")
-    OAUTH_REDIRECT_URI: str = os.getenv("OAUTH_REDIRECT_URI", "http://localhost:3000/auth/callback")
+    OAUTH_REDIRECT_URI: str = os.getenv("OAUTH_REDIRECT_URI", "http://localhost:3001/auth/callback")
     OAUTH_SCOPE: str = os.getenv("OAUTH_SCOPE", "read write")
     
     # Database
@@ -59,7 +59,7 @@ class Settings:
         origins = os.getenv("BACKEND_CORS_ORIGINS", "")
         if origins:
             return [origin.strip() for origin in origins.split(",")]
-        return ["http://localhost:3000", "http://127.0.0.1:3000"]  # Default for development
+        return ["http://localhost:3001", "http://127.0.0.1:3001"]  # Default for development
     
     # Environment
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")

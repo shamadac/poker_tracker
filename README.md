@@ -28,9 +28,9 @@ A modern, enterprise-grade poker analysis platform built with Next.js, FastAPI, 
    ```
 
 3. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/api/v1/docs
+   - Frontend: http://localhost:3001
+   - Backend API: http://localhost:8001
+   - API Documentation: http://localhost:8001/api/v1/docs
 
 ## 🏗️ Architecture
 
@@ -109,7 +109,7 @@ REDIS_URL=redis://localhost:6379/0
 SECRET_KEY=your-super-secret-key-here
 
 # API
-BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+BACKEND_CORS_ORIGINS=["http://localhost:3001"]
 ```
 
 ## 📊 Features
@@ -159,8 +159,8 @@ docker-compose exec backend pytest -m property
 ## 📝 API Documentation
 
 The API documentation is automatically generated and available at:
-- Development: http://localhost:8000/api/v1/docs
-- Interactive docs: http://localhost:8000/api/v1/redoc
+- Development: http://localhost:8001/api/v1/docs
+- Interactive docs: http://localhost:8001/api/v1/redoc
 
 ### Key Endpoints
 - `GET /health` - Health check
@@ -213,7 +213,7 @@ Users configure their own API keys through the web interface:
 
 ## 📚 Documentation
 
-- [API Documentation](http://localhost:8000/api/v1/docs)
+- [API Documentation](http://localhost:8001/api/v1/docs)
 - [Architecture Guide](docs/architecture.md)
 - [Development Guide](docs/development.md)
 - [Deployment Guide](docs/deployment.md)

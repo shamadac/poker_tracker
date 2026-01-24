@@ -4,15 +4,15 @@ version: '3.8'
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.alt-ports.yml up
 
 services:
-  # PostgreSQL Database - Alternative port 5433
+  # PostgreSQL Database - Alternative port 5434
   postgres:
     ports:
-      - "5433:5432"
+      - "5434:5432"
 
-  # Redis Cache - Alternative port 6380
+  # Redis Cache - Alternative port 6381
   redis:
     ports:
-      - "6380:6379"
+      - "6381:6379"
 
   # Backend API - Alternative port 8001
   backend:

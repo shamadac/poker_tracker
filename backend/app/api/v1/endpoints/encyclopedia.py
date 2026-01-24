@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....core.deps import get_db, get_current_user
+from ....api.deps import get_db, get_current_user
 from ....models.user import User
 from ....models.encyclopedia import EncyclopediaStatus, AIProvider
 from ....services.encyclopedia_service import EncyclopediaService

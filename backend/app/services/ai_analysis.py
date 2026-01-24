@@ -35,6 +35,18 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class AnalysisResult:
+    """Result from AI analysis."""
+    success: bool
+    content: Optional[str] = None
+    error: Optional[str] = None
+    provider: Optional[AIProvider] = None
+    prompt_used: Optional[Dict[str, str]] = None
+    metadata: Optional[Dict[str, Any]] = None
+    usage: Optional[Dict[str, Any]] = None
+
+
+@dataclass
 class BatchAnalysisRequest:
     """Request for batch analysis of multiple hands."""
     hand_ids: List[str]
@@ -67,18 +79,6 @@ class ProviderFailoverResult:
     original_provider: AIProvider
     failover_reason: str
     result: Optional[AnalysisResult] = None
-
-
-@dataclass
-class AnalysisResult:
-    """Result from AI analysis."""
-    success: bool
-    content: Optional[str] = None
-    error: Optional[str] = None
-    provider: Optional[AIProvider] = None
-    prompt_used: Optional[Dict[str, str]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    usage: Optional[Dict[str, Any]] = None
 
 
 class ProductionAIAnalysisService:
@@ -2096,12 +2096,12 @@ class ProductionAIAnalysisService:
 
 
 # Global AI analysis service instance
-_ai_analysis_service: Optional[AIAnalysisService] = None
+_ai_analysis_service: Optional[ProductionAIAnalysisService] = None
 
 
-def get_ai_analysis_service() -> AIAnalysisService:
+def get_ai_analysis_service() -> ProductionAIAnalysisService:
     """Get the global AI analysis service instance."""
     global _ai_analysis_service
     if _ai_analysis_service is None:
-        _ai_analysis_service = AIAnalysisService()
+        _ai_analysis_service = ProductionAIAnalysisService()
     return _ai_analysis_service

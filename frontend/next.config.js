@@ -59,14 +59,14 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: process.env.NODE_ENV === 'development' 
-          ? 'http://localhost:8000/api/v1/:path*'
+          ? 'http://localhost:8001/api/v1/:path*'
           : '/api/:path*',
       },
     ];
   },
   
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001',
   },
   
   // Bundle analyzer for optimization

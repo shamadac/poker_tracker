@@ -24,10 +24,9 @@ from ..models.encyclopedia import (
 )
 from ..models.user import User
 from .ai_providers import AIProviderFactory, AIProvider, AIResponse
-from ..core.config import get_settings
+from ..core.config import settings
 
 logger = logging.getLogger(__name__)
-settings = get_settings()
 
 
 class EncyclopediaService:

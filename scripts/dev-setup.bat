@@ -59,9 +59,9 @@ echo.
 echo ✅ Development environment setup complete!
 echo.
 echo 🌐 Services available at:
-echo    Frontend: http://localhost:3000
-echo    Backend API: http://localhost:8000
-echo    API Docs: http://localhost:8000/api/v1/docs
+echo    Frontend: http://localhost:3001
+echo    Backend API: http://localhost:8001
+echo    API Docs: http://localhost:8001/api/v1/docs
 echo    PostgreSQL: localhost:5432
 echo    Redis: localhost:6379
 echo.

@@ -8,36 +8,70 @@ async function loadGraphs() {
     const loadingScreen = document.getElementById('loading-screen');
     const graphsContent = document.getElementById('graphs-content');
     
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        loadingScreen.innerHTML = `
+            <div class="error-message">
+                <h3>Chart Library Error</h3>
+                <p>Chart.js failed to load. Please refresh the page.</p>
+                <button onclick="location.reload()" class="btn btn-primary">Refresh Page</button>
+            </div>
+        `;
+        return;
+    }
+    
     try {
+        console.log('Loading dashboard data...');
         const response = await fetch('/api/dashboard/data');
         const data = await response.json();
+        
+        console.log('API Response:', data);
         
         if (data.success && data.hands && data.hands.length > 0) {
             allHands = data.hands;
             filteredHands = [...allHands];
+            
+            console.log(`Loaded ${allHands.length} hands`);
             
             // Populate stakes filter
             populateStakesFilter();
             
             // Update metrics and create charts
             updateMetrics();
-            createWinRateChart();
-            createResultsChart();
-            createPositionChart();
-            createProfitChart();
-            createHandStrengthChart();
-            createAggressionChart();
-            createSessionChart();
-            createBankrollChart();
-            createStartingHandsChart();
-            createHandRangeHeatmap();
-            createStreakChart();
-            createRadarChart();
+            
+            try {
+                createWinRateChart();
+                createResultsChart();
+                createPositionChart();
+                createProfitChart();
+                createHandStrengthChart();
+                createAggressionChart();
+                createSessionChart();
+                createBankrollChart();
+                createStartingHandsChart();
+                createHandRangeHeatmap();
+                createStreakChart();
+                createRadarChart();
+                
+                console.log('All charts created successfully');
+            } catch (chartError) {
+                console.error('Error creating charts:', chartError);
+                loadingScreen.innerHTML = `
+                    <div class="error-message">
+                        <h3>Chart Creation Error</h3>
+                        <p>Error: ${chartError.message}</p>
+                        <button onclick="location.reload()" class="btn btn-primary">Refresh Page</button>
+                    </div>
+                `;
+                return;
+            }
             
             // Show graphs
             loadingScreen.style.display = 'none';
             graphsContent.style.display = 'block';
         } else {
+            console.log('No hands data available');
             loadingScreen.innerHTML = `
                 <div class="error-message">
                     <h3>No Data Available</h3>
@@ -138,13 +172,26 @@ function applyFilters() {
         if (stakes !== 'all' && hand.stakes !== stakes) return false;
         
         // Time filter
-        if (timeFilter !== 'all') {
-            const handDate = new Date(hand.date);
-            const now = new Date();
-            const daysDiff = (now - handDate) / (1000 * 60 * 60 * 24);
-            
-            if (timeFilter === 'week' && daysDiff > 7) return false;
-            if (timeFilter === 'month' && daysDiff > 30) return false;
+        if (timeFilter !== 'all' && hand.date) {
+            try {
+                // Handle different date formats
+                let handDate;
+                if (hand.date.includes('/')) {
+                    // Format: "2026/01/12 17:28:02"
+                    const parts = hand.date.split(' ')[0].split('/');
+                    handDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                } else {
+                    handDate = new Date(hand.date);
+                }
+                
+                const now = new Date();
+                const daysDiff = (now - handDate) / (1000 * 60 * 60 * 24);
+                
+                if (timeFilter === 'week' && daysDiff > 7) return false;
+                if (timeFilter === 'month' && daysDiff > 30) return false;
+            } catch (e) {
+                console.warn('Invalid date format:', hand.date);
+            }
         }
         
         return true;
@@ -160,147 +207,175 @@ function applyFilters() {
 
 // Create Win Rate Chart
 function createWinRateChart() {
-    const ctx = document.getElementById('winRateChart');
-    
-    // Calculate cumulative win rate
-    const data = [];
-    let wins = 0;
-    let total = 0;
-    
-    filteredHands.forEach((hand, index) => {
-        total++;
-        if (hand.result && hand.result.toLowerCase().includes('won')) {
-            wins++;
+    try {
+        const ctx = document.getElementById('winRateChart');
+        if (!ctx) {
+            console.error('winRateChart canvas not found');
+            return;
         }
         
-        // Add data point every 3 hands or at the end
-        if (total % 3 === 0 || index === filteredHands.length - 1) {
-            data.push({
-                x: total,
-                y: parseFloat((wins / total * 100).toFixed(1))
-            });
+        // Calculate cumulative win rate
+        const data = [];
+        let wins = 0;
+        let total = 0;
+        
+        filteredHands.forEach((hand, index) => {
+            total++;
+            if (hand.result && hand.result.toLowerCase().includes('won')) {
+                wins++;
+            }
+            
+            // Add data point every 3 hands or at the end
+            if (total % 3 === 0 || index === filteredHands.length - 1) {
+                data.push({
+                    x: total,
+                    y: parseFloat((wins / total * 100).toFixed(1))
+                });
+            }
+        });
+        
+        console.log('Win rate data points:', data.length);
+        
+        if (charts.winRate) {
+            charts.winRate.destroy();
         }
-    });
-    
-    charts.winRate = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: [{
-                label: 'Win Rate',
-                data: data,
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                pointRadius: 3,
-                pointHoverRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    titleFont: { size: 13, weight: '600' },
-                    bodyFont: { size: 12 },
-                    callbacks: {
-                        title: function(context) {
-                            return `Hand ${context[0].parsed.x}`;
-                        },
-                        label: function(context) {
-                            return `Win Rate: ${context.parsed.y}%`;
+        
+        charts.winRate = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Win Rate',
+                    data: data,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            title: function(context) {
+                                return `Hand ${context[0].parsed.x}`;
+                            },
+                            label: function(context) {
+                                return `Win Rate: ${context.parsed.y}%`;
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: 'Hands Played',
-                        font: { size: 12, weight: '600' }
-                    },
-                    grid: {
-                        display: false
-                    }
                 },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Win Rate (%)',
-                        font: { size: 12, weight: '600' }
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: 'Hands Played',
+                            font: { size: 12, weight: '600' }
+                        },
+                        grid: {
+                            display: false
+                        }
                     },
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Win Rate (%)',
+                            font: { size: 12, weight: '600' }
+                        },
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error creating win rate chart:', error);
+    }
 }
 
 // Create Results Chart
 function createResultsChart() {
-    const ctx = document.getElementById('resultsChart');
-    
-    const wins = filteredHands.filter(h => h.result.toLowerCase().includes('won')).length;
-    const losses = filteredHands.filter(h => h.result.toLowerCase().includes('lost')).length;
-    const folds = filteredHands.filter(h => h.result.toLowerCase().includes('fold')).length;
-    
-    charts.results = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Wins', 'Losses', 'Folds'],
-            datasets: [{
-                data: [wins, losses, folds],
-                backgroundColor: [
-                    '#10b981',
-                    '#ef4444',
-                    '#9ca3af'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: { size: 12, weight: '500' },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    titleFont: { size: 13, weight: '600' },
-                    bodyFont: { size: 12 },
-                    callbacks: {
-                        label: function(context) {
-                            const total = wins + losses + folds;
-                            const percentage = ((context.parsed / total) * 100).toFixed(1);
-                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+    try {
+        const ctx = document.getElementById('resultsChart');
+        if (!ctx) {
+            console.error('resultsChart canvas not found');
+            return;
+        }
+        
+        const wins = filteredHands.filter(h => h.result && h.result.toLowerCase().includes('won')).length;
+        const losses = filteredHands.filter(h => h.result && (h.result.toLowerCase().includes('lost') || h.result.toLowerCase().includes('unknown'))).length;
+        const folds = filteredHands.filter(h => h.result && h.result.toLowerCase().includes('fold')).length;
+        
+        console.log('Results data:', { wins, losses, folds });
+        
+        if (charts.results) {
+            charts.results.destroy();
+        }
+        
+        charts.results = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Wins', 'Losses', 'Folds'],
+                datasets: [{
+                    data: [wins, losses, folds],
+                    backgroundColor: [
+                        '#10b981',
+                        '#ef4444',
+                        '#9ca3af'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12, weight: '500' },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                const total = wins + losses + folds;
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error creating results chart:', error);
+    }
 }
 
 // Create Position Chart
@@ -708,7 +783,21 @@ function createSessionChart() {
     // Group hands by date (session)
     const sessions = {};
     filteredHands.forEach(hand => {
-        const date = hand.date ? hand.date.split('T')[0] : 'Unknown';
+        let date = 'Unknown';
+        if (hand.date) {
+            try {
+                if (hand.date.includes('/')) {
+                    // Format: "2026/01/12 17:28:02"
+                    date = hand.date.split(' ')[0];
+                } else {
+                    date = new Date(hand.date).toISOString().split('T')[0];
+                }
+            } catch (e) {
+                console.warn('Invalid date format:', hand.date);
+                date = 'Unknown';
+            }
+        }
+        
         if (!sessions[date]) {
             sessions[date] = { wins: 0, total: 0, profit: 0 };
         }
@@ -738,8 +827,20 @@ function createSessionChart() {
         type: 'bar',
         data: {
             labels: dates.map(d => {
-                const date = new Date(d);
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                if (d === 'Unknown') return d;
+                try {
+                    let date;
+                    if (d.includes('/')) {
+                        // Format: "2026/01/12"
+                        const parts = d.split('/');
+                        date = new Date(parts[0], parts[1] - 1, parts[2]);
+                    } else {
+                        date = new Date(d);
+                    }
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                } catch (e) {
+                    return d;
+                }
             }),
             datasets: [
                 {

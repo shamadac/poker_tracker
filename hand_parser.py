@@ -72,13 +72,36 @@ class HandParser:
         return match.group(1) if match else 'unknown'
     
     def _extract_player_position(self, text: str) -> str:
+        """Extract player's position relative to button."""
         # Look for player's seat and button position
-        player_match = re.search(rf'Seat \d+: {self.player_username}', text)
+        player_match = re.search(rf'Seat (\d+): {self.player_username}', text)
         button_match = re.search(r'Seat #(\d+) is the button', text)
         
-        if player_match and button_match:
-            return 'found'
-        return 'unknown'
+        if not player_match or not button_match:
+            return 'unknown'
+        
+        player_seat = int(player_match.group(1))
+        button_seat = int(button_match.group(1))
+        
+        # Count total players to determine positions
+        seat_matches = re.findall(r'Seat \d+:', text)
+        total_players = len(seat_matches)
+        
+        # Calculate position relative to button
+        if player_seat == button_seat:
+            return 'BTN'
+        
+        # Calculate seats after button
+        seats_after_button = (player_seat - button_seat) % 10  # Assuming max 10 seats
+        
+        if total_players <= 6:
+            # 6-max positions
+            position_map = {1: 'SB', 2: 'BB', 3: 'UTG', 4: 'MP', 5: 'CO'}
+        else:
+            # Full ring positions
+            position_map = {1: 'SB', 2: 'BB', 3: 'UTG', 4: 'UTG+1', 5: 'MP', 6: 'MP+1', 7: 'CO'}
+        
+        return position_map.get(seats_after_button, f'Seat+{seats_after_button}')
     
     def _extract_player_cards(self, text: str) -> str:
         match = re.search(rf'Dealt to {self.player_username} \[([^\]]+)\]', text)

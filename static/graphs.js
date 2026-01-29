@@ -12,7 +12,7 @@ async function loadGraphs() {
         const response = await fetch('/api/dashboard/data');
         const data = await response.json();
         
-        if (data.success) {
+        if (data.success && data.hands && data.hands.length > 0) {
             allHands = data.hands;
             filteredHands = [...allHands];
             
@@ -47,6 +47,7 @@ async function loadGraphs() {
             `;
         }
     } catch (error) {
+        console.error('Error loading graphs:', error);
         loadingScreen.innerHTML = `
             <div class="error-message">
                 <h3>Error Loading Data</h3>
@@ -78,22 +79,31 @@ function populateStakesFilter() {
 // Update key metrics
 function updateMetrics() {
     const totalHands = filteredHands.length;
-    const wins = filteredHands.filter(h => h.won).length;
+    const wins = filteredHands.filter(h => h.result && h.result.toLowerCase().includes('won')).length;
     const winRate = totalHands > 0 ? ((wins / totalHands) * 100).toFixed(1) : 0;
     
     // Calculate VPIP (hands where player put money in voluntarily)
-    const vpipHands = filteredHands.filter(h => h.actions > 0).length;
+    const vpipHands = filteredHands.filter(h => {
+        const actions = h.actions || [];
+        return actions.some(action => 
+            action.includes('calls') || 
+            action.includes('raises') || 
+            action.includes('bets')
+        );
+    }).length;
     const vpip = totalHands > 0 ? ((vpipHands / totalHands) * 100).toFixed(1) : 0;
     
     // Find best position
     const positions = {};
     filteredHands.forEach(hand => {
-        const pos = hand.position || 'Unknown';
+        const pos = hand.player_position || 'Unknown';
         if (!positions[pos]) {
             positions[pos] = { total: 0, wins: 0 };
         }
         positions[pos].total++;
-        if (hand.won) positions[pos].wins++;
+        if (hand.result && hand.result.toLowerCase().includes('won')) {
+            positions[pos].wins++;
+        }
     });
     
     let bestPosition = '-';
@@ -159,7 +169,9 @@ function createWinRateChart() {
     
     filteredHands.forEach((hand, index) => {
         total++;
-        if (hand.won) wins++;
+        if (hand.result && hand.result.toLowerCase().includes('won')) {
+            wins++;
+        }
         
         // Add data point every 3 hands or at the end
         if (total % 3 === 0 || index === filteredHands.length - 1) {
@@ -298,12 +310,14 @@ function createPositionChart() {
     // Group by position
     const positions = {};
     filteredHands.forEach(hand => {
-        const pos = hand.position || 'Unknown';
+        const pos = hand.player_position || 'Unknown';
         if (!positions[pos]) {
             positions[pos] = { total: 0, wins: 0 };
         }
         positions[pos].total++;
-        if (hand.won) positions[pos].wins++;
+        if (hand.result && hand.result.toLowerCase().includes('won')) {
+            positions[pos].wins++;
+        }
     });
     
     // Sort positions by standard poker order
@@ -395,12 +409,13 @@ function createProfitChart() {
     filteredHands.forEach((hand, index) => {
         // Estimate profit based on result
         let profit = 0;
-        if (hand.result.toLowerCase().includes('won')) {
+        const result = hand.result || '';
+        if (result.toLowerCase().includes('won')) {
             // Extract amount from result if possible
-            const match = hand.result.match(/[\d.]+/);
+            const match = result.match(/[\d.]+/);
             profit = match ? parseFloat(match[0]) : 1;
-        } else if (hand.result.toLowerCase().includes('lost')) {
-            const match = hand.result.match(/[\d.]+/);
+        } else if (result.toLowerCase().includes('lost')) {
+            const match = result.match(/[\d.]+/);
             profit = match ? -parseFloat(match[0]) : -0.5;
         }
         
@@ -510,12 +525,12 @@ function createHandStrengthChart() {
     };
     
     filteredHands.forEach(hand => {
-        if (!hand.hole_cards || hand.hole_cards === 'unknown') {
+        if (!hand.player_cards || hand.player_cards === 'unknown') {
             categories['Weak (Others)']++;
             return;
         }
         
-        const cards = hand.hole_cards.toUpperCase();
+        const cards = hand.player_cards.toUpperCase();
         
         // Premium hands
         if (cards.includes('AA') || cards.includes('KK') || cards.includes('QQ') || 
@@ -603,7 +618,7 @@ function createAggressionChart() {
     };
     
     filteredHands.forEach(hand => {
-        const result = hand.result.toLowerCase();
+        const result = (hand.result || '').toLowerCase();
         
         if (result.includes('bet') || result.includes('raise') || result.includes('all-in')) {
             actions['Aggressive (Bet/Raise)']++;
@@ -613,7 +628,7 @@ function createAggressionChart() {
             actions['Fold']++;
         } else {
             // Default categorization based on whether they won
-            if (hand.won) {
+            if (result.includes('won')) {
                 actions['Aggressive (Bet/Raise)']++;
             } else {
                 actions['Passive (Call/Check)']++;
@@ -698,14 +713,17 @@ function createSessionChart() {
             sessions[date] = { wins: 0, total: 0, profit: 0 };
         }
         sessions[date].total++;
-        if (hand.won) sessions[date].wins++;
+        if (hand.result && hand.result.toLowerCase().includes('won')) {
+            sessions[date].wins++;
+        }
         
         // Calculate profit
-        if (hand.result.toLowerCase().includes('won')) {
-            const match = hand.result.match(/[\d.]+/);
+        const result = hand.result || '';
+        if (result.toLowerCase().includes('won')) {
+            const match = result.match(/[\d.]+/);
             sessions[date].profit += match ? parseFloat(match[0]) : 1;
-        } else if (hand.result.toLowerCase().includes('lost')) {
-            const match = hand.result.match(/[\d.]+/);
+        } else if (result.toLowerCase().includes('lost')) {
+            const match = result.match(/[\d.]+/);
             sessions[date].profit -= match ? parseFloat(match[0]) : 0.5;
         }
     });
@@ -818,11 +836,12 @@ function createBankrollChart() {
     
     filteredHands.forEach((hand, index) => {
         // Calculate profit/loss
-        if (hand.result.toLowerCase().includes('won')) {
-            const match = hand.result.match(/[\d.]+/);
+        const result = hand.result || '';
+        if (result.toLowerCase().includes('won')) {
+            const match = result.match(/[\d.]+/);
             bankroll += match ? parseFloat(match[0]) : 1;
-        } else if (hand.result.toLowerCase().includes('lost')) {
-            const match = hand.result.match(/[\d.]+/);
+        } else if (result.toLowerCase().includes('lost')) {
+            const match = result.match(/[\d.]+/);
             bankroll -= match ? parseFloat(match[0]) : 0.5;
         }
         
@@ -1046,9 +1065,9 @@ function createHandRangeHeatmap() {
     const handWins = {};
     
     filteredHands.forEach(hand => {
-        if (!hand.hole_cards || hand.hole_cards === 'unknown') return;
+        if (!hand.player_cards || hand.player_cards === 'unknown') return;
         
-        const cards = hand.hole_cards.toUpperCase();
+        const cards = hand.player_cards.toUpperCase();
         // Normalize hand notation
         let handKey = cards.replace(/[shdc]/gi, '');
         
@@ -1057,7 +1076,9 @@ function createHandRangeHeatmap() {
             handWins[handKey] = 0;
         }
         handCounts[handKey]++;
-        if (hand.won) handWins[handKey]++;
+        if (hand.result && hand.result.toLowerCase().includes('won')) {
+            handWins[handKey]++;
+        }
     });
     
     // Create grid
@@ -1124,7 +1145,7 @@ function createStreakChart() {
     let streakType = null;
     
     filteredHands.forEach((hand, index) => {
-        const won = hand.won;
+        const won = hand.result && hand.result.toLowerCase().includes('won');
         
         if (streakType === null) {
             streakType = won ? 'win' : 'loss';
@@ -1223,21 +1244,28 @@ function createRadarChart() {
     
     // Calculate key metrics
     const totalHands = filteredHands.length;
-    const wins = filteredHands.filter(h => h.won).length;
+    const wins = filteredHands.filter(h => h.result && h.result.toLowerCase().includes('won')).length;
     const winRate = totalHands > 0 ? (wins / totalHands * 100) : 0;
     
-    const vpipHands = filteredHands.filter(h => h.actions > 0).length;
+    const vpipHands = filteredHands.filter(h => {
+        const actions = h.actions || [];
+        return actions.some(action => 
+            action.includes('calls') || 
+            action.includes('raises') || 
+            action.includes('bets')
+        );
+    }).length;
     const vpip = totalHands > 0 ? (vpipHands / totalHands * 100) : 0;
     
-    const aggressiveHands = filteredHands.filter(h => 
-        h.result.toLowerCase().includes('bet') || 
-        h.result.toLowerCase().includes('raise')
-    ).length;
+    const aggressiveHands = filteredHands.filter(h => {
+        const result = (h.result || '').toLowerCase();
+        return result.includes('bet') || result.includes('raise');
+    }).length;
     const aggression = vpipHands > 0 ? (aggressiveHands / vpipHands * 100) : 0;
     
     // Position awareness (BTN/CO win rate vs blinds)
-    const latePos = filteredHands.filter(h => h.position === 'BTN' || h.position === 'CO');
-    const latePosWins = latePos.filter(h => h.won).length;
+    const latePos = filteredHands.filter(h => h.player_position === 'BTN' || h.player_position === 'CO');
+    const latePosWins = latePos.filter(h => h.result && h.result.toLowerCase().includes('won')).length;
     const positionPlay = latePos.length > 0 ? (latePosWins / latePos.length * 100) : 50;
     
     // Fold discipline (fold rate)
